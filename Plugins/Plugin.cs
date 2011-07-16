@@ -1,5 +1,5 @@
 ﻿
-namespace IHI.Server.Plugin
+namespace IHI.Server.Plugins
 {
     public abstract class Plugin
     {
@@ -16,17 +16,6 @@ namespace IHI.Server.Plugin
         /// </summary>
         public abstract void Stop();
 
-        ///// <summary>
-        ///// Called when the plugin is 
-        ///// </summary>
-        ///// <returns>True on a successful install, false otherwise.</returns>
-        //public abstract bool Install();
-
-        ///// <summary>
-        ///// Called when the plugin is 
-        ///// </summary>
-        ///// <returns>True on a successful uninstall, false otherwise.</returns>
-        //public abstract bool Uninstall();
 
         public string GetName()
         {

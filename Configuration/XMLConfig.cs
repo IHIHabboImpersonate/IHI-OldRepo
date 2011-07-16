@@ -18,7 +18,7 @@ namespace IHI.Server.Configuration
         {
             if (!EnsureFile(new FileInfo(Path), out this.fCreated))
             {
-                Core.GetStandardOut().PrintError("File '" + Path + "' does not exist and couldn't be created automatically! (XmlConfig)");
+                CoreManager.GetCore().GetStandardOut().PrintError("File '" + Path + "' does not exist and couldn't be created automatically! (XmlConfig)");
             }
 
             this.fDocument = new XmlDocument();
@@ -69,7 +69,7 @@ namespace IHI.Server.Configuration
             {
                 if (!byte.TryParse(ValueAsString(XPath), out Result))
                 {
-                    Core.GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid byte! Fallback: " + Fallback);
+                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid byte! Fallback: " + Fallback);
                     return Fallback;
                 }
             }
@@ -93,7 +93,7 @@ namespace IHI.Server.Configuration
             {
                 if (!sbyte.TryParse(ValueAsString(XPath), out Result))
                 {
-                    Core.GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid sbyte! Fallback: " + Fallback);
+                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid sbyte! Fallback: " + Fallback);
                     return Fallback;
                 }
             }
@@ -117,7 +117,7 @@ namespace IHI.Server.Configuration
             {
                 if (!short.TryParse(ValueAsString(XPath), out Result))
                 {
-                    Core.GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid short! Fallback: " + Fallback);
+                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid short! Fallback: " + Fallback);
                     return Fallback;
                 }
             }
@@ -141,7 +141,7 @@ namespace IHI.Server.Configuration
             {
                 if (!ushort.TryParse(ValueAsString(XPath), out Result))
                 {
-                    Core.GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid ushort! Fallback: " + Fallback);
+                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid ushort! Fallback: " + Fallback);
                     return Fallback;
                 }
             }
@@ -165,7 +165,7 @@ namespace IHI.Server.Configuration
             {
                 if (!int.TryParse(ValueAsString(XPath), out Result))
                 {
-                    Core.GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid int! Fallback: " + Fallback);
+                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid int! Fallback: " + Fallback);
                     return Fallback;
                 }
             }
@@ -189,7 +189,7 @@ namespace IHI.Server.Configuration
             {
                 if (!uint.TryParse(ValueAsString(XPath), out Result))
                 {
-                    Core.GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid uint! Fallback: " + Fallback);
+                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid uint! Fallback: " + Fallback);
                     return Fallback;
                 }
             }
@@ -213,7 +213,7 @@ namespace IHI.Server.Configuration
             {
                 if (!long.TryParse(ValueAsString(XPath), out Result))
                 {
-                    Core.GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid long! Fallback: " + Fallback);
+                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid long! Fallback: " + Fallback);
                     return Fallback;
                 }
             }
@@ -237,7 +237,7 @@ namespace IHI.Server.Configuration
             {
                 if (!ulong.TryParse(ValueAsString(XPath), out Result))
                 {
-                    Core.GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid ulong! Fallback: " + Fallback);
+                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid ulong! Fallback: " + Fallback);
                     return Fallback;
                 }
             }

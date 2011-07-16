@@ -36,7 +36,7 @@ namespace IHI.Server.Habbos
             this.fID = ID;
             Database.Habbo HabboData;
 
-            using (ISession DB = Core.GetDatabaseSession())
+            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
             {
                 HabboData = DB.Get<Database.Habbo>(ID); // TODO: Heavily optimise (mapping).
             }
@@ -57,7 +57,7 @@ namespace IHI.Server.Habbos
 
             Database.Habbo HabboData;
 
-            using (ISession DB = Core.GetDatabaseSession())
+            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
             {
                 HabboData = DB.CreateCriteria<Database.Habbo>()
                                 .SetProjection(NHibernate.Criterion.Projections.ProjectionList()
@@ -193,7 +193,7 @@ namespace IHI.Server.Habbos
             OnlineValueCounter++;
             if (OnlineValueCounter == 1)
             {
-                using (ISession DB = Core.GetDatabaseSession())
+                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
                 {
                     // TODO: Heavily optimise (mapping).
                     this.fCreditBalance = DB.Get<Database.Habbo>(this.GetID()).credits;
@@ -237,7 +237,7 @@ namespace IHI.Server.Habbos
             if (!this.fLoggedIn && Value)
             {
                 this.fLastAccess = DateTimeOffset.Now;
-                using (ISession DB = Core.GetDatabaseSession())
+                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
                 {
                     DB.Update(DB.Get<Database.Habbo>(this.fID).last_access = this.fLastAccess);
                 }
@@ -316,7 +316,7 @@ namespace IHI.Server.Habbos
         /// <returns>The User the permissions were reloaded for. This is for Chaining.</returns>
         public Habbo ReloadPermissions()
         {
-            this.fPermissions = new HashSet<int>(Core.GetPermissionManager().GetHabboPermissions(this.fID));
+            this.fPermissions = new HashSet<int>(CoreManager.GetCore().GetPermissionManager().GetHabboPermissions(this.fID));
             return this;
         }
 

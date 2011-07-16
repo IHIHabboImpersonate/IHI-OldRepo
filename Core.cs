@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using IHI.Server.Configuration;
-using IHI.Server.Plugin;
+using IHI.Server.Plugins;
 using IHI.Server.Users.Permissions;
 using IHI.Server.Networking;
 using IHI.Server.WebAdmin;
+
+using System.IO;
+using System.Xml;
 
 using NHibernate;
 using NHCfg = NHibernate.Cfg;
@@ -14,141 +17,204 @@ using MySql.Data.MySqlClient;
 
 namespace IHI.Server
 {
-    public static class Core
+    public static class CoreManager
+    {
+        internal static Core fCore;
+        /// <summary>
+        /// Returns the instance of Core.
+        /// </summary>
+        /// <returns></returns>
+        public static Core GetCore()
+        {
+            return fCore;
+        }
+    }
+    public class Core : IShutdown
     {
         #region Fields
-        private static HabboDistributor fHabboDistributor;
-        private static StandardOut fStandardOut;
-        private static ISessionFactory fNHibernateSessionFactory;
-        private static XmlConfig fConfig;
-        private static IonTcpConnectionManager fConnectionManager;
-        private static Encoding fTextEncoding;
-        private static PermissionManager fPermissionManager;
-        private static PluginManager fPluginManager;
-        private static WebAdminManager fWebAdminManager;
+        private HabboDistributor fHabboDistributor;
+        private StandardOut fStandardOut;
+        private ISessionFactory fNHibernateSessionFactory;
+        private XmlConfig fConfig;
+        private IonTcpConnectionManager fConnectionManager;
+        private Encoding fTextEncoding;
+        private PermissionManager fPermissionManager;
+        private PluginManager fPluginManager;
+        private WebAdminManager fWebAdminManager;
         #endregion
 
+        public Core()
+        {
+            CoreManager.fCore = this;
+        }
+
         #region API
-        public static HabboDistributor GetUserDistributor()
+        public HabboDistributor GetUserDistributor()
         {
-            return fHabboDistributor;
+            return this.fHabboDistributor;
         }
-        public static StandardOut GetStandardOut()
+        public StandardOut GetStandardOut()
         {
-            return fStandardOut;
+            return this.fStandardOut;
         }
-        public static ISession GetDatabaseSession()
+        public ISession GetDatabaseSession()
         {
-            return fNHibernateSessionFactory.OpenSession();
+            return this.fNHibernateSessionFactory.OpenSession();
         }
-        public static XmlConfig GetConfig()
+        public XmlConfig GetConfig()
         {
-            return fConfig;
+            return this.fConfig;
         }
-        public static IonTcpConnectionManager GetConnectionManager()
+        public IonTcpConnectionManager GetConnectionManager()
         {
-            return fConnectionManager;
+            return this.fConnectionManager;
         }
-        public static Encoding GetTextEncoding()
+        public Encoding GetTextEncoding()
         {
-            return fTextEncoding;
+            return this.fTextEncoding;
         }
-        public static PermissionManager GetPermissionManager()
+        public PermissionManager GetPermissionManager()
         {
-            return fPermissionManager;
+            return this.fPermissionManager;
         }
-        public static WebAdminManager GetWebAdminManager()
+        public WebAdminManager GetWebAdminManager()
         {
-            return fWebAdminManager;
+            return this.fWebAdminManager;
         }
-        public static PluginManager GetPluginManager()
+        public PluginManager GetPluginManager()
         {
-            return fPluginManager;
+            return this.fPluginManager;
         }
         #endregion
 
         #region InternalMethods
-        internal static bool Boot(string ConfigPath)
+        internal bool Boot(string ConfigPath)
         {
-            fTextEncoding = Encoding.UTF8;  // TODO: Move this to an external config.
+            this.fTextEncoding = Encoding.UTF8;  // TODO: Move this to an external config.
 
-            fStandardOut = new StandardOut();
+            this.fStandardOut = new StandardOut();
 
             try
             {
-                fStandardOut.PrintNotice("Text Encoding => Set to " + fTextEncoding.EncodingName);
-                fStandardOut.PrintNotice("Standard Out => Ready");
+                this.fStandardOut.PrintNotice("Text Encoding => Set to " + fTextEncoding.EncodingName);
+                this.fStandardOut.PrintNotice("Standard Out => Ready");
 
-                fConfig = new XmlConfig(ConfigPath);
+                this.fConfig = new XmlConfig(ConfigPath);
 
                 if (fConfig.WasCreated()) // Did the config file have to be created?
                 {
                     // Yes, run the install process.
 
-                    fStandardOut.PrintImportant("No config file found! File created!");
-                    fStandardOut.PrintImportant("Starting installer...");
+                    this.fStandardOut.PrintImportant("No config file found! File created!");
+                    this.fStandardOut.PrintImportant("Starting installer...");
 
-                    fStandardOut.PrintNotice("Standard Out => Disabled (Install)");
+                    this.fStandardOut.PrintNotice("Standard Out => Disabled (Install)");
 
 
                     Dictionary<string, object> InstallerReturn = Install.Core.Run();
                     MonoAware.System.Console.Clear();
 
-                    fStandardOut.PrintNotice("Standard Out => Enabled (Install)");
-                    fStandardOut.PrintImportant("Updating configuration file...");
-                    
-                    System.Xml.XmlDocument inDoc = fConfig.GetInternalDocument();
+                    this.fStandardOut.PrintNotice("Standard Out => Enabled (Install)");
+                    this.fStandardOut.PrintImportant("Updating configuration file...");
 
-                    System.Xml.XmlNode inDocRootNode = inDoc.GetElementsByTagName("config")[0];
-                    System.Xml.XmlElement inDocMySQLElement = inDoc.CreateElement("mysql");
-                    System.Xml.XmlElement inDocTempElement;
+                    XmlDocument Doc = fConfig.GetInternalDocument();
+                    XmlNode RootElement = Doc.GetElementsByTagName("config")[0] as XmlNode;
 
-                    inDocTempElement = inDoc.CreateElement("host");
-                    inDocTempElement.InnerText = InstallerReturn["database.host"].ToString();
-                    inDocMySQLElement.AppendChild(inDocTempElement);
+                    XmlElement StandardOutElement = Doc.CreateElement("standardout");
+                    XmlElement MySQLElement = Doc.CreateElement("mysql");
+                    XmlElement NetworkElement = Doc.CreateElement("network");
+                    XmlElement WebAdminElement = Doc.CreateElement("webadmin");
 
-                    inDocTempElement = inDoc.CreateElement("port");
-                    inDocTempElement.InnerText = InstallerReturn["database.port"].ToString();
-                    inDocMySQLElement.AppendChild(inDocTempElement);
+                    XmlElement ValueElement;
 
-                    inDocTempElement = inDoc.CreateElement("user");
-                    inDocTempElement.InnerText = InstallerReturn["database.username"].ToString();
-                    inDocMySQLElement.AppendChild(inDocTempElement);
+                    #region StandardOut
+                    #region Importance
+                    ValueElement = Doc.CreateElement("importance");
+                    ValueElement.InnerText = InstallerReturn["standardout.importance"].ToString();
+                    StandardOutElement.AppendChild(ValueElement);
+                    #endregion
+                    #endregion
+                    #region MySQL
+                    #region Host
+                    ValueElement = Doc.CreateElement("host");
+                    ValueElement.InnerText = InstallerReturn["database.host"].ToString();
+                    MySQLElement.AppendChild(ValueElement);
+                    #endregion
+                    #region Port
+                    ValueElement = Doc.CreateElement("port");
+                    ValueElement.InnerText = InstallerReturn["database.port"].ToString();
+                    MySQLElement.AppendChild(ValueElement);
+                    #endregion
+                    #region User
+                    ValueElement = Doc.CreateElement("user");
+                    ValueElement.InnerText = InstallerReturn["database.username"].ToString();
+                    MySQLElement.AppendChild(ValueElement);
+                    #endregion
+                    #region Password
+                    ValueElement = Doc.CreateElement("password");
+                    ValueElement.InnerText = InstallerReturn["database.password"].ToString();
+                    MySQLElement.AppendChild(ValueElement);
+                    #endregion
+                    #region Database
+                    ValueElement = Doc.CreateElement("database");
+                    ValueElement.InnerText = InstallerReturn["database.database"].ToString();
+                    MySQLElement.AppendChild(ValueElement);
+                    #endregion
+                    #region MinPoolSize
+                    ValueElement = Doc.CreateElement("minpoolsize");
+                    ValueElement.InnerText = InstallerReturn["database.minpool"].ToString();
+                    MySQLElement.AppendChild(ValueElement);
+                    #endregion
+                    #region MaxPoolSize
+                    ValueElement = Doc.CreateElement("maxpoolsize");
+                    ValueElement.InnerText = InstallerReturn["database.maxpool"].ToString();
+                    MySQLElement.AppendChild(ValueElement);
+                    #endregion
+                    #endregion
+                    #region Network
+                    #region Host
+                    ValueElement = Doc.CreateElement("host");
+                    ValueElement.InnerText = InstallerReturn["network.game.host"].ToString();
+                    NetworkElement.AppendChild(ValueElement);
+                    #endregion
+                    #region Port
+                    ValueElement = Doc.CreateElement("port");
+                    ValueElement.InnerText = InstallerReturn["network.game.port"].ToString();
+                    NetworkElement.AppendChild(ValueElement);
+                    #endregion
+                    #region MaxConnections
+                    ValueElement = Doc.CreateElement("maxconnections");
+                    ValueElement.InnerText = InstallerReturn["network.game.maxconnections"].ToString();
+                    NetworkElement.AppendChild(ValueElement);
+                    #endregion
+                    #endregion
+                    #region WebAdmin
+                    #region Port
+                    ValueElement = Doc.CreateElement("port");
+                    ValueElement.InnerText = InstallerReturn["network.webadmin.port"].ToString();
+                    WebAdminElement.AppendChild(ValueElement);
+                    #endregion
+                    #endregion
 
-                    inDocTempElement = inDoc.CreateElement("password");
-                    inDocTempElement.InnerText = InstallerReturn["database.password"].ToString();
-                    inDocMySQLElement.AppendChild(inDocTempElement);
+                    RootElement.AppendChild(StandardOutElement);
+                    RootElement.AppendChild(MySQLElement);
+                    RootElement.AppendChild(NetworkElement);
+                    RootElement.AppendChild(WebAdminElement);
+                    this.fConfig.Save();
 
-                    inDocTempElement = inDoc.CreateElement("database");
-                    
-                    inDocTempElement.InnerText = InstallerReturn["database.database"].ToString();
-                    inDocMySQLElement.AppendChild(inDocTempElement);
+                    this.fStandardOut.PrintImportant("Configuration file saved!");
 
-                    inDocTempElement = inDoc.CreateElement("minpoolsize");
-                    inDocTempElement.InnerText = InstallerReturn["database.minpool"].ToString();
-                    inDocMySQLElement.AppendChild(inDocTempElement);
-
-                    inDocTempElement = inDoc.CreateElement("maxpoolsize");
-                    inDocTempElement.InnerText = InstallerReturn["database.maxpool"].ToString();
-                    inDocMySQLElement.AppendChild(inDocTempElement);
-
-                    inDocRootNode.AppendChild(inDocMySQLElement);
-
-                    fConfig.Save();
-
-                    fStandardOut.PrintImportant("Configuration file saved!");
-
-                    fStandardOut.PrintImportant("Resuming IHI Boot (Installer)");
-                    fStandardOut.PrintImportant("Press any key...");
+                    this.fStandardOut.PrintImportant("Resuming IHI Boot (Installer)");
+                    this.fStandardOut.PrintImportant("Press any key...");
                     Console.ReadKey(true);
                 }
 
-                fStandardOut.PrintNotice("Config File => Loaded");
+                this.fStandardOut.PrintNotice("Config File => Loaded");
 
-                fStandardOut.SetImportance((StandardOutImportance)fConfig.ValueAsByte("/config/standardout/importance", (byte)StandardOutImportance.Debug));
+                this.fStandardOut.SetImportance((StandardOutImportance)fConfig.ValueAsByte("/config/standardout/importance", (byte)StandardOutImportance.Debug));
 
 
-                fStandardOut.PrintNotice("MySQL => Preparing database connection settings...");
+                this.fStandardOut.PrintNotice("MySQL => Preparing database connection settings...");
 
                 try
                 {
@@ -164,7 +230,7 @@ namespace IHI.Server
 
                     PrepareSessionFactory(CS.ConnectionString);
 
-                    fStandardOut.PrintNotice("MySQL => Testing connection...");
+                    this.fStandardOut.PrintNotice("MySQL => Testing connection...");
 
                     using (ISession DB = GetDatabaseSession())
                     {
@@ -174,66 +240,66 @@ namespace IHI.Server
                 }
                 catch (Exception ex)
                 {
-                    fStandardOut.PrintError("MySQL => Connection failed!");
-                    fStandardOut.PrintException(ex);
+                    this.fStandardOut.PrintError("MySQL => Connection failed!");
+                    this.fStandardOut.PrintException(ex);
                     return false;
                 }
-                fStandardOut.PrintNotice("MySQL => Connected!");
+                this.fStandardOut.PrintNotice("MySQL => Connected!");
 
 
 
-                fStandardOut.PrintNotice("Habbo Distributor => Constructing...");
-                fHabboDistributor = new HabboDistributor();
-                fStandardOut.PrintNotice("Habbo Distributor => Ready");
+                this.fStandardOut.PrintNotice("Habbo Distributor => Constructing...");
+                this.fHabboDistributor = new HabboDistributor();
+                this.fStandardOut.PrintNotice("Habbo Distributor => Ready");
 
                 // TODO: Download Requirements
 
-                fStandardOut.PrintNotice("Permission Manager => Constructing...");
-                fPermissionManager = new PermissionManager();
-                fStandardOut.PrintNotice("Permission Manager => Ready");
+                this.fStandardOut.PrintNotice("Permission Manager => Constructing...");
+                this.fPermissionManager = new PermissionManager();
+                this.fStandardOut.PrintNotice("Permission Manager => Ready");
 
                 // TODO: Cache Navigator
                 // TODO: Cache Furni
                 // TODO: Write Dynamic Client Files
                 // TODO: Authenticate with IHINet
 
-                fStandardOut.PrintNotice("Connection Manager => Starting...");
-                fConnectionManager = new IonTcpConnectionManager(fConfig.ValueAsString("/config/network/host"), fConfig.ValueAsInt("/config/network/port", 14478), fConfig.ValueAsInt("/config/network/maxconnections", 2));
-                fConnectionManager.GetListener().Start();
-                fStandardOut.PrintNotice("Connection Manager => Ready!");
+                this.fStandardOut.PrintNotice("Connection Manager => Starting...");
+                this.fConnectionManager = new IonTcpConnectionManager(fConfig.ValueAsString("/config/network/host"), fConfig.ValueAsInt("/config/network/port", 14478), fConfig.ValueAsInt("/config/network/maxconnections", 2));
+                this.fConnectionManager.GetListener().Start();
+                this.fStandardOut.PrintNotice("Connection Manager => Ready!");
 
-                fStandardOut.PrintNotice("Web Admin => Starting...");
-                fWebAdminManager = new WebAdminManager(fConfig.ValueAsUshort("/config/webadmin/port", 14480));
-                fStandardOut.PrintNotice("Web Admin => Ready!");
+                this.fStandardOut.PrintNotice("Web Admin => Starting...");
+                this.fWebAdminManager = new WebAdminManager(fConfig.ValueAsUshort("/config/webadmin/port", 14480));
+                this.fStandardOut.PrintNotice("Web Admin => Ready!");
 
-                fStandardOut.PrintNotice("Plugin Loader => Starting...");
-                fPluginManager = new PluginManager();
-                
-                foreach (string Path in fPluginManager.GetAllPluginPaths())
+                this.fStandardOut.PrintNotice("Plugin Loader => Starting...");
+                this.fPluginManager = new PluginManager();
+
+                foreach (string Path in this.fPluginManager.GetAllPluginPaths())
                 {
-                    Plugin.Plugin P = fPluginManager.LoadPluginAtPath(Path);
+                    Plugin P = this.fPluginManager.LoadPluginAtPath(Path);
 
                     if (P == null)
                         continue;
 
-                    if(P.GetName() == "WEB_PluginManager")
-                        fPluginManager.StartPlugin(P); // TODO: Remove this - debugging only
+                    if (P.GetName() == "PluginManager")
+                        this.fPluginManager.StartPlugin(P); // TODO: Remove this - debugging only
                 }
-                                
-                fStandardOut.PrintNotice("Plugin Loader => Started!");
 
-                fStandardOut.PrintImportant("IHI is now functional!");
+                this.fStandardOut.PrintNotice("Plugin Loader => Started!");
+
+                this.fStandardOut.PrintImportant("IHI is now functional!");
 
                 return true;
             }
             catch (Exception e)
             {
-                fStandardOut.PrintException(e);
+                this.fStandardOut.PrintException(e);
                 return false;
             }
         }
 
-        internal static void PrepareSessionFactory(string ConnectionString)
+        internal void PrepareSessionFactory(string ConnectionString)
         {
             IDictionary<string, string> Properties = new Dictionary<string, string>();
 
@@ -244,12 +310,12 @@ namespace IHI.Server
 
             NHCfg.Configuration Configuration = new NHCfg.Configuration();
             Configuration.SetProperties(Properties);
-            Configuration.AddAssembly("IHI.Database.Main");
+            Configuration.AddDirectory(new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, "database")));
 
             fNHibernateSessionFactory = Configuration.BuildSessionFactory();
         }
 
-        internal static void Destroy()
+        public void Shutdown()
         {
             // TODO: Safe Shutdown
         }

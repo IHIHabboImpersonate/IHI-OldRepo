@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-namespace IHI.Server.Plugin
+namespace IHI.Server.Plugins
 {
     public class PluginManager
     {
@@ -29,7 +29,7 @@ namespace IHI.Server.Plugin
             {
                 Plugin.Start();
                 Plugin.fIsRunning = true;
-                Core.GetStandardOut().PrintNotice("Plugin " + Plugin.GetName() + " has been started.");
+                CoreManager.GetCore().GetStandardOut().PrintNotice("Plugin " + Plugin.GetName() + " has been started.");
             }
             return this;
         }
@@ -54,7 +54,7 @@ namespace IHI.Server.Plugin
 
             if (PluginObject == null)
             {
-                Core.GetStandardOut().PrintWarning("Plugin " + Path.GetFileNameWithoutExtension(PluginPath) + " failed to load!").PrintDebug(PluginPath);
+                CoreManager.GetCore().GetStandardOut().PrintWarning("Plugin " + Path.GetFileNameWithoutExtension(PluginPath) + " failed to load!").PrintDebug(PluginPath);
                 return null;
             }
 
@@ -65,7 +65,7 @@ namespace IHI.Server.Plugin
                 this.fPlugins.Add(PluginObject.fName, PluginObject);
             }
 
-            Core.GetStandardOut().PrintNotice("Plugin '" + Path.GetFileNameWithoutExtension(PluginPath) + "' loaded.");
+            CoreManager.GetCore().GetStandardOut().PrintNotice("Plugin '" + Path.GetFileNameWithoutExtension(PluginPath) + "' loaded.");
             return PluginObject;
         }
 
@@ -79,7 +79,7 @@ namespace IHI.Server.Plugin
             {
                 Plugin.Stop();
                 Plugin.fIsRunning = false;
-                Core.GetStandardOut().PrintNotice("Plugin " + Plugin.GetName() + " has been stopped.");
+                CoreManager.GetCore().GetStandardOut().PrintNotice("Plugin " + Plugin.GetName() + " has been stopped.");
             }
             return this;
         }

@@ -7,6 +7,8 @@ namespace IHI.Server.Install
 {
     internal static class Database
     {
+        const byte STEPS = 7;
+
         /// <summary>
         /// Run the database configuration installer.
         /// </summary>
@@ -29,7 +31,7 @@ namespace IHI.Server.Install
 
         private static string GetHost()
         {
-            Output.SetStep(1, 7);
+            Output.SetStep(1, STEPS);
 
             Output.ClearPage();
 
@@ -50,7 +52,7 @@ namespace IHI.Server.Install
 
         private static ushort GetPort()
         {
-            Output.SetStep(2, 7);
+            Output.SetStep(2, STEPS);
 
             Output.ClearPage();
 
@@ -84,7 +86,7 @@ namespace IHI.Server.Install
 
         private static string GetUsername()
         {
-            Output.SetStep(3, 7);
+            Output.SetStep(3, STEPS);
 
             Output.ClearPage();
 
@@ -105,7 +107,7 @@ namespace IHI.Server.Install
 
         private static string GetPassword()
         {
-            Output.SetStep(4, 7);
+            Output.SetStep(4, STEPS);
 
             Output.ClearPage();
 
@@ -122,7 +124,7 @@ namespace IHI.Server.Install
 
         private static string GetDatabaseName()
         {
-            Output.SetStep(5, 7);
+            Output.SetStep(5, STEPS);
 
             Output.ClearPage();
 
@@ -142,7 +144,7 @@ namespace IHI.Server.Install
 
         private static int GetMinimumPoolSize()
         {
-            Output.SetStep(6, 7);
+            Output.SetStep(6, STEPS);
 
             Output.ClearPage();
 
@@ -179,7 +181,7 @@ namespace IHI.Server.Install
 
         private static int GetMaximumPoolSize(int Minimum)
         {
-            Output.SetStep(7, 7);
+            Output.SetStep(7, STEPS);
 
             Output.ClearPage();
 

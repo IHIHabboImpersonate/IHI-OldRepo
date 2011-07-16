@@ -38,7 +38,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\_OUTPUT\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -71,18 +71,32 @@
       <HintPath>bin\Debug\requirements\NHibernate.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System" />
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security" />
+    <Reference Include="System.Drawing">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Security">
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.Data">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\XMLConfig.cs" />
@@ -108,7 +122,6 @@
     <Compile Include="InGame\Room\Items\Instances\Item.cs" />
     <Compile Include="InGame\Room\Units\RoomUnit.cs" />
     <Compile Include="InGame\Room\Units\Human\Bot\UserBot.cs" />
-    <Compile Include="Configuration\ConfigurationModule.cs" />
     <Compile Include="InGame\User\Messenger\Category.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -146,15 +159,17 @@
     <Compile Include="InGame\User\Permissions\PermissionManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Install\Core.cs" />
+    <Compile Include="Install\StandardOut.cs" />
     <Compile Include="Install\Database.cs" />
+    <Compile Include="Install\Core.cs" />
+    <Compile Include="Install\Network.cs" />
     <Compile Include="Install\InputException.cs" />
     <Compile Include="Install\Input.cs" />
     <Compile Include="Install\Output.cs" />
+    <Compile Include="IShutdown.cs" />
     <Compile Include="MonoAware.cs" />
-    <Compile Include="Plugin\Plugin.cs" />
-    <Compile Include="Plugin\PluginManager.cs" />
-    <Compile Include="Plugin\PluginUtilities.cs" />
+    <Compile Include="Plugins\Plugin.cs" />
+    <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="PrivateRoom.cs" />
     <Compile Include="PublicRoom.cs" />
     <Compile Include="PublicRoomModel.cs" />
@@ -200,10 +215,11 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\PROJECT_Database.Main\{DB}Main.csproj">
-      <Project>{6E53C1B7-A141-4A9D-9076-DE6519A190E7}</Project>
-      <Name>{DB}Main</Name>
+    <ProjectReference Include="..\Database Structures\DB-Main\DB-Main.csproj">
+      <Project>{62AF647E-C9BC-4E05-8A91-B044074A3147}</Project>
+      <Name>DB-Main</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>

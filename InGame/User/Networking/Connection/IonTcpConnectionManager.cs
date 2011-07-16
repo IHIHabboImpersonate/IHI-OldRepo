@@ -111,7 +111,7 @@ namespace IHI.Server.Networking
             IonTcpConnection Connection = GetConnection(clientID);
             if (Connection != null)
             {
-                Core.GetStandardOut().PrintNotice("Dropped Connection => " + Connection.GetIPAddressString());
+                CoreManager.GetCore().GetStandardOut().PrintNotice("Dropped Connection => " + Connection.GetIPAddressString());
                 
                 Connection.Stop();
                 mConnections.Remove(clientID);

@@ -50,6 +50,36 @@ namespace IHI.Server.Install
             }
             throw new InputException("Given input is could not be parsed as an unsigned short [ " + Input + " ]");
         }
+        /// <summary>
+        /// Read a byte.
+        /// If the read line is not a valid byte between Minimum and Maximum an exception of type IHI.Server.Install.InputException is thrown.
+        /// </summary>
+        /// <param name="Default">A value to return if the read line is blank.</param>
+        /// <param name="Minimum">The minimum value to accept.</param>
+        /// <param name="Maximum">The maxumum value to accept.</param>
+        internal static byte GetByte(byte Default = 0, byte Minimum = byte.MinValue, byte Maximum = byte.MaxValue)
+        {
+            string Input = Console.ReadLine();
+
+            if (Input.Length == 0)
+                return Default;
+
+            byte Value = 0;
+
+            if (byte.TryParse(Input, out Value))
+            {
+                if (Value < Minimum)
+                {
+                    throw new InputException("Given input is lower than mimimum value [ " + Value + " < " + Minimum + " ]");
+                }
+                if (Value > Maximum)
+                {
+                    throw new InputException("Given input is higher than maximum value [ " + Value + " > " + Maximum + " ]");
+                }
+                return Value;
+            }
+            throw new InputException("Given input is could not be parsed as a byte [ " + Input + " ]");
+        }
 
         /// <summary>
         /// Read a signed int.

@@ -77,7 +77,7 @@ namespace IHI.Server
 
             Console.Beep();
 
-            bool BootResult = Core.Boot(Environment.CurrentDirectory + "/" + ConfigFile);
+            bool BootResult = new Core().Boot(System.IO.Path.Combine(Environment.CurrentDirectory, ConfigFile));
 
             if (!BootResult)
             {
@@ -108,7 +108,7 @@ namespace IHI.Server
 
         private static void ShutdownKey(object sender, ConsoleCancelEventArgs e)
         {
-            Core.Destroy();
+            CoreManager.GetCore().Shutdown();
         }
     }
 }

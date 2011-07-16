@@ -20,7 +20,7 @@ namespace IHI.Server.Users.Permissions
             #region Get the data
             IList<Permission> PermissionCache;                                       // Raw permission cache
 
-            using (ISession DB = Core.GetDatabaseSession())
+            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
             {
                 PermissionCache = DB.CreateCriteria<Permission>()
                                         .List<Permission>();

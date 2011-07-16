@@ -20,8 +20,9 @@ namespace IHI.Server.Install
             MonoAware.System.Console.ForegroundColor = ConsoleColor.Gray;
 
             ReturnValues = new Dictionary<string, object>();
+            StandardOut.Run(ref ReturnValues);
             Database.Run(ref ReturnValues);
-
+            Network.Run(ref ReturnValues);
             return ReturnValues;
         }
     }

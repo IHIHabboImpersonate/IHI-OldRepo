@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace IHI.Server
 {
-    public abstract class RoomModel
+    public interface IShutdown
     {
-        private int fHeightmap;
+        void Shutdown();
     }
 }

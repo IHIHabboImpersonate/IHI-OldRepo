@@ -51,7 +51,7 @@ namespace IHI.Server.Networking.Messages
         /// </summary>
         public string GetHeader()
         {
-            return Core.GetTextEncoding().GetString(Base64Encoding.EncodeuUInt32(fID, 2));
+            return CoreManager.GetCore().GetTextEncoding().GetString(Base64Encoding.EncodeuUInt32(fID, 2));
         }
         /// <summary>
         /// Gets the length of the content in this message.
@@ -113,7 +113,7 @@ namespace IHI.Server.Networking.Messages
         /// <returns>String</returns>
         public string GetContentString()
         {
-            return Core.GetTextEncoding().GetString(fContent);
+            return CoreManager.GetCore().GetTextEncoding().GetString(fContent);
         }
         /// <summary>
         /// Returns the header and total content of this message as a string.
@@ -195,7 +195,7 @@ namespace IHI.Server.Networking.Messages
         public String PopPrefixedString(Encoding pEncoding)
         {
             if (pEncoding == null)
-                pEncoding = Core.GetTextEncoding();
+                pEncoding = CoreManager.GetCore().GetTextEncoding();
 
             return pEncoding.GetString(this.ReadPrefixedValue());
         }
@@ -205,7 +205,7 @@ namespace IHI.Server.Networking.Messages
         /// <returns>String</returns>
         public String PopPrefixedString()
         {
-            Encoding pEncoding = Core.GetTextEncoding();
+            Encoding pEncoding = CoreManager.GetCore().GetTextEncoding();
             return PopPrefixedString(pEncoding);
         }
 

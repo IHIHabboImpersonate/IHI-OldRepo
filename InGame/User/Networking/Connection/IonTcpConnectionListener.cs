@@ -53,7 +53,7 @@ namespace IHI.Server.Networking
             if(!IPAddress.TryParse(sLocalIP, out pIP))
             {
                 pIP = IPAddress.Loopback;
-                Core.GetStandardOut().PrintWarning(string.Format("Connection listener was unable to parse the given local IP address '{0}', now binding listener to '{1}'.", sLocalIP, pIP.ToString())); 
+                CoreManager.GetCore().GetStandardOut().PrintWarning(string.Format("Connection listener was unable to parse the given local IP address '{0}', now binding listener to '{1}'.", sLocalIP, pIP.ToString())); 
             }
 
             mListener = new TcpListener(pIP, Port);
@@ -61,7 +61,7 @@ namespace IHI.Server.Networking
             mFactory = new IonTcpConnectionFactory();
             mManager = pManager;
 
-            Core.GetStandardOut().PrintNotice(string.Format("IonTcpConnectionListener initialized and bound to {0}:{1}.", pIP.ToString(), Port.ToString()));
+            CoreManager.GetCore().GetStandardOut().PrintNotice(string.Format("IonTcpConnectionListener initialized and bound to {0}:{1}.", pIP.ToString(), Port.ToString()));
         }
         #endregion
 

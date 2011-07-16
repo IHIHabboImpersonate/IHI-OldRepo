@@ -125,7 +125,7 @@ namespace IHI.Server
         {
             int ID;
 
-            using (ISession DB = Core.GetDatabaseSession())
+            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
             {
                 ID =    DB.CreateCriteria<Database.Habbo>()
                             .SetProjection(NHibernate.Criterion.Projections.Property("habbo_id"))

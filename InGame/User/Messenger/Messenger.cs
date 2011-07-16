@@ -85,7 +85,7 @@ namespace IHI.Server.Messenger
             IList<Database.MessengerFriend> FriendsB;
             IList<Database.MessengerCategory> Categories;  // Categories to put the friends in.
 
-            using (ISession DB = Core.GetDatabaseSession())
+            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
             {
                 FriendsA = DB.CreateCriteria<Database.MessengerFriend>()
                                 .Add(new NHibernate.Criterion.EqPropertyExpression("habbo_a_id", this.fHabbo.GetID().ToString()))
@@ -107,7 +107,7 @@ namespace IHI.Server.Messenger
                 this.fFriends.Add(
                     Friend.habbo_a_id, 
                     new Friend(
-                        Core.GetUserDistributor().GetUser(Friend.habbo_b_id), 
+                        CoreManager.GetCore().GetUserDistributor().GetUser(Friend.habbo_b_id), 
                         Friend.category_a_id, 
                         Friend.category_b_id));
             }
@@ -115,8 +115,8 @@ namespace IHI.Server.Messenger
             {
                 // TODO: Heavy optimisation. (mapping)
                 this.fFriends.Add(
-                    Friend.habbo_a_id, 
-                    new Friend(Core.GetUserDistributor().GetUser(Friend.habbo_a_id), 
+                    Friend.habbo_a_id,
+                    new Friend(CoreManager.GetCore().GetUserDistributor().GetUser(Friend.habbo_a_id), 
                         Friend.category_b_id, 
                         Friend.category_a_id));
             }
@@ -162,7 +162,7 @@ namespace IHI.Server.Messenger
         {
             Database.MessengerFriendRequest[] Requests;
 
-            using (ISession DB = Core.GetDatabaseSession())
+            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
             {
                 Requests =  DB.CreateCriteria<Database.MessengerFriendRequest>()
                                 .Add(new NHibernate.Criterion.EqPropertyExpression("habbo_to_id", this.fHabbo.GetID().ToString()))

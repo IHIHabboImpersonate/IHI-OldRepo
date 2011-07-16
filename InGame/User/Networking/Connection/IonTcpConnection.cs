@@ -239,21 +239,21 @@ namespace IHI.Server.Networking
                 }
                 catch (Exception ex)
                 {
-                    Core.GetStandardOut().PrintException(ex);
+                    CoreManager.GetCore().GetStandardOut().PrintException(ex);
                 }
             }
         }
         internal void SendData(string sData)
         {
-            SendData(Core.GetTextEncoding().GetBytes(sData));
+            SendData(CoreManager.GetCore().GetTextEncoding().GetBytes(sData));
         }
 
         public void SendMessage(OutgoingMessage message)
         {
             if (this.fUser.IsLoggedIn())
-                Core.GetStandardOut().PrintDebug("[" + GetHabbo().GetUsername() + "] <-- " + message.Header + message.GetContentString());
+                CoreManager.GetCore().GetStandardOut().PrintDebug("[" + GetHabbo().GetUsername() + "] <-- " + message.Header + message.GetContentString());
             else
-                Core.GetStandardOut().PrintDebug("[" + GetID() + "] <-- " + message.Header + message.GetContentString());
+                CoreManager.GetCore().GetStandardOut().PrintDebug("[" + GetID() + "] <-- " + message.Header + message.GetContentString());
 
             SendData(message.GetBytes());
         }
@@ -279,7 +279,7 @@ namespace IHI.Server.Networking
                 }
                 catch (Exception ex)
                 {
-                    Core.GetStandardOut().PrintException(ex);
+                    CoreManager.GetCore().GetStandardOut().PrintException(ex);
                     ConnectionDead();
                 }
             }
@@ -307,7 +307,7 @@ namespace IHI.Server.Networking
             }
             catch (Exception ex)
             {
-                Core.GetStandardOut().PrintException(ex);
+                CoreManager.GetCore().GetStandardOut().PrintException(ex);
                 
                 ConnectionDead();
                 return;
@@ -335,9 +335,9 @@ namespace IHI.Server.Networking
                 {
                     if (data[0] == 60)
                     {
-                        Core.GetStandardOut().PrintDebug("[" + this.fID + "] --> Policy Request");
+                        CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fID + "] --> Policy Request");
                         this.SendData(PolicyReplyData);
-                        Core.GetStandardOut().PrintDebug("[" + this.fID + "] <-- Policy Sent");
+                        CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fID + "] <-- Policy Sent");
                         return;
                     }
 
@@ -358,9 +358,9 @@ namespace IHI.Server.Networking
                     IncomingMessage message = new IncomingMessage(messageID, Content);
 
                     if(this.fUser.IsLoggedIn())
-                        Core.GetStandardOut().PrintDebug("[" + this.fUser.GetUsername() + "] --> " + message.GetHeader() + message.GetContentString());
+                        CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fUser.GetUsername() + "] --> " + message.GetHeader() + message.GetContentString());
                     else
-                        Core.GetStandardOut().PrintDebug("[" + this.fID + "] --> " + message.GetHeader() + message.GetContentString());
+                        CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fID + "] --> " + message.GetHeader() + message.GetContentString());
 
 
                     // Handle message object
@@ -397,7 +397,7 @@ namespace IHI.Server.Networking
 
                     if (Unknown)
                     {
-                        Core.GetStandardOut().PrintWarning("Packet " + messageID + " ('" + message.GetHeader() + "') unhandled!");
+                        CoreManager.GetCore().GetStandardOut().PrintWarning("Packet " + messageID + " ('" + message.GetHeader() + "') unhandled!");
                     }
                 }
                 catch (IndexOutOfRangeException) // Bad formatting!
@@ -407,7 +407,7 @@ namespace IHI.Server.Networking
                 }
                 catch (Exception ex)
                 {
-                    Core.GetStandardOut().PrintException(ex);
+                    CoreManager.GetCore().GetStandardOut().PrintException(ex);
                 }
             }
         }
