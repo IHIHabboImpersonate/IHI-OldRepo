@@ -138,7 +138,8 @@ namespace IHI.Server.Networking
         /// <returns>The current Connection. This allows chaining.</returns>
         public IonTcpConnection AddHandler(uint HeaderID, PacketHandlerPriority Priority, PacketHandler HandlerDelegate)
         {
-            this.fPacketHandlers[HeaderID, (byte)Priority] += HandlerDelegate;
+            lock (this.fPacketHandlers[HeaderID, (int)Priority])
+                this.fPacketHandlers[HeaderID, (int)Priority] += HandlerDelegate;
             return this;
         }
         /// <summary>
@@ -148,9 +149,10 @@ namespace IHI.Server.Networking
         /// <param name="Priority">The priority of the handler.</param>
         /// <param name="HandlerDelegate">The delegate that points to the handler.</param>
         /// <returns>The current Connection. This allows chaining.</returns>
-        public IonTcpConnection RemoveHandler(uint HeaderID, PacketHandlerPriority Priority, MethodInfo Method)
+        public IonTcpConnection RemoveHandler(uint HeaderID, PacketHandlerPriority Priority, PacketHandler HandlerDelegate)
         {
-            // TODO: Look into how this would be done safely.
+            lock (this.fPacketHandlers[HeaderID, (int)Priority])
+                this.fPacketHandlers[HeaderID, (int)Priority] -= HandlerDelegate;
             return this;
         }
         #endregion
@@ -366,33 +368,46 @@ namespace IHI.Server.Networking
                     // Handle message object
                     bool Unknown = true;
 
-                    if (this.fPacketHandlers[messageID, 3] != null)
+                    lock (this.fPacketHandlers[messageID, 3])
                     {
-                        this.fPacketHandlers[messageID, 3].Invoke(this.fUser, message); // Execute High Priority
-                        Unknown = false;
+                        if (this.fPacketHandlers[messageID, 3] != null)
+                        {
+                            this.fPacketHandlers[messageID, 3].Invoke(this.fUser, message); // Execute High Priority
+                            Unknown = false;
+                        }
                     }
                     
                     if (message.IsCancelled())
                         return;
 
-                    if (this.fPacketHandlers[messageID, 2] != null)
+                    lock (this.fPacketHandlers[messageID, 2])
                     {
-                        this.fPacketHandlers[messageID, 2].Invoke(this.fUser, message); // Execute Low Priority
-                        Unknown = false;
+                        if (this.fPacketHandlers[messageID, 2] != null)
+                        {
+                            this.fPacketHandlers[messageID, 2].Invoke(this.fUser, message); // Execute Low Priority
+                            Unknown = false;
+                        }
                     }
 
                     if (message.IsCancelled())
                         return;
 
-                    if (this.fPacketHandlers[messageID, 1] != null)
+                    lock (this.fPacketHandlers[messageID, 1])
                     {
-                        this.fPacketHandlers[messageID, 1].Invoke(this.fUser, message); // Execute Default Action
-                        Unknown = false;
+                        if (this.fPacketHandlers[messageID, 1] != null)
+                        {
+                            this.fPacketHandlers[messageID, 1].Invoke(this.fUser, message); // Execute Default Action
+                            Unknown = false;
+                        }
                     }
-                    if (this.fPacketHandlers[messageID, 0] != null)
+
+                    lock (this.fPacketHandlers[messageID, 0])
                     {
-                        this.fPacketHandlers[messageID, 0].Invoke(this.fUser, message); // Execute Watchers
-                        Unknown = false;
+                        if (this.fPacketHandlers[messageID, 0] != null)
+                        {
+                            this.fPacketHandlers[messageID, 0].Invoke(this.fUser, message); // Execute Watchers
+                            Unknown = false;
+                        }
                     }
 
                     if (Unknown)
@@ -424,5 +439,10 @@ namespace IHI.Server.Networking
             }
         }
         #endregion
+
+        public void Disconnect() // TODO: Reason
+        {
+            this.Stop();
+        }
     }
 }

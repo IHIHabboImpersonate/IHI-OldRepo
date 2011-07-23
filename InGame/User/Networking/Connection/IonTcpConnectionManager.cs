@@ -64,7 +64,8 @@ namespace IHI.Server.Networking
         /// <param name="ClientID">The client ID to check.</param>
         public bool ContainsConnection(uint ClientID)
         {
-            return mConnections.ContainsKey(ClientID);
+            lock (mConnections)
+                return mConnections.ContainsKey(ClientID);
         }
         /// <summary>
         /// Tries to return the IonTcpConnection instance of a given client ID. Null is returned if the Connection is not in the manager.
@@ -72,8 +73,11 @@ namespace IHI.Server.Networking
         /// <param name="ID">The ID of the client to get Connection of as an unsigned 32 bit integer.</param>
         public IonTcpConnection GetConnection(uint ClientID)
         {
-            try { return mConnections[ClientID]; }
-            catch { return null; }
+            lock (mConnections)
+            {
+                try { return mConnections[ClientID]; }
+                catch { return null; }
+            }
         }
         /// <summary>
         /// Returns the IonTcpConnection listener instance.
@@ -95,7 +99,8 @@ namespace IHI.Server.Networking
 
             // INFO: client ID = Connection ID, client ID = session ID
             // Add Connection to collection
-            mConnections.Add(Connection.GetID(), Connection);
+            lock (mConnections)
+                mConnections.Add(Connection.GetID(), Connection);
 
             Connection.Start();
 
@@ -114,7 +119,8 @@ namespace IHI.Server.Networking
                 CoreManager.GetCore().GetStandardOut().PrintNotice("Dropped Connection => " + Connection.GetIPAddressString());
                 
                 Connection.Stop();
-                mConnections.Remove(clientID);
+                lock (mConnections)
+                    mConnections.Remove(clientID);
             }
         }
         public bool TestConnection(uint ClientID)
@@ -126,6 +132,17 @@ namespace IHI.Server.Networking
             return false; // Connection not here!
         }
         #endregion
+
+        public IonTcpConnection[] GetAllConnections()
+        {
+            IonTcpConnection[] ReturnArray;
+            lock(this.mConnections)
+            {
+                ReturnArray = new IonTcpConnection[this.mConnections.Count];
+                this.mConnections.Values.CopyTo(ReturnArray, 0);
+            }
+            return ReturnArray;
+        }
     }
 
     public class ConnectionEventArgs : EventArgs
