@@ -101,36 +101,41 @@
   <ItemGroup>
     <Compile Include="Configuration\XMLConfig.cs" />
     <Compile Include="InGame\Room\Items\Instances\WallLocation.cs" />
-    <Compile Include="InGame\Room\Items\Instances\WallItem.cs" />
-    <Compile Include="InGame\Room\Units\Human\Bot\Bot.cs" />
     <Compile Include="InGame\Room\Items\Models\Virtual\EffectItemModel.cs" />
-    <Compile Include="InGame\Room\Items\Instances\FloorItem.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Floor\FloorItemModel.cs" />
     <Compile Include="InGame\Room\Items\Instances\FloorLocation.cs" />
-    <Compile Include="InGame\Room\Units\Human\Human.cs" />
-    <Compile Include="InGame\Room\Items\Instances\ITogglableItem.cs" />
+    <Compile Include="InGame\User\Networking\Message\IMessageable.cs" />
+    <Compile Include="InGame\User\Networking\Message\OutgoingMessage.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureFactory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureJacket.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureWaist.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureFaceAccesory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureShirtAccesory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureHeadAccesory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureEyeAccesory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureHat.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureShoes.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureLegs.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureShirt.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureHair.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureBody.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FigurePart.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\BotFigure.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\IFigure.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\PetFigure.cs" />
+    <Compile Include="OOP Revamp\Habbo\HabboFigure.cs" />
+    <Compile Include="OOP Revamp\Rooms\Furni\PublicFloorFurni.cs" />
+    <Compile Include="OOP Revamp\Rooms\GuestRoom.cs" />
+    <Compile Include="OOP Revamp\Rooms\PublicRoom.cs" />
+    <Compile Include="OOP Revamp\Rooms\Furni\ITogglable.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Floor\ItemCollisionType.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Floor\ItemColour.cs" />
     <Compile Include="InGame\Room\Items\Models\ItemModel.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Floor\ItemShape.cs" />
-    <Compile Include="InGame\Room\Items\Instances\IUsableItem.cs" />
-    <Compile Include="InGame\Room\Units\Pet.cs" />
+    <Compile Include="OOP Revamp\Rooms\Furni\IUsable.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\PhysicalItemModel.cs" />
-    <Compile Include="InGame\Room\Items\Instances\PrivateFloorItem.cs" />
-    <Compile Include="InGame\Room\Units\Human\Bot\PublicBot.cs" />
-    <Compile Include="InGame\Room\Items\Instances\PublicFloorItem.cs" />
-    <Compile Include="InGame\Room\Items\Instances\Item.cs" />
-    <Compile Include="InGame\Room\Units\RoomUnit.cs" />
-    <Compile Include="InGame\Room\Units\Human\Bot\UserBot.cs" />
-    <Compile Include="InGame\User\Messenger\Category.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="InGame\User\Messenger\Friend.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="InGame\User\Messenger\Messenger.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="OOP Revamp\Rooms\Furni\PrivateFloorFurni.cs" />
+    <Compile Include="InGame\User\Networking\ConnectionClosedReason.cs" />
     <Compile Include="InGame\User\Networking\Message\Misc.cs" />
     <Compile Include="InGame\User\PacketSender.cs" />
     <Compile Include="Core.cs" />
@@ -150,10 +155,7 @@
     <Compile Include="InGame\User\Networking\Message\IncomingMessage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="InGame\User\Networking\Message\ISerializableObject.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="InGame\User\Networking\Message\OutgoingMessage.cs">
+    <Compile Include="InGame\User\Networking\Message\InternalOutgoingMessage.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="InGame\User\Permissions\PermissionManager.cs">
@@ -168,12 +170,28 @@
     <Compile Include="Install\Output.cs" />
     <Compile Include="IShutdown.cs" />
     <Compile Include="MonoAware.cs" />
+    <Compile Include="OOP Revamp\Habbo\Catalogue\CatalogueItem.cs" />
+    <Compile Include="OOP Revamp\Habbo\Effect.cs" />
+    <Compile Include="OOP Revamp\Rooms\Room.cs" />
+    <Compile Include="OOP Revamp\Rooms\Models\GuestRoomModel.cs" />
+    <Compile Include="OOP Revamp\Rooms\Models\PublicRoomModel.cs" />
+    <Compile Include="OOP Revamp\Rooms\Models\RoomModel.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\PlayerBot.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\StandardBot.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\ITalkable.cs" />
+    <Compile Include="OOP Revamp\Rooms\Furni\WallFurni.cs" />
+    <Compile Include="OOP Revamp\Rooms\Furni\FloorFurni.cs" />
+    <Compile Include="OOP Revamp\Rooms\Furni\Furni.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\Pet.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\IArtificialIntelligence.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\Human.cs" />
+    <Compile Include="OOP Revamp\Habbo\IBefriendable.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\RoomUnit.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\IPositionable.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\IRollerable.cs" />
     <Compile Include="Plugins\Plugin.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
-    <Compile Include="PrivateRoom.cs" />
-    <Compile Include="PublicRoom.cs" />
     <Compile Include="PublicRoomModel.cs" />
-    <Compile Include="Room.cs" />
     <Compile Include="RoomModel.cs" />
     <Compile Include="StandardOut.cs" />
     <Compile Include="Users\PacketProcessor.cs" />
@@ -182,8 +200,7 @@
     <Compile Include="InGame\User\Networking\Message\Encoding\WireEncoding.cs" />
     <Compile Include="Specialized\Utilities\ByteUtility.cs" />
     <Compile Include="Specialized\Utilities\Misc.cs" />
-    <Compile Include="InGame\User\Networking\Message\SubPackets\FriendUpdates.cs" />
-    <Compile Include="InGame\User\Habbo.cs" />
+    <Compile Include="OOP Revamp\Habbo\Habbo.cs" />
     <Compile Include="InGame\User\HabboDistributor.cs" />
     <Compile Include="InGame\Room\Items\Models\Virtual\VirtualItemModel.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Wall\WallItemModel.cs" />
@@ -197,6 +214,7 @@
     <None Include="app.manifest">
       <SubType>Designer</SubType>
     </None>
+    <None Include="OOP Revamp\Diagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

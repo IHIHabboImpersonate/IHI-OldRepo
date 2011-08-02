@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
+using IHI.Server.Habbos;
 using IHI.Server.Configuration;
 using IHI.Server.Plugins;
 using IHI.Server.Users.Permissions;
@@ -41,6 +43,7 @@ namespace IHI.Server
         private PermissionManager fPermissionManager;
         private PluginManager fPluginManager;
         private WebAdminManager fWebAdminManager;
+        private HabboFigureFactory fHabboFigureFactory;
         #endregion
 
         public Core()
@@ -84,6 +87,10 @@ namespace IHI.Server
         public PluginManager GetPluginManager()
         {
             return this.fPluginManager;
+        }
+        public HabboFigureFactory GetHabboFigureFactory()
+        {
+            return this.fHabboFigureFactory;
         }
         #endregion
 
@@ -252,6 +259,10 @@ namespace IHI.Server
                 this.fHabboDistributor = new HabboDistributor();
                 this.fStandardOut.PrintNotice("Habbo Distributor => Ready");
 
+                this.fStandardOut.PrintNotice("Habbo Figure Factory => Constructing...");
+                this.fHabboFigureFactory = new HabboFigureFactory();
+                this.fStandardOut.PrintNotice("Habbo Figure Factory => Ready");
+
                 // TODO: Download Requirements
 
                 this.fStandardOut.PrintNotice("Permission Manager => Constructing...");
@@ -310,7 +321,11 @@ namespace IHI.Server
 
             NHCfg.Configuration Configuration = new NHCfg.Configuration();
             Configuration.SetProperties(Properties);
-            Configuration.AddDirectory(new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, "database")));
+
+            foreach(FileInfo FI in new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, "database")).GetFiles("*.dll"))
+            {
+                Configuration.AddAssembly(Assembly.LoadFile(FI.FullName));
+            }
 
             fNHibernateSessionFactory = Configuration.BuildSessionFactory();
         }

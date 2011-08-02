@@ -129,12 +129,12 @@ namespace IHI.Server
             {
                 ID =    DB.CreateCriteria<Database.Habbo>()
                             .SetProjection(NHibernate.Criterion.Projections.Property("habbo_id"))
-                            .Add(new NHibernate.Criterion.EqPropertyExpression("sso_ticket", SSOTicket))
-                            .Add(new NHibernate.Criterion.EqPropertyExpression("origin_ip", Origin.ToString()))
-                            .List<int>().First();   // TODO: Test incorrect SSO Ticket
+                            .Add(NHibernate.Criterion.Restrictions.Eq("sso_ticket", SSOTicket))
+                            .Add(NHibernate.Criterion.Restrictions.Eq("origin_ip", Origin))
+                            .List<int>().FirstOrDefault();
             }
 
-            if (ID == -1)
+            if (ID == 0)
                 return null;
 
             return GetUser(ID);
@@ -181,6 +181,8 @@ namespace IHI.Server
                     // Yes, don't bother cleaning up again.
                     return;
 
+                List<string> ToRemoveUsernames = new List<string>();
+
                 // Loop through all Username ID pairs in the cache 
                 foreach (KeyValuePair<string, int> Ref in fUsernameIDCache)
                 {
@@ -190,9 +192,12 @@ namespace IHI.Server
                         // If it isn't remove it from the cache
                         fUserCache.Remove(Ref.Value);
                         // And remove the Username ID pairs too
-                        fUsernameIDCache.Remove(Ref.Key);
+                        ToRemoveUsernames.Add(Ref.Key);
                     }
                 }
+                foreach (string Username in ToRemoveUsernames)
+                    fUsernameIDCache.Remove(Username);
+
 
                 // Update the last cleanup time
                 this.fLastCleanUp = DateTime.Now;

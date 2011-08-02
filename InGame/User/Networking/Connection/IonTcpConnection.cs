@@ -8,6 +8,7 @@ using IHI.Server.Networking.Messages;
 using IHI.Server.Habbos;
 using Ion.Specialized.Encoding;
 using Ion.Specialized.Utilities;
+using IHI.Server.Networking;
 
 namespace IHI.Server.Networking
 {
@@ -24,7 +25,7 @@ namespace IHI.Server.Networking
         /// <summary>
         /// The reply to the flash policy request.
         /// </summary>
-        private static byte[] PolicyReplyData = new byte[] { 60, 63, 120, 109, 108, 32, 118, 101, 114, 115, 105, 111, 110, 61, 34, 49, 46, 48, 34, 63, 62, 13, 10, 60, 33, 68, 79, 67, 84, 89, 80, 69, 32, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 32, 83, 89, 83, 84, 69, 77, 32, 34, 47, 120, 109, 108, 47, 100, 116, 100, 115, 47, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 46, 100, 116, 100, 34, 62, 13, 10, 60, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 62, 13, 10, 60, 97, 108, 108, 111, 119, 45, 97, 99, 99, 101, 115, 115, 45, 102, 114, 111, 109, 32, 100, 111, 109, 97, 105, 110, 61, 34, 105, 109, 97, 103, 101, 115, 46, 104, 97, 98, 98, 111, 46, 99, 111, 109, 34, 32, 116, 111, 45, 112, 111, 114, 116, 115, 61, 34, 49, 45, 53, 48, 48, 48, 48, 34, 32, 47, 62, 13, 10, 60, 97, 108, 108, 111, 119, 45, 97, 99, 99, 101, 115, 115, 45, 102, 114, 111, 109, 32, 100, 111, 109, 97, 105, 110, 61, 34, 42, 34, 32, 116, 111, 45, 112, 111, 114, 116, 115, 61, 34, 49, 45, 53, 48, 48, 48, 48, 34, 32, 47, 62, 13, 10, 60, 47, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 62, 0 };
+        private static readonly byte[] PolicyReplyData = new byte[] { 60, 63, 120, 109, 108, 32, 118, 101, 114, 115, 105, 111, 110, 61, 34, 49, 46, 48, 34, 63, 62, 13, 10, 60, 33, 68, 79, 67, 84, 89, 80, 69, 32, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 32, 83, 89, 83, 84, 69, 77, 32, 34, 47, 120, 109, 108, 47, 100, 116, 100, 115, 47, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 46, 100, 116, 100, 34, 62, 13, 10, 60, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 62, 13, 10, 60, 97, 108, 108, 111, 119, 45, 97, 99, 99, 101, 115, 115, 45, 102, 114, 111, 109, 32, 100, 111, 109, 97, 105, 110, 61, 34, 105, 109, 97, 103, 101, 115, 46, 104, 97, 98, 98, 111, 46, 99, 111, 109, 34, 32, 116, 111, 45, 112, 111, 114, 116, 115, 61, 34, 49, 45, 53, 48, 48, 48, 48, 34, 32, 47, 62, 13, 10, 60, 97, 108, 108, 111, 119, 45, 97, 99, 99, 101, 115, 115, 45, 102, 114, 111, 109, 32, 100, 111, 109, 97, 105, 110, 61, 34, 42, 34, 32, 116, 111, 45, 112, 111, 114, 116, 115, 61, 34, 49, 45, 53, 48, 48, 48, 48, 34, 32, 47, 62, 13, 10, 60, 47, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 62, 0 };
         /// <summary>
         /// The amount of milliseconds to sleep when receiving data before processing the message. When this constant is 0, the data will be processed immediately.
         /// </summary>
@@ -138,7 +139,10 @@ namespace IHI.Server.Networking
         /// <returns>The current Connection. This allows chaining.</returns>
         public IonTcpConnection AddHandler(uint HeaderID, PacketHandlerPriority Priority, PacketHandler HandlerDelegate)
         {
-            lock (this.fPacketHandlers[HeaderID, (int)Priority])
+            if (this.fPacketHandlers[HeaderID, (int)Priority] != null)
+                lock (this.fPacketHandlers[HeaderID, (int)Priority])
+                    this.fPacketHandlers[HeaderID, (int)Priority] += HandlerDelegate;
+            else
                 this.fPacketHandlers[HeaderID, (int)Priority] += HandlerDelegate;
             return this;
         }
@@ -200,6 +204,11 @@ namespace IHI.Server.Networking
             {
                 this.fUser.StopLoggedInValues();
                 this.fUser.SetLoggedIn(false);
+                CoreManager.GetCore().GetStandardOut().PrintNotice("Connection stopped [" + this.GetIPAddressString() + ", " + this.fUser.GetUsername() + ']');
+            }
+            else
+            {
+                CoreManager.GetCore().GetStandardOut().PrintNotice("Connection stopped [" + this.GetIPAddressString() + ", UNKNOWN]");
             }
 
             fSocket.Close();
@@ -217,10 +226,9 @@ namespace IHI.Server.Networking
 
             return false;
         }
-        private void ConnectionDead()
+        internal void Close()
         {
-            // TODO: Move this to IHI
-            //IonEnvironment.GetHabboHotel().GetClients().StopClient(fID);
+            CoreManager.GetCore().GetConnectionManager().CloseConnection(this.GetID());
         }
 
         internal void SendData(byte[] Data)
@@ -233,11 +241,11 @@ namespace IHI.Server.Networking
                 }
                 catch (SocketException)
                 {
-                    ConnectionDead();
+                    Close();
                 }
                 catch (ObjectDisposedException)
                 {
-                    ConnectionDead();
+                    Close();
                 }
                 catch (Exception ex)
                 {
@@ -250,8 +258,9 @@ namespace IHI.Server.Networking
             SendData(CoreManager.GetCore().GetTextEncoding().GetBytes(sData));
         }
 
-        public void SendMessage(OutgoingMessage message)
+        internal void SendMessage(IInternalOutgoingMessage Imessage)
         {
+            InternalOutgoingMessage message = Imessage as InternalOutgoingMessage;
             if (this.fUser.IsLoggedIn())
                 CoreManager.GetCore().GetStandardOut().PrintDebug("[" + GetHabbo().GetUsername() + "] <-- " + message.Header + message.GetContentString());
             else
@@ -273,16 +282,16 @@ namespace IHI.Server.Networking
                 }
                 catch (SocketException)
                 {
-                    ConnectionDead();
+                    Close();
                 }
                 catch (ObjectDisposedException)
                 {
-                    ConnectionDead();
+                    Close();
                 }
                 catch (Exception ex)
                 {
                     CoreManager.GetCore().GetStandardOut().PrintException(ex);
-                    ConnectionDead();
+                    Close();
                 }
             }
         }
@@ -304,14 +313,14 @@ namespace IHI.Server.Networking
             }
             catch (ObjectDisposedException)
             {
-                ConnectionDead();
+                Close();
                 return;
             }
             catch (Exception ex)
             {
                 CoreManager.GetCore().GetStandardOut().PrintException(ex);
                 
-                ConnectionDead();
+                Close();
                 return;
             }
 
@@ -340,6 +349,7 @@ namespace IHI.Server.Networking
                         CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fID + "] --> Policy Request");
                         this.SendData(PolicyReplyData);
                         CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fID + "] <-- Policy Sent");
+                        this.Close();
                         return;
                     }
 
@@ -359,7 +369,7 @@ namespace IHI.Server.Networking
                     // Create message object
                     IncomingMessage message = new IncomingMessage(messageID, Content);
 
-                    if(this.fUser.IsLoggedIn())
+                    if (this.fUser.IsLoggedIn())
                         CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fUser.GetUsername() + "] --> " + message.GetHeader() + message.GetContentString());
                     else
                         CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fID + "] --> " + message.GetHeader() + message.GetContentString());
@@ -368,21 +378,21 @@ namespace IHI.Server.Networking
                     // Handle message object
                     bool Unknown = true;
 
-                    lock (this.fPacketHandlers[messageID, 3])
+                    if (this.fPacketHandlers[messageID, 3] != null)
                     {
-                        if (this.fPacketHandlers[messageID, 3] != null)
+                        lock (this.fPacketHandlers[messageID, 3])
                         {
                             this.fPacketHandlers[messageID, 3].Invoke(this.fUser, message); // Execute High Priority
                             Unknown = false;
                         }
                     }
-                    
+
                     if (message.IsCancelled())
                         return;
 
-                    lock (this.fPacketHandlers[messageID, 2])
+                    if (this.fPacketHandlers[messageID, 2] != null)
                     {
-                        if (this.fPacketHandlers[messageID, 2] != null)
+                        lock (this.fPacketHandlers[messageID, 2])
                         {
                             this.fPacketHandlers[messageID, 2].Invoke(this.fUser, message); // Execute Low Priority
                             Unknown = false;
@@ -392,18 +402,18 @@ namespace IHI.Server.Networking
                     if (message.IsCancelled())
                         return;
 
-                    lock (this.fPacketHandlers[messageID, 1])
+                    if (this.fPacketHandlers[messageID, 1] != null)
                     {
-                        if (this.fPacketHandlers[messageID, 1] != null)
+                        lock (this.fPacketHandlers[messageID, 1])
                         {
                             this.fPacketHandlers[messageID, 1].Invoke(this.fUser, message); // Execute Default Action
                             Unknown = false;
                         }
                     }
 
-                    lock (this.fPacketHandlers[messageID, 0])
+                    if (this.fPacketHandlers[messageID, 0] != null)
                     {
-                        if (this.fPacketHandlers[messageID, 0] != null)
+                        lock (this.fPacketHandlers[messageID, 0])
                         {
                             this.fPacketHandlers[messageID, 0].Invoke(this.fUser, message); // Execute Watchers
                             Unknown = false;
@@ -439,9 +449,10 @@ namespace IHI.Server.Networking
             }
         }
         #endregion
-
-        public void Disconnect() // TODO: Reason
+        
+        public void Disconnect()
         {
+            CoreManager.GetCore().GetConnectionManager().CloseConnection(this.GetID());
             this.Stop();
         }
     }

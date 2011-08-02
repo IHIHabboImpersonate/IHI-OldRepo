@@ -55,13 +55,7 @@ namespace IHI.Server
 
             MonoAware.System.Console.BackgroundColor = ConsoleColor.Black;
             MonoAware.System.Console.ForegroundColor = ConsoleColor.Gray;
-
-            MonoAware.System.Console.WindowWidth = 110;
-            MonoAware.System.Console.WindowHeight = 45;
-
-            MonoAware.System.Console.BufferWidth = 110;
-            MonoAware.System.Console.BufferHeight = 45; // TODO: Move to config
-
+            
             MonoAware.System.Console.Clear();
 
             if (!MonoMode)

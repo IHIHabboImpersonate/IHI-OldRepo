@@ -61,21 +61,21 @@ namespace IHI.Server.Networking
         /// <summary>
         /// Returns true if the Connection collection currently contains a Connection with a given client ID.
         /// </summary>
-        /// <param name="ClientID">The client ID to check.</param>
-        public bool ContainsConnection(uint ClientID)
+        /// <param name="ConnectionID">The client ID to check.</param>
+        public bool ContainsConnection(uint ConnectionID)
         {
             lock (mConnections)
-                return mConnections.ContainsKey(ClientID);
+                return mConnections.ContainsKey(ConnectionID);
         }
         /// <summary>
         /// Tries to return the IonTcpConnection instance of a given client ID. Null is returned if the Connection is not in the manager.
         /// </summary>
-        /// <param name="ID">The ID of the client to get Connection of as an unsigned 32 bit integer.</param>
-        public IonTcpConnection GetConnection(uint ClientID)
+        /// <param name="ConnectionID">The ID of the client to get Connection of as an unsigned 32 bit integer.</param>
+        public IonTcpConnection GetConnection(uint ConnectionID)
         {
             lock (mConnections)
             {
-                try { return mConnections[ClientID]; }
+                try { return mConnections[ConnectionID]; }
                 catch { return null; }
             }
         }
@@ -142,6 +142,16 @@ namespace IHI.Server.Networking
                 this.mConnections.Values.CopyTo(ReturnArray, 0);
             }
             return ReturnArray;
+        }
+
+        internal void CloseConnection(uint ConnectionID)
+        {
+            IonTcpConnection Connection = GetConnection(ConnectionID);
+            if (Connection != null)
+            {
+                Connection.Stop();
+                this.mConnections.Remove(ConnectionID);
+            }
         }
     }
 

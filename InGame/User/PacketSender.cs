@@ -1,6 +1,4 @@
-﻿using IHI.Server.Messenger;
-using IHI.Server.SubPackets;
-using IHI.Server.Habbos;
+﻿using IHI.Server.Habbos;
 
 namespace IHI.Server.Networking.Messages
 {

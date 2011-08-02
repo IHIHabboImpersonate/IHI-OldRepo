@@ -8,13 +8,16 @@ using System.Linq;
 using IHI.Database;
 using NHibernate;
 
+using IHI.Server.Rooms;
 
 namespace IHI.Server.Habbos
 {
-    public delegate void HabboEventHandler(object sender, UserEventArgs e);
+    public delegate void HabboEventHandler(object source, UserEventArgs e);
 
-    public class Habbo : IHI.Server.Human
+    public class Habbo : Human, IBefriendable, IMessageable
     {
+        protected new HabboFigure fFigure;
+
         #region Constructors
         /// <summary>
         /// Construct a prelogin User object.
@@ -40,11 +43,9 @@ namespace IHI.Server.Habbos
             {
                 HabboData = DB.Get<Database.Habbo>(ID); // TODO: Heavily optimise (mapping).
             }
-
-            this.fUsername = this.fDisplayName = HabboData.username;
+            this.fDisplayName = this.fUsername = HabboData.username;
             this.fMotto = HabboData.motto;
-            this.fFigure = HabboData.figure;
-            this.fGender = HabboData.gender;
+            this.fFigure = CoreManager.GetCore().GetHabboFigureFactory().Parse(HabboData.figure, HabboData.gender);
         }
         /// <summary>
         /// Construct a User object for the user with the given ID.
@@ -71,8 +72,7 @@ namespace IHI.Server.Habbos
 
             this.fID = HabboData.habbo_id;
             this.fMotto = HabboData.motto;
-            this.fFigure = HabboData.figure;
-            this.fGender = HabboData.gender;
+            this.fFigure = CoreManager.GetCore().GetHabboFigureFactory().Parse(HabboData.figure, HabboData.gender);
         }
         #endregion
 
@@ -93,7 +93,7 @@ namespace IHI.Server.Habbos
         /// <summary>
         /// The date and time of the last successful logon.
         /// </summary>
-        private DateTimeOffset fLastAccess;
+        private DateTime fLastAccess;
         /// <summary>
         /// Stores session values for the user.
         /// These are saved to the database under user_data_values.
@@ -126,7 +126,7 @@ namespace IHI.Server.Habbos
         /// <summary>
         /// The date of the User's last login.
         /// </summary>
-        public DateTimeOffset GetLastAccess()
+        public DateTime GetLastAccess()
         {
             return this.fLastAccess;
         }
@@ -180,7 +180,7 @@ namespace IHI.Server.Habbos
         private HashSet<int> fPermissions;
         #endregion
 
-        public event HabboEventHandler OnUserLogin;
+        public static event HabboEventHandler OnHabboLogin;
         #endregion
 
         #region Methods
@@ -228,7 +228,7 @@ namespace IHI.Server.Habbos
             return this.fLoggedIn;
         }
         /// <summary>
-        /// Set if the user as logged in.
+        /// Set if the user is logged in.
         /// This also updates the LastAccess time if required.
         /// </summary>
         /// <param name="Value">The user's new logged in status.</param>
@@ -236,11 +236,15 @@ namespace IHI.Server.Habbos
         {
             if (!this.fLoggedIn && Value)
             {
-                this.fLastAccess = DateTimeOffset.Now;
+                this.fLastAccess = DateTime.Now;
                 using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
                 {
-                    DB.Update(DB.Get<Database.Habbo>(this.fID).last_access = this.fLastAccess);
+                    Database.Habbo H = DB.Get<Database.Habbo>(this.fID);
+                    H.last_access = this.fLastAccess;
+                    DB.Update(H);
                 }
+                if(OnHabboLogin != null)
+                    OnHabboLogin.Invoke(this, new UserEventArgs());
             }
 
             this.fLoggedIn = Value;
@@ -285,10 +289,6 @@ namespace IHI.Server.Habbos
         public IonTcpConnection GetConnection()
         {
             return this.fConnection;
-        }
-        public PacketSender GetPacketSender()
-        {
-            return this.fPacketSender;
         }
         public Habbo Pong()
         {
@@ -373,6 +373,12 @@ namespace IHI.Server.Habbos
         #region Methods
         #endregion
         #endregion
+        
+        public IMessageable SendMessage(IInternalOutgoingMessage Message)
+        {
+            this.fConnection.SendMessage(Message);
+            return this;
+        }
     }
 
     public class UserEventArgs : EventArgs

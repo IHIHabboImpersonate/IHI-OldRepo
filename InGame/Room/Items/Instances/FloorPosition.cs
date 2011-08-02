@@ -4,7 +4,7 @@ namespace IHI.Server
     /// <summary>
     /// Represents the a position and rotation on the floor of a room.
     /// </summary>
-    public struct FloorLocation
+    public struct FloorPosition
     {
         private byte fX;
         private byte fY;
