@@ -100,10 +100,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\XMLConfig.cs" />
+    <Compile Include="InGame\Room\Items\Instances\FloorPosition.cs" />
     <Compile Include="InGame\Room\Items\Instances\WallLocation.cs" />
     <Compile Include="InGame\Room\Items\Models\Virtual\EffectItemModel.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Floor\FloorItemModel.cs" />
-    <Compile Include="InGame\Room\Items\Instances\FloorLocation.cs" />
     <Compile Include="InGame\User\Networking\Message\IMessageable.cs" />
     <Compile Include="InGame\User\Networking\Message\OutgoingMessage.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\FigureFactory.cs" />

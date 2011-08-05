@@ -42,9 +42,9 @@ namespace IHI.Server.Habbos
 
         public byte GetAmountOfColours()
         {
-            if (this.fPrimaryColour == null)
+            if (this.fPrimaryColour == 0)
                 return 0;
-            if (this.fSecondaryColour == null)
+            if (this.fSecondaryColour == 0)
                 return 1;
             return 2;
         }
