@@ -28,7 +28,7 @@ namespace IHI.Server.Habbos
             foreach (string PartString in PartStringArray)
             {
                 // Split it into part type, model and colours.
-                string[] DetailsArray = PartString.Split(new char[] { '.' });
+                string[] DetailsArray = PartString.Split(new char[] { '-' });
 
                 
                 ushort ModelID = 0;
