@@ -202,7 +202,6 @@ namespace IHI.Server.Networking
 
             if (this.fUser.IsLoggedIn())
             {
-                this.fUser.StopLoggedInValues();
                 this.fUser.SetLoggedIn(false);
                 CoreManager.GetCore().GetStandardOut().PrintNotice("Connection stopped [" + this.GetIPAddressString() + ", " + this.fUser.GetUsername() + ']');
             }

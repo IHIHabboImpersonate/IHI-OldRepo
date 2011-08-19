@@ -10,5 +10,15 @@ namespace IHI.Server.Networking.Messages
         protected IInternalOutgoingMessage fInternalOutgoingMessage = new InternalOutgoingMessage();
 
         public abstract OutgoingMessage Send(IMessageable Target);
+        public OutgoingMessage Send(IEnumerable<IMessageable> Targets, bool SendOncePerConnection = false)
+        {
+            if (SendOncePerConnection)
+                throw new NotImplementedException();
+            foreach (IMessageable Target in Targets)
+            {
+                Target.SendMessage(this.fInternalOutgoingMessage);
+            }
+            return this;
+        }
     }
 }

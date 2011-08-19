@@ -78,6 +78,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Drawing">
       <Private>False</Private>
     </Reference>
@@ -107,19 +108,20 @@
     <Compile Include="InGame\User\Networking\Message\IMessageable.cs" />
     <Compile Include="InGame\User\Networking\Message\OutgoingMessage.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\FigureFactory.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureJacket.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureWaist.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureFaceAccesory.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureShirtAccesory.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureHeadAccesory.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureEyeAccesory.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureHat.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureShoes.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureLegs.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureShirt.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureHair.cs" />
-    <Compile Include="OOP Revamp\Habbo\FigureParts\FigureBody.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\Jacket.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\WaistAccessory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\FaceAccessory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\ShirtAccessory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\HeadAccessory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\EyeAccessory.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\Hat.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\Shoes.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\Legs.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\Shirt.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\Hair.cs" />
+    <Compile Include="OOP Revamp\Habbo\FigureParts\Body.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\FigurePart.cs" />
+    <Compile Include="OOP Revamp\IObjectVariables.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\BotFigure.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\IFigure.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\PetFigure.cs" />
@@ -178,6 +180,7 @@
     <Compile Include="OOP Revamp\Rooms\Models\RoomModel.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\PlayerBot.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\StandardBot.cs" />
+    <Compile Include="OOP Revamp\Rooms\RoomUnits\IPathfinder.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\ITalkable.cs" />
     <Compile Include="OOP Revamp\Rooms\Furni\WallFurni.cs" />
     <Compile Include="OOP Revamp\Rooms\Furni\FloorFurni.cs" />

@@ -16,6 +16,7 @@ using NHibernate;
 using NHCfg = NHibernate.Cfg;
 
 using MySql.Data.MySqlClient;
+using IHI.Server.Habbos.Figure;
 
 namespace IHI.Server
 {

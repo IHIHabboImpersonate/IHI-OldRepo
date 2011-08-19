@@ -14,10 +14,8 @@ namespace IHI.Server.Habbos
 {
     public delegate void HabboEventHandler(object source, UserEventArgs e);
 
-    public class Habbo : Human, IBefriendable, IMessageable
+    public class Habbo : Human, IBefriendable, IMessageable, IObjectVariables
     {
-        protected new HabboFigure fFigure;
-
         #region Constructors
         /// <summary>
         /// Construct a prelogin User object.
@@ -26,8 +24,6 @@ namespace IHI.Server.Habbos
         internal Habbo(IonTcpConnection Connection)
         {
             this.fConnection = Connection;
-            this.fPacketSender = new PacketSender(this);
-            this.fPacketProcessor = new PacketProcessor(this);
         }
         /// <summary>
         /// Construct a User object for the user with the given ID.
@@ -76,7 +72,6 @@ namespace IHI.Server.Habbos
         }
         #endregion
 
-        #region Universal
         #region Fields
         /// <summary>
         /// The user ID of the user.
@@ -89,16 +84,40 @@ namespace IHI.Server.Habbos
         /// <summary>
         /// The motto of the user.
         /// </summary>
-        private string fMotto; // TODO: More structured?
+        private string fMotto;
         /// <summary>
         /// The date and time of the last successful logon.
         /// </summary>
         private DateTime fLastAccess;
         /// <summary>
-        /// Stores session values for the user.
-        /// These are saved to the database under user_data_values.
+        /// Is the user logged in or is it a PreLoginUser?
         /// </summary>
-        private Dictionary<string, string> fLongTermValues;
+        private bool fLoggedIn = false;
+
+        #region Connection Related
+        /// <summary>
+        /// The current Connection of this user.
+        /// </summary>
+        private IonTcpConnection fConnection;
+        /// <summary>
+        /// True if the user replied to the last ping?
+        /// </summary>
+        private bool fPonged;
+
+        private Dictionary<string, object> fObjectVariables;
+        #endregion
+
+
+        /// <summary>
+        /// The amount of credits the user has.
+        /// </summary>
+        private int? fCreditBalance;
+
+        #region Permissions
+        private HashSet<int> fPermissions;
+        #endregion
+
+        public static event HabboEventHandler OnHabboLogin;
         #endregion
 
         #region Methods
@@ -129,95 +148,6 @@ namespace IHI.Server.Habbos
         public DateTime GetLastAccess()
         {
             return this.fLastAccess;
-        }
-        #endregion
-        #endregion
-
-        #region Online (Example: Local User, Permission Access)
-        #region Fields
-        /// <summary>
-        /// The amount of times StartOnlineValues() has been called
-        /// minus the amount of times StopOlineValues() has been called.
-        /// </summary>
-        private uint OnlineValueCounter = 0;
-
-        /// <summary>
-        /// Is the user logged in or is it a PreLoginUser?
-        /// </summary>
-        private bool fLoggedIn = false;
-
-        #region Connection Related
-        /// <summary>
-        /// The current Connection of this user.
-        /// </summary>
-        private IonTcpConnection fConnection;
-        /// <summary>
-        /// True if the user replied to the last ping?
-        /// </summary>
-        private bool fPonged;
-        /// <summary>
-        /// The packet sender for this user.
-        /// </summary>
-        private PacketSender fPacketSender;
-        /// <summary>
-        /// The packet sender for this user.
-        /// </summary>
-        private PacketProcessor fPacketProcessor;
-        #endregion
-
-        /// <summary>
-        /// Stores session values for the user.
-        /// These are not saved when the user disconnects.
-        /// </summary>
-        private Dictionary<object, object> fSessionValues;
-
-        /// <summary>
-        /// The amount of credits the user has.
-        /// </summary>
-        private int fCreditBalance;
-
-        #region Permissions
-        private HashSet<int> fPermissions;
-        #endregion
-
-        public static event HabboEventHandler OnHabboLogin;
-        #endregion
-
-        #region Methods
-        /// <summary>
-        /// Ensure that the online values are present.
-        /// ALWAYS CALL StopLoggedInValues() WHEN YOU ARE FINISHED!
-        /// </summary>
-        public void StartLoggedInValues()
-        {
-            OnlineValueCounter++;
-            if (OnlineValueCounter == 1)
-            {
-                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
-                {
-                    // TODO: Heavily optimise (mapping).
-                    this.fCreditBalance = DB.Get<Database.Habbo>(this.GetID()).credits;
-                }
-
-                this.fPonged = true;
-                this.fSessionValues = new Dictionary<object, object>();
-
-                this.ReloadPermissions();
-            }
-        }
-        /// <summary>
-        /// Cleans up the online values when nobody is using them.
-        /// </summary>
-        public void StopLoggedInValues()
-        {
-            OnlineValueCounter--;
-            if (OnlineValueCounter == 0)
-            {
-                this.fConnection = null;
-                this.fPacketSender = null;
-                this.fPacketProcessor = null;
-                this.fSessionValues = null;
-            }
         }
 
         /// <summary>
@@ -255,7 +185,16 @@ namespace IHI.Server.Habbos
         /// </summary>
         public int GetCreditBalance()
         {
-            return this.fCreditBalance;
+            if(this.fCreditBalance == null)
+            {
+                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
+                {
+                    // TODO: Heavily optimise (mapping).
+                    this.fCreditBalance = DB.Get<Database.Habbo>(this.GetID()).credits;
+                }
+            }
+
+            return (int)this.fCreditBalance;
         }
         /// <summary>
         /// Set the amount credits the user has.
@@ -272,6 +211,14 @@ namespace IHI.Server.Habbos
         /// <param name="Amount">The amount of credits.</param>
         public Habbo GiveCredits(int Amount)
         {
+            if(this.fCreditBalance == null)
+            {
+                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
+                {
+                    // TODO: Heavily optimise (mapping).
+                    this.fCreditBalance = DB.Get<Database.Habbo>(this.GetID()).credits;
+                }
+            }
             this.fCreditBalance += Amount;
             return this;
         }
@@ -281,6 +228,15 @@ namespace IHI.Server.Habbos
         /// <param name="Amount">The amount of credits.</param>
         public Habbo TakeCredits(int Amount)
         {
+            if(this.fCreditBalance == null)
+            {
+                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
+                {
+                    // TODO: Heavily optimise (mapping).
+                    this.fCreditBalance = DB.Get<Database.Habbo>(this.GetID()).credits;
+                }
+            }
+
             this.fCreditBalance -= Amount;
             return this;
         }
@@ -299,12 +255,8 @@ namespace IHI.Server.Habbos
         public void LoginMerge(Habbo LoggedInUser)
         {
             this.fConnection = LoggedInUser.fConnection;
-            this.fPacketProcessor = LoggedInUser.fPacketProcessor;
-            this.fPacketSender = LoggedInUser.fPacketSender;
-
+            
             this.fConnection.fUser = this;
-            this.fPacketProcessor.fUser = this;
-            this.fPacketSender.fUser = this;
         }
         #endregion
 
@@ -325,6 +277,8 @@ namespace IHI.Server.Habbos
         /// </summary>
         public bool HasPermission(int PermissionID)
         {
+            if(this.fPermissions == null)
+                this.ReloadPermissions();
             return this.fPermissions.Contains(PermissionID);
         }
 
@@ -333,6 +287,8 @@ namespace IHI.Server.Habbos
         /// </summary>
         public int[] GetPermissions()
         {
+            if(this.fPermissions == null)
+                this.ReloadPermissions();
             lock (this.fPermissions)
             {
                 int[] PermissionArray = new int[this.fPermissions.Count];
@@ -343,41 +299,43 @@ namespace IHI.Server.Habbos
         }
         #endregion
         #endregion
-
-        public object GetSessionValue(object Key)
-        {
-            if (this.fSessionValues.ContainsKey(Key))
-                return this.fSessionValues[Key];
-            return null;
-        }
-        public object SetSessionValue(object Key, object Value)
-        {
-            if (this.fSessionValues.ContainsKey(Key))
-                this.fSessionValues[Key] = Value;
-            else
-                this.fSessionValues.Add(Key, Value);
-            return null;
-        }
-        public bool IsSessionValuePresent(object Key)
-        {
-            return this.fSessionValues.ContainsKey(Key);
-        }
-        #endregion
-        #endregion
-
-        #region Room (Example: User in a fRoom)
-        #region Fields
-
-        #endregion
-
-        #region Methods
-        #endregion
         #endregion
         
         public IMessageable SendMessage(IInternalOutgoingMessage Message)
         {
             this.fConnection.SendMessage(Message);
             return this;
+        }
+
+        public object GetInstanceVariable(string Name)
+        {
+            if (this.fObjectVariables == null || !this.fObjectVariables.ContainsKey(Name))
+                return null;
+            return this.fObjectVariables[Name];
+        }
+
+        public IObjectVariables SetInstanceVariable(string Name, object Value)
+        {
+            if (this.fObjectVariables == null)
+                this.fObjectVariables = new Dictionary<string, object>();
+
+            if (this.fObjectVariables.ContainsKey(Name))
+                this.fObjectVariables[Name] = Value;
+            else
+                this.fObjectVariables.Add(Name, Value);
+
+            return this;
+        }
+
+
+        public string GetPersistantVariable(string Name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IObjectVariables SetPersistantVariable(string Name, string Value)
+        {
+            throw new NotImplementedException();
         }
     }
 

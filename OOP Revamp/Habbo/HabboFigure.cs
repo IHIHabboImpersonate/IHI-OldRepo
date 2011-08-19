@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Text;
+
 using IHI.Server.Networking.Messages;
 using IHI.Server.Users.Permissions;
 using IHI.Server.Networking;
@@ -9,6 +11,7 @@ using IHI.Database;
 using NHibernate;
 
 using IHI.Server.Rooms;
+using IHI.Server.Habbos.Figure;
 
 namespace IHI.Server.Habbos
 {
@@ -21,19 +24,19 @@ namespace IHI.Server.Habbos
         /// </summary>
         private bool fGender;
 
-        private FigureBody fBody;
-        private FigureHair fHair;
-        private FigureShirt fShirt;
-        private FigureTrousers fTrousers;
-        private FigureShoes fShoes;
+        private Body fBody;
+        private Hair fHair;
+        private Shirt fShirt;
+        private Legs fLegs;
+        private Shoes fShoes;
 
-        private FigureHat fHat;
-        private FigureGlasses fGlasses;
-        private FigureHairAccesories fHairAccesories;
-        private FigureFaceAccesories fFaceAccesories;
-        private FigureShirtAccesories fShirtAccesories;
-        private FigureBelt fBelt;
-        private FigureJacket fJacket;
+        private Hat fHat;
+        private EyeAccessory fEyeAccessory;
+        private HeadAccessory fHeadAccessory;
+        private FaceAccessory fFaceAccessory;
+        private ShirtAccessory fShirtAccessory;
+        private WaistAccessory fWaistAccessory;
+        private Jacket fJacket;
 
         public HabboFigure(bool Gender)
         {
@@ -56,122 +59,122 @@ namespace IHI.Server.Habbos
         }
         #endregion
 
-        public FigureBody GetBody()
+        public Body GetBody()
         {
             return this.fBody;
         }
-        public HabboFigure SetBody(FigureBody Value)
+        public HabboFigure SetBody(Body Value)
         {
             this.fBody = Value;
             return this;
         }
 
-        public FigureHair GetHair()
+        public Hair GetHair()
         {
             return this.fHair;
         }
-        public HabboFigure SetHair(FigureHair Value)
+        public HabboFigure SetHair(Hair Value)
         {
             this.fHair = Value;
             return this;
         }
 
-        public FigureShirt GetShirt()
+        public Shirt GetShirt()
         {
             return this.fShirt;
         }
-        public HabboFigure SetShirt(FigureShirt Value)
+        public HabboFigure SetShirt(Shirt Value)
         {
             this.fShirt = Value;
             return this;
         }
 
-        public FigureTrousers GetTrousers()
+        public Legs GeLegs()
         {
-            return this.fTrousers;
+            return this.fLegs;
         }
-        public HabboFigure SetTrousers(FigureTrousers Value)
+        public HabboFigure SetLegs(Legs Value)
         {
-            this.fTrousers = Value;
+            this.fLegs = Value;
             return this;
         }
 
-        public FigureShoes GetShoes()
+        public Shoes GetShoes()
         {
             return this.fShoes;
         }
-        public HabboFigure SetShoes(FigureShoes Value)
+        public HabboFigure SetShoes(Shoes Value)
         {
             this.fShoes = Value;
             return this;
         }
 
 
-        public FigureHat GetHat()
+        public Hat GetHat()
         {
             return this.fHat;
         }
-        public HabboFigure SetHat(FigureHat Value)
+        public HabboFigure SetHat(Hat Value)
         {
             this.fHat = Value;
             return this;
         }
 
-        public FigureGlasses GetGlasses()
+        public EyeAccessory GetEyeAccessory()
         {
-            return this.fGlasses;
+            return this.fEyeAccessory;
         }
-        public HabboFigure SetGlasses(FigureGlasses Value)
+        public HabboFigure SetEyeAccessory(EyeAccessory Value)
         {
-            this.fGlasses = Value;
+            this.fEyeAccessory = Value;
             return this;
         }
 
-        public FigureHairAccesories GetHairAccesories()
+        public HeadAccessory GetHeadAccessory()
         {
-            return this.fHairAccesories;
+            return this.fHeadAccessory;
         }
-        public HabboFigure SetHairAccesories(FigureHairAccesories Value)
+        public HabboFigure SetHeadAccessory(HeadAccessory Value)
         {
-            this.fHairAccesories = Value;
+            this.fHeadAccessory = Value;
             return this;
         }
 
-        public FigureFaceAccesories GetFaceAccesories()
+        public FaceAccessory GetFaceAccesory()
         {
-            return this.fFaceAccesories;
+            return this.fFaceAccessory;
         }
-        public HabboFigure SetFaceAccesories(FigureFaceAccesories Value)
+        public HabboFigure SetFaceAccessory(FaceAccessory Value)
         {
-            this.fFaceAccesories = Value;
+            this.fFaceAccessory = Value;
             return this;
         }
 
-        public FigureShirtAccesories GetShirtAccesories()
+        public ShirtAccessory GetShirtAccessory()
         {
-            return this.fShirtAccesories;
+            return this.fShirtAccessory;
         }
-        public HabboFigure SetShirtAccesories(FigureShirtAccesories Value)
+        public HabboFigure SetShirtAccessories(ShirtAccessory Value)
         {
-            this.fShirtAccesories = Value;
+            this.fShirtAccessory = Value;
             return this;
         }
 
-        public FigureBelt GetBelt()
+        public WaistAccessory GetWaistAccessory()
         {
-            return this.fBelt;
+            return this.fWaistAccessory;
         }
-        public HabboFigure SetBelt(FigureBelt Value)
+        public HabboFigure SetWaistAccessory(WaistAccessory Value)
         {
-            this.fBelt = Value;
+            this.fWaistAccessory = Value;
             return this;
         }
 
-        public FigureJacket GetJacket()
+        public Jacket GetJacket()
         {
             return this.fJacket;
         }
-        public HabboFigure SetJacket(FigureJacket Value)
+        public HabboFigure SetJacket(Jacket Value)
         {
             this.fJacket = Value;
             return this;
@@ -211,7 +214,72 @@ namespace IHI.Server.Habbos
 
         public override string ToString()
         {
-            throw new NotImplementedException();
+            StringBuilder SB = new StringBuilder();
+
+            bool PrefixRequired = false;
+
+            if (this.fBody != null)
+            {
+                SB.Append(this.fBody.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fEyeAccessory != null)
+            {
+                SB.Append(this.fEyeAccessory.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fFaceAccessory != null)
+            {
+                SB.Append(this.fFaceAccessory.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fHair != null)
+            {
+                SB.Append(this.fHair.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fHat != null)
+            {
+                SB.Append(this.fHat.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fHeadAccessory != null)
+            {
+                SB.Append(this.fHeadAccessory.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fJacket != null)
+            {
+                SB.Append(this.fJacket.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fLegs != null)
+            {
+                SB.Append(this.fLegs.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fShirt != null)
+            {
+                SB.Append(this.fShirt.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fShirtAccessory != null)
+            {
+                SB.Append(this.fShirtAccessory.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fShoes != null)
+            {
+                SB.Append(this.fShoes.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+            if (this.fWaistAccessory != null)
+            {
+                SB.Append(this.fWaistAccessory.ToString(PrefixRequired));
+                PrefixRequired = true;
+            }
+
+            return SB.ToString();
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace IHI.Server.Habbos
+namespace IHI.Server.Habbos.Figure
 {
     public class HabboFigureFactory
     {
@@ -75,14 +75,14 @@ namespace IHI.Server.Habbos
                 switch (DetailsArray[0])
                 {
                     // Shirt
-                    case "ch":
+                    case "hd":
                         {
                             // Verify this model is a shirt.
-                            if (!(Part is FigureShirt))
-                                throw new InvalidCastException("Figure ModelID " + ModelID + " is a valid figure model but not a valid shirt.");
+                            if (!(Part is Body))
+                                throw new InvalidCastException("Figure ModelID " + ModelID + " is a valid figure model but not a valid body.");
                             
                             // Apply the part to the HabboFigure
-                            FigureInProgress.SetShirt(Part as FigureShirt);
+                            FigureInProgress.SetBody(Part as Body);
                             break;
                         }
                     default:
