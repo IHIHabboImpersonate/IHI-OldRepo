@@ -1,34 +1,33 @@
-﻿
-namespace IHI.Server
+﻿namespace IHI.Server
 {
     /// <summary>
     /// Describes the shape of a floor furni.
     /// </summary>
     public class ItemShape
     {
-        private byte fWidth;
+        private CollisionType fCollision;
         private byte fHeight;
         private byte fLength;
-        private CollisionType fCollision;
+        private byte fWidth;
 
         public byte GetLength()
         {
-            return this.fLength;
+            return fLength;
         }
 
         public byte GetWidth()
         {
-            return this.fWidth;
+            return fWidth;
         }
 
         public byte GetHeight()
         {
-            return this.fHeight;
+            return fHeight;
         }
 
         public CollisionType GetCollision()
         {
-            return this.fCollision;
+            return fCollision;
         }
     }
 }

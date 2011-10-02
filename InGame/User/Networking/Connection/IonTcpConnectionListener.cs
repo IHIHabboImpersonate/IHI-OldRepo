@@ -2,8 +2,6 @@
 using System.Net;
 using System.Net.Sockets;
 
-using IHI.Server;
-
 namespace IHI.Server.Networking
 {
     /// <summary>
@@ -12,84 +10,97 @@ namespace IHI.Server.Networking
     public class IonTcpConnectionListener
     {
         #region Fields
+
         /// <summary>
         /// The maximum length of the Connection request queue for the listener as an integer.
         /// </summary>
-        private const int LISTENER_CONNECTIONREQUEST_QUEUE_LENGTH = 1;
+        private const int ListenerConnectionrequestQueueLength = 1;
+
+        private readonly AsyncCallback _connectionRequestCallback;
+
+        /// <summary>
+        /// An IonTcpConnectionFactory instance that is capable of creating IonTcpConnections.
+        /// </summary>
+        private IonTcpConnectionFactory _factory;
 
         /// <summary>
         /// A System.Networking.Sockets.TcpListener that listens for connections.
         /// </summary>
-        private TcpListener mListener = null;
-        private bool mIsListening = false;
-        private AsyncCallback mConnectionRequestCallback = null;
+        private TcpListener _listener;
 
-        private IonTcpConnectionManager mManager;
-        /// <summary>
-        /// An IonTcpConnectionFactory instance that is capable of creating IonTcpConnections.
-        /// </summary>
-        private IonTcpConnectionFactory mFactory;
+        private IonTcpConnectionManager _manager;
+
         #endregion
 
         #region Properties
+
         /// <summary>
         /// Gets whether the listener is listening for new connections or not.
         /// </summary>
-        public bool isListening
-        {
-            get { return mIsListening; }
-        }
+        public bool IsListening { get; private set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Constructs an IonTcpConnection listener and binds it to a given local IP address and TCP port.
         /// </summary>
-        /// <param name="sLocalIP">The IP address string to parse and bind the listener to.</param>
-        /// <param name="Port">The TCP port number to parse the listener to.</param>
-        public IonTcpConnectionListener(string sLocalIP, int Port, IonTcpConnectionManager pManager)
+        /// <param name="localIP">The IP address string to parse and bind the listener to.</param>
+        /// <param name="port">The TCP port number to parse the listener to.</param>
+        /// <param name="manager">TODO: Document</param>
+        public IonTcpConnectionListener(string localIP, int port, IonTcpConnectionManager manager)
         {
-            IPAddress pIP = null;
-            if(!IPAddress.TryParse(sLocalIP, out pIP))
+            IPAddress ip;
+            if (!IPAddress.TryParse(localIP, out ip))
             {
-                pIP = IPAddress.Loopback;
-                CoreManager.GetCore().GetStandardOut().PrintWarning(string.Format("Connection listener was unable to parse the given local IP address '{0}', now binding listener to '{1}'.", sLocalIP, pIP.ToString())); 
+                ip = IPAddress.Loopback;
+                CoreManager.GetServerCore().GetStandardOut().PrintWarning(
+                    string.Format(
+                        "Connection listener was unable to parse the given local IP address '{0}', now binding listener to '{1}'.",
+                        localIP, ip.ToString()));
             }
 
-            mListener = new TcpListener(pIP, Port);
-            mConnectionRequestCallback = new AsyncCallback(ConnectionRequest);
-            mFactory = new IonTcpConnectionFactory();
-            mManager = pManager;
+            _listener = new TcpListener(ip, port);
+            _connectionRequestCallback = new AsyncCallback(ConnectionRequest);
+            _factory = new IonTcpConnectionFactory();
+            _manager = manager;
 
-            CoreManager.GetCore().GetStandardOut().PrintNotice(string.Format("IonTcpConnectionListener initialized and bound to {0}:{1}.", pIP.ToString(), Port.ToString()));
+            CoreManager.GetServerCore().GetStandardOut().PrintNotice(
+                string.Format("IonTcpConnectionListener initialized and bound to {0}:{1}.", ip.ToString(),
+                              port.ToString()));
         }
+
         #endregion
 
         #region Methods
+
         /// <summary>
         /// Starts listening for connections.
         /// </summary>
         public void Start()
         {
-            if (mIsListening)
+            if (IsListening)
                 return;
 
-            mListener.Start();
-            mIsListening = true;
+            _listener.Start();
+            IsListening = true;
 
             WaitForNextConnection();
         }
+
         /// <summary>
         /// Stops listening for connections.
         /// </summary>
         public void Stop()
         {
-            if (!mIsListening)
+            if (!IsListening)
                 return;
 
-            mIsListening = false;
-            mListener.Stop();
+            IsListening = false;
+            _listener.Stop();
         }
+
         /// <summary>
         /// Destroys all resources in the Connection listener.
         /// </summary>
@@ -97,9 +108,9 @@ namespace IHI.Server.Networking
         {
             Stop();
 
-            mListener = null;
-            mManager = null;
-            mFactory = null;
+            _listener = null;
+            _manager = null;
+            _factory = null;
         }
 
         /// <summary>
@@ -107,9 +118,10 @@ namespace IHI.Server.Networking
         /// </summary>
         private void WaitForNextConnection()
         {
-            if (mIsListening)
-                mListener.BeginAcceptSocket(mConnectionRequestCallback, null);
+            if (IsListening)
+                _listener.BeginAcceptSocket(_connectionRequestCallback, null);
         }
+
         /// <summary>
         /// Invoked when the listener asynchronously accepts a new Connection request.
         /// </summary>
@@ -118,22 +130,27 @@ namespace IHI.Server.Networking
         {
             try
             {
-                Socket pSocket = mListener.EndAcceptSocket(iAr);
+                var socket = _listener.EndAcceptSocket(iAr);
                 // TODO: IP blacklist
 
-                IonTcpConnection connection = mFactory.CreateConnection(pSocket);
+                var connection = _factory.CreateConnection(socket);
                 if (connection != null)
                 {
-                    mManager.HandleNewConnection(connection);
+                    _manager.HandleNewConnection(connection);
                 }
             }
-            catch { } // TODO: handle exceptions
+// ReSharper disable EmptyGeneralCatchClause
+            catch
+            {
+            } // TODO: handle exceptions
+// ReSharper restore EmptyGeneralCatchClause
             finally
             {
-                if (mIsListening)
+                if (IsListening)
                     WaitForNextConnection(); // Re-start the process for next Connection
             }
         }
+
         #endregion
     }
 }

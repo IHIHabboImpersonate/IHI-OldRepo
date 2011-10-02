@@ -1,5 +1,4 @@
-﻿
-namespace IHI.Server.Rooms.Furni
+﻿namespace IHI.Server.Rooms.Furni
 {
     public interface ITogglable
     {

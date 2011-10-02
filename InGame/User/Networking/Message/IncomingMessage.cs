@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
-
 using Ion.Specialized.Encoding;
 
 namespace IHI.Server.Networking.Messages
@@ -12,115 +10,128 @@ namespace IHI.Server.Networking.Messages
     public class IncomingMessage
     {
         #region Fields
-        /// <summary>
-        /// The ID of this message as an unsigned 32 bit integer.
-        /// </summary>
-        private readonly uint fID;
+
         /// <summary>
         /// The content of this message as a byte array.
         /// </summary>
-        private readonly byte[] fContent;
+        private readonly byte[] _content;
+
         /// <summary>
-        /// The current index in the content array, used when reading the message.
+        /// The ID of this message as an unsigned 32 bit integer.
         /// </summary>
-        private int fContentCursor;
-        /// <summary>
-        /// The variables used in custom packet processing is done here
-        /// </summary>
-        private Dictionary<string, object> fVariables;
+        private readonly uint _id;
+
         /// <summary>
         /// The variables used in custom packet processing is done here
         /// </summary>
-        private bool fBlocked;
+        private bool _blocked;
+
         /// <summary>
         /// If set to true then lower proirity handlers will not be called.
         /// </summary>
-        private bool fCancelled;
+        private bool _cancelled;
+
+        /// <summary>
+        /// The current index in the content array, used when reading the message.
+        /// </summary>
+        private int _contentCursor;
+
         #endregion
 
         #region Properties
+
         /// <summary>
         /// Gets the ID of this message as an unsigned 32 bit integer.
         /// </summary>
         public uint GetID()
         {
-            return fID;
+            return _id;
         }
+
         /// <summary>
         /// Gets the header of this message, by Base64 encoding the message ID to a 2 byte string.
         /// </summary>
         public string GetHeader()
         {
-            return CoreManager.GetCore().GetTextEncoding().GetString(Base64Encoding.EncodeuUInt32(fID, 2));
+            return CoreManager.GetServerCore().GetTextEncoding().GetString(Base64Encoding.EncodeuUInt32(_id, 2));
         }
+
         /// <summary>
         /// Gets the length of the content in this message.
         /// </summary>
         public int GetContentLength()
         {
-            return fContent.Length;
+            return _content.Length;
         }
+
         /// <summary>
         /// Gets the amount of unread content bytes.
         /// </summary>
         public int GetRemainingContent()
         {
-            return (fContent.Length - fContentCursor);
+            return (_content.Length - _contentCursor);
         }
 
         public bool GetBlocked()
         {
-            return fBlocked;
+            return _blocked;
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Constructs a ClientMessage object for a given message ID and a given content byte array.
         /// </summary>
-        /// <param name="ID">The ID of the message as an unsigned 32 bit integer.</param>
+        /// <param name="id">The ID of the message as an unsigned 32 bit integer.</param>
         /// <param name="bzContent">The content as a byte array. If null is supplied, an empty byte array will be created.</param>
-        internal IncomingMessage(uint ID, byte[] bzContent)
+        internal IncomingMessage(uint id, byte[] bzContent)
         {
             if (bzContent == null)
                 bzContent = new byte[0];
 
-            fID = ID;
-            fContent = bzContent;
-            fContentCursor = 0;
+            _id = id;
+            _content = bzContent;
+            _contentCursor = 0;
         }
+
         #endregion
 
         #region Methods
+
         /// <summary>
         /// Resets the client message to it's state when it was constructed by resetting the content reader cursor. This allows to re-read read data.
         /// </summary>
         public void Reset()
         {
-            fContentCursor = 0;
+            _contentCursor = 0;
         }
+
         /// <summary>
         /// Advances the content cursor by a given amount of bytes.
         /// </summary>
         /// <param name="n">The amount of bytes to 'skip'.</param>
         public void Advance(int n)
         {
-            fContentCursor += n;
+            _contentCursor += n;
         }
+
         /// <summary>
         /// Returns the total content of this message as a string.
         /// </summary>
         /// <returns>String</returns>
         public string GetContentString()
         {
-            return CoreManager.GetCore().GetTextEncoding().GetString(fContent);
+            return CoreManager.GetServerCore().GetTextEncoding().GetString(_content);
         }
+
         /// <summary>
         /// Returns the header and total content of this message as a string.
         /// </summary>
         public string GetFullString()
         {
-            return this.GetHeader() + GetContentString();
+            return GetHeader() + GetContentString();
         }
 
         /// <summary>
@@ -130,17 +141,18 @@ namespace IHI.Server.Networking.Messages
         /// <returns>byte[]</returns>
         public byte[] ReadBytes(int numBytes)
         {
-            if (numBytes > this.GetRemainingContent())
-                numBytes = this.GetRemainingContent();
+            if (numBytes > GetRemainingContent())
+                numBytes = GetRemainingContent();
 
-            byte[] bzData = new byte[numBytes];
-            for (int x = 0; x < numBytes; x++)
+            var bzData = new byte[numBytes];
+            for (var x = 0; x < numBytes; x++)
             {
-                bzData[x] = fContent[fContentCursor++];
+                bzData[x] = _content[_contentCursor++];
             }
 
             return bzData;
         }
+
         /// <summary>
         /// Reads a given amount of bytes from the remaining message content and returns it in a byte array. The reader cursor does not increment during reading.
         /// </summary>
@@ -148,25 +160,26 @@ namespace IHI.Server.Networking.Messages
         /// <returns>byte[]</returns>
         public byte[] ReadBytesFreezeCursor(int numBytes)
         {
-            if (numBytes > this.GetRemainingContent())
-                numBytes = this.GetRemainingContent();
+            if (numBytes > GetRemainingContent())
+                numBytes = GetRemainingContent();
 
-            byte[] bzData = new byte[numBytes];
-            for (int x = 0, y = fContentCursor; x < numBytes; x++, y++)
+            var bzData = new byte[numBytes];
+            for (int x = 0, y = _contentCursor; x < numBytes; x++, y++)
             {
-                bzData[x] = fContent[y];
+                bzData[x] = _content[y];
             }
 
             return bzData;
         }
+
         /// <summary>
         /// Reads a length-prefixed (Base64) value from the message and returns it as a byte array.
         /// </summary>
         /// <returns>byte[]</returns>
         public byte[] ReadPrefixedValue()
         {
-            Int32 Length = Base64Encoding.DecodeInt32(this.ReadBytes(2));
-            return this.ReadBytes(Length);
+            var length = Base64Encoding.DecodeInt32(ReadBytes(2));
+            return ReadBytes(length);
         }
 
         /// <summary>
@@ -175,16 +188,17 @@ namespace IHI.Server.Networking.Messages
         /// <returns>Boolean</returns>
         public Boolean PopBase64Boolean()
         {
-            return (this.GetRemainingContent() > 0 && fContent[fContentCursor++] == Base64Encoding.POSITIVE);
+            return (GetRemainingContent() > 0 && _content[_contentCursor++] == Base64Encoding.Positive);
         }
 
         public Int32 PopInt32()
         {
-            return Base64Encoding.DecodeInt32(this.ReadBytes(2));
+            return Base64Encoding.DecodeInt32(ReadBytes(2));
         }
+
         public UInt32 PopUInt32()
         {
-            return (UInt32)PopInt32();
+            return (UInt32) PopInt32();
         }
 
         /// <summary>
@@ -195,17 +209,18 @@ namespace IHI.Server.Networking.Messages
         public String PopPrefixedString(Encoding pEncoding)
         {
             if (pEncoding == null)
-                pEncoding = CoreManager.GetCore().GetTextEncoding();
+                pEncoding = CoreManager.GetServerCore().GetTextEncoding();
 
-            return pEncoding.GetString(this.ReadPrefixedValue());
+            return pEncoding.GetString(ReadPrefixedValue());
         }
+
         /// <summary>
         /// Reads a length prefixed string from the message content and encodes it with the IonHabboImpersonate.Server environment default text encoding.
         /// </summary>
         /// <returns>String</returns>
         public String PopPrefixedString()
         {
-            Encoding pEncoding = CoreManager.GetCore().GetTextEncoding();
+            var pEncoding = CoreManager.GetServerCore().GetTextEncoding();
             return PopPrefixedString(pEncoding);
         }
 
@@ -216,11 +231,12 @@ namespace IHI.Server.Networking.Messages
         public Int32 PopPrefixedInt32()
         {
             Int32 i;
-            String s = PopPrefixedString(Encoding.UTF8);
+            var s = PopPrefixedString(Encoding.UTF8);
             Int32.TryParse(s, out i);
 
             return i;
         }
+
         /// <summary>
         /// Reads a length prefixed string 32 bit unsigned integer from the message content and tries to parse it to integer. No exceptions are thrown if parsing fails.
         /// </summary>
@@ -228,7 +244,7 @@ namespace IHI.Server.Networking.Messages
         /// <seealso>PopFixedInt32</seealso>
         public uint PopPrefixedUInt32()
         {
-            return (uint)PopPrefixedInt32();
+            return (uint) PopPrefixedInt32();
         }
 
         /// <summary>
@@ -237,24 +253,26 @@ namespace IHI.Server.Networking.Messages
         /// <returns>Boolean</returns>
         internal Boolean PopWiredBoolean()
         {
-            return (this.GetRemainingContent() > 0 && fContent[fContentCursor++] == WireEncoding.POSITIVE);
+            return (GetRemainingContent() > 0 && _content[_contentCursor++] == WireEncoding.Positive);
         }
+
         /// <summary>
         /// Reads the next wire encoded 32 bit integer from the message content and advances the reader cursor.
         /// </summary>
         /// <returns>Int32</returns>
         public Int32 PopWiredInt32()
         {
-            if (this.GetRemainingContent() == 0)
+            if (GetRemainingContent() == 0)
                 return 0;
 
-            byte[] bzData = this.ReadBytesFreezeCursor(WireEncoding.MAX_INTEGER_BYTE_AMOUNT);
-            Int32 totalBytes = 0;
-            Int32 i = WireEncoding.DecodeInt32(bzData, out totalBytes);
-            fContentCursor += totalBytes;
+            var bzData = ReadBytesFreezeCursor(WireEncoding.MaxIntegerByteAmount);
+            int totalBytes;
+            var i = WireEncoding.DecodeInt32(bzData, out totalBytes);
+            _contentCursor += totalBytes;
 
             return i;
         }
+
         /// <summary>
         /// Reads the next wire encoded unsigned 32 bit integer from the message content and advances the reader cursor.
         /// </summary>
@@ -262,8 +280,9 @@ namespace IHI.Server.Networking.Messages
         /// <see>PopWiredInt32()</see>
         public uint PopWiredUInt32()
         {
-            return (uint)PopWiredInt32();
+            return (uint) PopWiredInt32();
         }
+
         #endregion
 
         /// <summary>
@@ -272,12 +291,12 @@ namespace IHI.Server.Networking.Messages
         /// <returns></returns>
         public bool IsCancelled()
         {
-            return this.fCancelled;
+            return _cancelled;
         }
 
         public IncomingMessage Cancel()
         {
-            this.fCancelled = true;
+            _cancelled = true;
             return this;
         }
     }

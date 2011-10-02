@@ -1,31 +1,22 @@
 ﻿using System;
-
-using IHI.Server.MA;
 using System.Text;
+using IHI.Server.MA;
 
 namespace IHI.Server
 {
     public static class MonoAware
     {
-        private static ISystem fSystem;
+        public static MA.System System { get; private set; }
 
-        public static ISystem System
+        internal static void Init(bool mono)
         {
-            get
+            if (!mono)
             {
-                return fSystem;
-            }
-        }
-
-        internal static void Init(bool Mono)
-        {
-            if (!Mono)
-            {
-                fSystem = new NETSystem();
+                System = new NetSystem();
             }
             else
             {
-                fSystem = new MonoSystem();
+                System = new MonoSystem();
             }
         }
     }
@@ -33,226 +24,212 @@ namespace IHI.Server
 
 namespace IHI.Server.MA
 {
-    public abstract class ISystem
+    public abstract class System
     {
-        public abstract ISystem_Console Console { get; }
+        public abstract SystemConsole Console { get; }
     }
-    public abstract class ISystem_Console
+
+    public abstract class SystemConsole
     {
-        public abstract ConsoleColor ForegroundColor { get;  set; }
-        public abstract ConsoleColor BackgroundColor { get;  set; }
-        public abstract int WindowWidth { get;  set; }
-        public abstract int WindowHeight { get;  set; }
-        public abstract int BufferWidth { get;  set; }
+        public abstract ConsoleColor ForegroundColor { get; set; }
+        public abstract ConsoleColor BackgroundColor { get; set; }
+        public abstract int WindowWidth { get; set; }
+        public abstract int WindowHeight { get; set; }
+        public abstract int BufferWidth { get; set; }
         public abstract int BufferHeight { get; set; }
         public abstract void Clear();
     }
 
-    public class NETSystem : ISystem
+    public class NetSystem : System
     {
-        private readonly ISystem_Console fConsole = new NetConsole();
-        public override ISystem_Console Console
-        {
-            get
-            {
-                return fConsole;
-            }
-        }
+        private readonly SystemConsole _console = new NetConsole();
 
+        public override SystemConsole Console
+        {
+            get { return _console; }
+        }
     }
-    public class NetConsole : ISystem_Console
+
+    public class NetConsole : SystemConsole
     {
         public override ConsoleColor ForegroundColor
         {
-            get
-            {
-                return System.Console.ForegroundColor;
-            }
-            set
-            {
-                System.Console.ForegroundColor = value;
-            }
+            get { return Console.ForegroundColor; }
+            set { Console.ForegroundColor = value; }
         }
+
         public override ConsoleColor BackgroundColor
         {
-            get
-            {
-                return System.Console.BackgroundColor;
-            }
-            set
-            {
-                System.Console.BackgroundColor = value;
-            }
+            get { return Console.BackgroundColor; }
+            set { Console.BackgroundColor = value; }
         }
 
         public override int WindowWidth
         {
-            get { return System.Console.WindowWidth; }
-            set { System.Console.WindowWidth = value; }
+            get { return Console.WindowWidth; }
+            set { Console.WindowWidth = value; }
         }
+
         public override int WindowHeight
         {
-            get { return System.Console.WindowHeight; }
-            set { System.Console.WindowHeight = value; }
+            get { return Console.WindowHeight; }
+            set { Console.WindowHeight = value; }
         }
+
         public override int BufferWidth
         {
-            get { return System.Console.BufferWidth; }
-            set { System.Console.BufferWidth = value; }
+            get { return Console.BufferWidth; }
+            set { Console.BufferWidth = value; }
         }
+
         public override int BufferHeight
         {
-            get { return System.Console.BufferHeight; }
-            set { System.Console.BufferHeight = value; }
+            get { return Console.BufferHeight; }
+            set { Console.BufferHeight = value; }
         }
 
         public override void Clear()
         {
             Console.SetCursorPosition(0, 0);
-            StringBuilder Blankness = new StringBuilder();
-            Blankness.Length = BufferWidth * BufferHeight;
-            Console.Write(Blankness.ToString());
+            var blankness = new StringBuilder {Length = BufferWidth*BufferHeight};
+            Console.Write(blankness.ToString());
 
             Console.SetCursorPosition(0, 0);
         }
     }
 
-    public class MonoSystem : ISystem
+    public class MonoSystem : System
     {
-        private readonly ISystem_Console fConsole = new MonoConsole();
-        public override ISystem_Console Console
+        private readonly SystemConsole _console = new MonoConsole();
+
+        public override SystemConsole Console
         {
-            get
-            {
-                return fConsole;
-            }
+            get { return _console; }
         }
     }
-    public class MonoConsole : ISystem_Console
+
+    public class MonoConsole : SystemConsole
     {
-        private ConsoleColor fLastSetForeground = ConsoleColor.White;
-        private ConsoleColor fLastSetBackground = ConsoleColor.Black;
+        private ConsoleColor _lastSetBackground = ConsoleColor.Black;
+        private ConsoleColor _lastSetForeground = ConsoleColor.White;
 
         public override ConsoleColor ForegroundColor
         {
-            get
-            {
-                return this.fLastSetForeground;
-            }
+            get { return _lastSetForeground; }
             set
             {
+                _lastSetForeground = value;
                 switch (value)
                 {
                     case ConsoleColor.Black:
-                        System.Console.Write("\x1b[30m");
+                        Console.Write("\x1b[30m");
                         break;
                     case ConsoleColor.DarkRed:
-                        System.Console.Write("\x1b[31m");
+                        Console.Write("\x1b[31m");
                         break;
                     case ConsoleColor.DarkGreen:
-                        System.Console.Write("\x1b[32m");
+                        Console.Write("\x1b[32m");
                         break;
                     case ConsoleColor.DarkYellow:
-                        System.Console.Write("\x1b[33m");
+                        Console.Write("\x1b[33m");
                         break;
                     case ConsoleColor.DarkBlue:
-                        System.Console.Write("\x1b[34m");
+                        Console.Write("\x1b[34m");
                         break;
                     case ConsoleColor.DarkMagenta:
-                        System.Console.Write("\x1b[35m");
+                        Console.Write("\x1b[35m");
                         break;
                     case ConsoleColor.DarkCyan:
-                        System.Console.Write("\x1b[36m");
+                        Console.Write("\x1b[36m");
                         break;
                     case ConsoleColor.Gray:
-                        System.Console.Write("\x1b[37m");
+                        Console.Write("\x1b[37m");
                         break;
 
                     case ConsoleColor.DarkGray:
-                        System.Console.Write("\x1b[1;30m");
+                        Console.Write("\x1b[1;30m");
                         break;
                     case ConsoleColor.Red:
-                        System.Console.Write("\x1b[1;31m");
+                        Console.Write("\x1b[1;31m");
                         break;
                     case ConsoleColor.Green:
-                        System.Console.Write("\x1b[1;32m");
+                        Console.Write("\x1b[1;32m");
                         break;
                     case ConsoleColor.Yellow:
-                        System.Console.Write("\x1b[1;33m");
+                        Console.Write("\x1b[1;33m");
                         break;
                     case ConsoleColor.Blue:
-                        System.Console.Write("\x1b[1;34m");
+                        Console.Write("\x1b[1;34m");
                         break;
                     case ConsoleColor.Magenta:
-                        System.Console.Write("\x1b[1;35m");
+                        Console.Write("\x1b[1;35m");
                         break;
                     case ConsoleColor.Cyan:
-                        System.Console.Write("\x1b[1;36m");
+                        Console.Write("\x1b[1;36m");
                         break;
                     case ConsoleColor.White:
-                        System.Console.Write("\x1b[1;37m");
+                        Console.Write("\x1b[1;37m");
                         break;
                 }
             }
         }
+
         public override ConsoleColor BackgroundColor
         {
-            get
-            {
-                return this.fLastSetBackground;
-            }
+            get { return _lastSetBackground; }
             set
             {
+                _lastSetBackground = value;
                 switch (value)
                 {
                     case ConsoleColor.Black:
-                        System.Console.Write("\x1b[40m");
+                        Console.Write("\x1b[40m");
                         break;
                     case ConsoleColor.DarkRed:
-                        System.Console.Write("\x1b[41m");
+                        Console.Write("\x1b[41m");
                         break;
                     case ConsoleColor.DarkGreen:
-                        System.Console.Write("\x1b[42m");
+                        Console.Write("\x1b[42m");
                         break;
                     case ConsoleColor.DarkYellow:
-                        System.Console.Write("\x1b[43m");
+                        Console.Write("\x1b[43m");
                         break;
                     case ConsoleColor.DarkBlue:
-                        System.Console.Write("\x1b[44m");
+                        Console.Write("\x1b[44m");
                         break;
                     case ConsoleColor.DarkMagenta:
-                        System.Console.Write("\x1b[45m");
+                        Console.Write("\x1b[45m");
                         break;
                     case ConsoleColor.DarkCyan:
-                        System.Console.Write("\x1b[46m");
+                        Console.Write("\x1b[46m");
                         break;
                     case ConsoleColor.Gray:
-                        System.Console.Write("\x1b[47m");
+                        Console.Write("\x1b[47m");
                         break;
 
                     case ConsoleColor.DarkGray:
-                        System.Console.Write("\x1b[1;40m");
+                        Console.Write("\x1b[1;40m");
                         break;
                     case ConsoleColor.Red:
-                        System.Console.Write("\x1b[1;41m");
+                        Console.Write("\x1b[1;41m");
                         break;
                     case ConsoleColor.Green:
-                        System.Console.Write("\x1b[1;42m");
+                        Console.Write("\x1b[1;42m");
                         break;
                     case ConsoleColor.Yellow:
-                        System.Console.Write("\x1b[1;43m");
+                        Console.Write("\x1b[1;43m");
                         break;
                     case ConsoleColor.Blue:
-                        System.Console.Write("\x1b[1;44m");
+                        Console.Write("\x1b[1;44m");
                         break;
                     case ConsoleColor.Magenta:
-                        System.Console.Write("\x1b[1;45m");
+                        Console.Write("\x1b[1;45m");
                         break;
                     case ConsoleColor.Cyan:
-                        System.Console.Write("\x1b[1;46m");
+                        Console.Write("\x1b[1;46m");
                         break;
                     case ConsoleColor.White:
-                        System.Console.Write("\x1b[1;47m");
+                        Console.Write("\x1b[1;47m");
                         break;
                 }
             }
@@ -264,16 +241,19 @@ namespace IHI.Server.MA
             get { return 80; }
             set { }
         }
+
         public override int WindowHeight
         {
             get { return 20; }
             set { }
         }
+
         public override int BufferWidth
         {
             get { return 80; }
             set { }
         }
+
         public override int BufferHeight
         {
             get { return 300; }
@@ -282,10 +262,9 @@ namespace IHI.Server.MA
 
         public override void Clear()
         {
-            Console.SetCursorPosition(0, 0);            
-            StringBuilder Blankness = new StringBuilder();
-            Blankness.Length = BufferWidth * BufferHeight;
-            Console.Write(Blankness.ToString());
+            Console.SetCursorPosition(0, 0);
+            var blankness = new StringBuilder {Length = BufferWidth*BufferHeight};
+            Console.Write(blankness.ToString());
 
             Console.SetCursorPosition(0, 0);
         }

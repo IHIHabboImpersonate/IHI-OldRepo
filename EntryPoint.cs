@@ -1,49 +1,50 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace IHI.Server
 {
     public static class EntryPoint
     {
         [STAThreadAttribute]
-        public static void Main(string[] Arguments)
+        public static void Main(string[] arguments)
         {
-            bool MonoMode = false;
-            string ConfigFile = "config.xml";
-            bool DisableAutoExit = false;
+            var monoMode = false;
+            var configFile = "config.xml";
+            var disableAutoExit = false;
 
-            Regex NVRegex = new Regex("^--(?<name>[\\w-]+)=(?<value>.+)$");
+            var nameValueRegex = new Regex("^--(?<name>[\\w-]+)=(?<value>.+)$");
 
-            foreach (string Argument in Arguments)
+            foreach (var argument in arguments)
             {
-                Match NVMatch = NVRegex.Match(Argument);
-                string Name = NVMatch.Groups["name"].Value;
-                string Value = NVMatch.Groups["value"].Value;
+                var nameValueMatch = nameValueRegex.Match(argument);
+                var name = nameValueMatch.Groups["name"].Value;
+                var value = nameValueMatch.Groups["value"].Value;
 
-                switch (Name)
+                switch (name)
                 {
                     case "mode":
                         {
-                            if (Value.ToLower() == "mono")
-                                MonoMode = true;
+                            if (value.ToLower() == "mono")
+                                monoMode = true;
                             break;
                         }
                     case "config-file":
                         {
-                            ConfigFile = Value;
+                            configFile = value;
                             break;
                         }
                     case "auto-exit":
                         {
-                            switch (Value.ToLower())
+                            switch (value.ToLower())
                             {
                                 case "false":
                                 case "off":
                                 case "no":
                                 case "disable":
                                 case "disabled":
-                                    DisableAutoExit = true;
+                                    disableAutoExit = true;
                                     break;
                             }
                             break;
@@ -51,39 +52,40 @@ namespace IHI.Server
                 }
             }
 
-            MonoAware.Init(MonoMode);
+            MonoAware.Init(monoMode);
 
             MonoAware.System.Console.BackgroundColor = ConsoleColor.Black;
             MonoAware.System.Console.ForegroundColor = ConsoleColor.Gray;
-            
+
             MonoAware.System.Console.Clear();
 
-            if (!MonoMode)
+            if (!monoMode)
             {
-                Console.Title = "IHI | V" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(4);
-                Console.WriteLine("\n    IHI | V" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(4) + "\n");
+                Console.Title = "IHI | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4);
+                Console.WriteLine("\n    IHI | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4) + "\n");
             }
             else
             {
-                Console.Title = "IHI [Mono] | V" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(4);
-                Console.WriteLine("\n    IHI [Mono] | V" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(4) + "\n");
+                Console.Title = "IHI [Mono] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4);
+                Console.WriteLine("\n    IHI [Mono] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4) +
+                                  "\n");
             }
 
             Console.Beep();
 
-            bool BootResult = new Core().Boot(System.IO.Path.Combine(Environment.CurrentDirectory, ConfigFile));
+            CoreManager.InitializeServerCore();
+            CoreManager.InitializeInstallerCore();
 
-            if (!BootResult)
+            var bootResult =
+                CoreManager.GetServerCore().Boot(Path.Combine(Environment.CurrentDirectory, configFile));
+            CoreManager.DereferenceInstallerCore();
+            GC.Collect();
+
+            if (bootResult != BootResult.AllClear)
             {
                 Console.WriteLine("\n\n\n    IHI has failed to boot!");
-                Thread.Sleep(1000);
-                Console.Beep(1000, 250);
-                Thread.Sleep(125);
-                Console.Beep(1000, 250);
-                Thread.Sleep(125);
-                Console.Beep(1000, 250);
 
-                if (DisableAutoExit)
+                if (disableAutoExit)
                 {
                     Console.WriteLine("\n\n    Auto Exit Disabled - Press any key to exit!");
                     Console.ReadKey(true);
@@ -91,18 +93,36 @@ namespace IHI.Server
                 return;
             }
 
+            // Reassign CTRL + C to safely shutdown.
+            // CTRL + Break is still unsafe.
             Console.TreatControlCAsInput = false;
-            Console.CancelKeyPress += new ConsoleCancelEventHandler(ShutdownKey);
-            
+            Console.CancelKeyPress += ShutdownKey;
+
             while (true)
             {
+                // Block all future input
                 Console.ReadKey(true);
             }
         }
 
+
         private static void ShutdownKey(object sender, ConsoleCancelEventArgs e)
+
         {
-            CoreManager.GetCore().Shutdown();
+            if(e.SpecialKey == ConsoleSpecialKey.ControlBreak)
+                return;
+            Console.CancelKeyPress -= ShutdownKey;
+            e.Cancel = true;
+            CoreManager.GetServerCore().Shutdown();
         }
+    }
+
+    internal enum BootResult
+    {
+        AllClear,
+        MySQLConnectionFailure,
+        MySQLMappingFailure,
+        SocketBindingFailure,
+        UnknownFailure
     }
 }

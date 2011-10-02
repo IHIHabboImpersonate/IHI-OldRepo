@@ -1,5 +1,4 @@
-﻿
-namespace IHI.Server.Rooms.Furni
+﻿namespace IHI.Server.Rooms.Furni
 {
     /// <summary>
     /// Represents any item of furni that goes on the Floor.

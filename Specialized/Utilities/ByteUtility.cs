@@ -1,5 +1,4 @@
-﻿
-namespace Ion.Specialized.Utilities
+﻿namespace Ion.Specialized.Utilities
 {
     /// <summary>
     /// Provides various common methods for working with bytes.
@@ -7,26 +6,27 @@ namespace Ion.Specialized.Utilities
     public static class ByteUtility
     {
         #region Methods
-        public static byte[] ChompBytes(byte[] bzBytes, int Offset, int numBytes)
-        {
-            int End = (Offset + numBytes);
-            if (End > bzBytes.Length)
-                End = bzBytes.Length;
 
-            int chunkLength = End - numBytes;
+        public static byte[] ChompBytes(byte[] bzBytes, int offset, int numBytes)
+        {
+            var end = (offset + numBytes);
+            if (end > bzBytes.Length)
+                end = bzBytes.Length;
+
             if (numBytes > bzBytes.Length)
                 numBytes = bzBytes.Length;
             if (numBytes < 0)
                 numBytes = 0;
 
-            byte[] bzChunk = new byte[numBytes];
-            for (int x = 0; x < numBytes; x++)
+            var bzChunk = new byte[numBytes];
+            for (var x = 0; x < numBytes; x++)
             {
-                bzChunk[x] = bzBytes[Offset++];
+                bzChunk[x] = bzBytes[offset++];
             }
 
             return bzChunk;
         }
+
         #endregion
     }
 }

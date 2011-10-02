@@ -1,209 +1,248 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using IHI.Server.Habbos;
+using System.Linq;
 using IHI.Server.Networking;
-using NHibernate;
+using NHibernate.Criterion;
 
-namespace IHI.Server
+namespace IHI.Server.Habbos
 {
     public class HabboDistributor
     {
+        public static event HabboEventHandler OnHabboLogin;
+
         #region Fields
-        /// <summary>
-        /// The date and time of the last clean up.
-        /// </summary>
-        private DateTime fLastCleanUp = DateTime.Now;
 
         /// <summary>
-        /// Stores the cached Users.
+        /// Stores the cached Habbos.
         /// </summary>
-        private Dictionary<int, WeakReference> fUserCache = new Dictionary<int, WeakReference>();
+        private readonly Dictionary<int, WeakReference> _habboCache = new Dictionary<int, WeakReference>();
+
         /// <summary>
         /// Stores the cached Username ID details.
         /// </summary>
-        private Dictionary<string, int> fUsernameIDCache = new Dictionary<string,int>();
+        private readonly Dictionary<string, int> _usernameIDCache = new Dictionary<string, int>();
+
+        /// <summary>
+        /// The date and time of the last clean up.
+        /// </summary>
+        private DateTime _lastCleanUp = DateTime.Now;
+
         // TODO: Check if it is worth adding an ID-Username cache.
+
         #endregion
 
         #region Methods
+
         #region Exposed Methods
+
         /// <summary>
-        /// Return a user from the cache if possible.
-        /// If the user is not cached then put it in the cache and return it.
+        /// Return a Habbo from the cache if possible.
+        /// If the Habbo is not cached then put it in the cache and return it.
         /// </summary>
-        /// <param name="Username">The username of the user to return.</param>
-        public Habbo GetUser(string Username)
+        /// <param name="username">The username of the Habbo to return.</param>
+        public Habbo GetHabbo(string username)
         {
             lock (this)
             {
-                // Is the ID cached for this username (and therefore the User)?
-                if (fUsernameIDCache.ContainsKey(Username))
+                // Is the ID cached for this username (and therefore the Habbo)?
+                if (_usernameIDCache.ContainsKey(username))
                 {
-                    // Yes, get the cached User.
-                    Habbo Cached = fUserCache[fUsernameIDCache[Username]].Target as Habbo;
+                    // Yes, get the cached Habbo.
+                    var cached = _habboCache[_usernameIDCache[username]].Target as Habbo;
 
-                    // Has the cached User been collected and removed from memory?
-                    if (Cached != null)
+                    // Has the cached Habbo been collected and removed from memory?
+                    if (cached != null)
                         // No, return the cached copy.
-                        return Cached;
+                        return cached;
 
 
-                    // The cached User has been collected and is no longer in memory...
+                    // The cached Habbo has been collected and is no longer in memory...
 
-                    // Remove the WeakReference to the cached User.
-                    fUserCache.Remove(fUsernameIDCache[Username]);
+                    // Remove the WeakReference to the cached Habbo.
+                    _habboCache.Remove(_usernameIDCache[username]);
                     // Remove the cached Username and ID.
-                    fUsernameIDCache.Remove(Username);
+                    _usernameIDCache.Remove(username);
                 }
 
-                // Load the User into memory from the database.
-                Habbo TheUser = new Habbo(Username);
-
-                // Is this a valid User?
-                if (TheUser == null)
-                {
-                    // No, don't cache it.
-                    return null;
-                }
-
+                // Load the Habbo into memory from the database.
+                var theHabbo = new Habbo(username);
+                
                 // Yes, cache it.
-                CacheUser(TheUser);
+                CacheHabbo(theHabbo);
 
-                // Return the newly cached User.
-                return TheUser;
+                // Return the newly cached Habbo.
+                return theHabbo;
             }
         }
+
         /// <summary>
-        /// Return a user from the cache if possible.
-        /// If the user is not cached then put it in the cache and return it.
+        /// Return a Habbo from the cache if possible.
+        /// If the Habbo is not cached then put it in the cache and return it.
         /// </summary>
-        /// <param name="ID">The ID of the user to return.</param>
-        public Habbo GetUser(int ID)
+        /// <param name="id">The ID of the Habbo to return.</param>
+        public Habbo GetHabbo(int id)
         {
             lock (this)
             {
-                // Is this User already cached?
-                if (fUserCache.ContainsKey(ID))
+                // Is this Habbo already cached?
+                if (_habboCache.ContainsKey(id))
                 {
-                    // Yes, get the cached User.
-                    Habbo Cached = fUserCache[ID].Target as Habbo;
+                    // Yes, get the cached Habbo.
+                    var cached = _habboCache[id].Target as Habbo;
 
-                    // Has the cached User been collected and removed from memory?
-                    if (Cached != null)
+                    // Has the cached Habbo been collected and removed from memory?
+                    if (cached != null)
                         // No, return the cached copy.
-                        return Cached;
+                        return cached;
 
                     // Yes, we may as well do a full clean up here. We'll have to loop over it all anyway.
                     CleanUp(true);
                 }
 
-                // Load the User into memory from the database.
-                Habbo TheUser = new Habbo(ID);
+                // Load the Habbo into memory from the database.
+                var theHabbo = new Habbo(id);
 
-                // Is this a valid User?
-                if (TheUser == null)
-                {
-                    // No, don't cache it.
-                    return null;
-                }
 
                 // Yes, cache it.
-                CacheUser(TheUser);
+                CacheHabbo(theHabbo);
 
-                // Return the newly cached User.
-                return TheUser;
+                // Return the newly cached Habbo.
+                return theHabbo;
             }
         }
+
         /// <summary>
-        /// Returns a user with a matching SSO Ticket and Origin IP.
+        /// Returns a Habbo with a matching SSO Ticket and Origin IP.
         /// If no match is made, null is returned.
         /// </summary>
-        /// <param name="SSOTicket">The SSO Ticket to match.</param>
-        /// <param name="Origin">The IP Address to match.</param>
-        public Habbo GetUser(string SSOTicket, int Origin)
+        /// <param name="ssoTicket">The SSO Ticket to match.</param>
+        /// <param name="origin">The IP Address to match.</param>
+        public Habbo GetHabbo(string ssoTicket, int origin)
         {
-            int ID;
+            int id;
 
-            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
+            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
             {
-                ID =    DB.CreateCriteria<Database.Habbo>()
-                            .SetProjection(NHibernate.Criterion.Projections.Property("habbo_id"))
-                            .Add(NHibernate.Criterion.Restrictions.Eq("sso_ticket", SSOTicket))
-                            .Add(NHibernate.Criterion.Restrictions.Eq("origin_ip", Origin))
-                            .List<int>().FirstOrDefault();
+                id = db.CreateCriteria<Database.Habbo>()
+                    .SetProjection(Projections.Property("habbo_id"))
+                    .Add(Restrictions.Eq("sso_ticket", ssoTicket))
+                    .Add(Restrictions.Eq("origin_ip", origin))
+                    .List<int>().FirstOrDefault();
             }
 
-            if (ID == 0)
+            if (id == 0)
                 return null;
 
-            return GetUser(ID);
+            return GetHabbo(id);
         }
-        /// <summary>
-        /// Creates a minimal User object.
-        /// This is not cached and is only used after the user connects but before logging in.
-        /// Do not use this user for custom features. Use a cached version.
-        /// </summary>
-        /// <param name="Connection">The Connection this user is for.</param>
-        /// <returns>A mostly non-function user.</returns>
-        public Habbo GetPreLoginUser(IonTcpConnection Connection)
-        {
-            return new Habbo(Connection);
-        }
-        #endregion
 
-        #region Private Methods
         /// <summary>
-        /// Add a User into the cache.
+        /// Return a Habbo from the cache if possible.
+        /// If the Habbo is not cached then put it in the cache and return it.
+        /// FYI: If the Habbo is not cached then this the Habbo will be created from the data provided.
         /// </summary>
-        /// <param name="TheUser">The user to cache.</param>
-        private void CacheUser(Habbo TheUser)
+        /// <param name="habbo">The database result of the Habbo to return.</param>
+        public Habbo GetHabbo(Database.Habbo habbo)
         {
             lock (this)
             {
-                // Cache the User.
-                this.fUserCache.Add(TheUser.GetID(), new WeakReference(TheUser));
-                // Cache the Username-ID.
-                this.fUsernameIDCache.Add(TheUser.GetUsername(), TheUser.GetID());
+                // Is this Habbo already cached?
+                if (_habboCache.ContainsKey(habbo.habbo_id))
+                {
+                    // Yes, get the cached Habbo.
+                    var cached = _habboCache[habbo.habbo_id].Target as Habbo;
+
+                    // Has the cached Habbo been collected and removed from memory?
+                    if (cached != null)
+                        // No, return the cached copy.
+                        return cached;
+
+                    // Yes, we may as well do a full clean up here. We'll have to loop over it all anyway.
+                    CleanUp(true);
+                }
+
+                // Load the Habbo into memory from the database.
+                var theHabbo = new Habbo(habbo);
+
+                // Yes, cache it.
+                CacheHabbo(theHabbo);
+
+                // Return the newly cached Habbo.
+                return theHabbo;
             }
         }
 
         /// <summary>
-        /// Remove any collected Users from the cache.
+        /// Creates a minimal Habbo object.
+        /// This is not cached and is only used after the Habbo connects but before logging in.
+        /// Do not use this Habbo for custom features. Use a cached version.
         /// </summary>
-        /// <param name="Force">If true then ignore the time since the last clean up.</param>
-        private void CleanUp(bool Force)
+        /// <param name="connection">The Connection this Habbo is for.</param>
+        /// <returns>A mostly non-function Habbo.</returns>
+        public Habbo GetPreLoginHabbo(IonTcpConnection connection)
+        {
+            return new Habbo(connection);
+        }
+
+        #endregion
+
+        internal static void InvokeHabboLoginEvent(object source, HabboEventArgs e)
+
+        {
+            OnHabboLogin.Invoke(source, e);
+        }
+
+        #region Private Methods
+
+        /// <summary>
+        /// Add a Habbo into the cache.
+        /// </summary>
+        /// <param name="theHabbo">The Habbo to cache.</param>
+        private void CacheHabbo(Habbo theHabbo)
+        {
+            lock (this)
+            {
+                // Cache the Habbo.
+                _habboCache.Add(theHabbo.GetID(), new WeakReference(theHabbo));
+                // Cache the Username-ID.
+                _usernameIDCache.Add(theHabbo.GetUsername(), theHabbo.GetID());
+            }
+        }
+
+        /// <summary>
+        /// Remove any collected Habbos from the cache.
+        /// </summary>
+        /// <param name="force">If true then ignore the time since the last clean up.</param>
+        private void CleanUp(bool force)
         {
             lock (this)
             {
                 // Is force false and has it been less than 10 minutes since the last cleanup?
-                if (!Force && DateTime.Now.Subtract(this.fLastCleanUp).TotalMinutes < 10)
+                if (!force && DateTime.Now.Subtract(_lastCleanUp).TotalMinutes < 10)
                     // Yes, don't bother cleaning up again.
                     return;
 
-                List<string> ToRemoveUsernames = new List<string>();
+                var toRemoveUsernames = new List<string>();
 
                 // Loop through all Username ID pairs in the cache 
-                foreach (KeyValuePair<string, int> Ref in fUsernameIDCache)
+                foreach (var weakref in _usernameIDCache.Where(weakref => !_habboCache[weakref.Value].IsAlive))
                 {
-                    // Check if the User is still in memory
-                    if (!fUserCache[Ref.Value].IsAlive)
-                    {
-                        // If it isn't remove it from the cache
-                        fUserCache.Remove(Ref.Value);
-                        // And remove the Username ID pairs too
-                        ToRemoveUsernames.Add(Ref.Key);
-                    }
+                    // If it isn't remove it from the cache
+                    _habboCache.Remove(weakref.Value);
+                    // And remove the Username ID pairs too
+                    toRemoveUsernames.Add(weakref.Key);
                 }
-                foreach (string Username in ToRemoveUsernames)
-                    fUsernameIDCache.Remove(Username);
+                foreach (var username in toRemoveUsernames)
+                    _usernameIDCache.Remove(username);
 
 
                 // Update the last cleanup time
-                this.fLastCleanUp = DateTime.Now;
+                _lastCleanUp = DateTime.Now;
             }
         }
+
         #endregion
+
         #endregion
     }
 }

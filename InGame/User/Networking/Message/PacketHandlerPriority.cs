@@ -1,9 +1,5 @@
-﻿using IHI.Server.Habbos;
-
-namespace IHI.Server.Networking.Messages
+﻿namespace IHI.Server.Networking.Messages
 {
-    public delegate void PacketHandler(Habbo Sender, IncomingMessage Message);
-
     /// <summary>
     /// The priority for packet handlers to execute.
     /// </summary>

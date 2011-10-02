@@ -1,153 +1,179 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using IHI.Server.Networking.Messages;
-using IHI.Server.Users.Permissions;
-using IHI.Server.Networking;
 using System.Linq;
 using IHI.Database;
-using NHibernate;
-
+using IHI.Server.Networking;
+using IHI.Server.Networking.Messages;
 using IHI.Server.Rooms;
+using NHibernate.Criterion;
 
 namespace IHI.Server.Habbos
 {
-    public delegate void HabboEventHandler(object source, UserEventArgs e);
+    public delegate void HabboEventHandler(object source, HabboEventArgs e);
 
-    public class Habbo : Human, IBefriendable, IMessageable, IObjectVariables
+    public class Habbo : Human, IBefriendable, IMessageable
     {
         #region Constructors
+
         /// <summary>
         /// Construct a prelogin User object.
         /// DO NOT USE THIS FOR GETTING A USER - USE THE USER DISTRIBUTOR
         /// </summary>
-        internal Habbo(IonTcpConnection Connection)
+        internal Habbo(IonTcpConnection connection)
         {
-            this.fConnection = Connection;
+            _connection = connection;
         }
+
         /// <summary>
         /// Construct a User object for the user with the given ID.
         /// DO NOT USE THIS FOR GETTING A USER - USE THE USER DISTRIBUTOR
         /// </summary>
-        /// <param name="ID">The user ID of user you wish to a User object for.</param>
-        internal Habbo(int ID)
+        /// <param name="id">The user ID of user you wish to a User object for.</param>
+        internal Habbo(int id)
         {
-            this.fID = ID;
-            Database.Habbo HabboData;
+            _id = id;
+            Database.Habbo habboData;
 
-            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
+            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
             {
-                HabboData = DB.Get<Database.Habbo>(ID); // TODO: Heavily optimise (mapping).
+                habboData = db.CreateCriteria<Database.Habbo>().
+                    Add(Restrictions.Eq("habbo_id", id)).
+                    SetProjection(Projections.ProjectionList().
+                                      Add(Projections.Property("username"), "username").
+                                      Add(Projections.Property("motto"), "motto").
+                                      Add(Projections.Property("figure"), "figure").
+                                      Add(Projections.Property("gender"), "gender")).
+                    Add(Restrictions.Eq("habbo_id", id)).
+                    List<Database.Habbo>().
+                    First();
             }
-            this.fDisplayName = this.fUsername = HabboData.username;
-            this.fMotto = HabboData.motto;
-            this.fFigure = CoreManager.GetCore().GetHabboFigureFactory().Parse(HabboData.figure, HabboData.gender);
+            DisplayName = _username = habboData.username;
+            _motto = habboData.motto;
+            Figure = CoreManager.GetServerCore().GetHabboFigureFactory().Parse(habboData.figure, habboData.gender);
         }
+
         /// <summary>
         /// Construct a User object for the user with the given ID.
         /// DO NOT USE THIS FOR GETTING A USER - USE THE USER DISTRIBUTOR
         /// </summary>
-        /// <param name="Username">The username of user you wish to a User object for.</param>
-        internal Habbo(string Username)
+        /// <param name="username">The username of user you wish to a User object for.</param>
+        internal Habbo(string username)
         {
-            this.fUsername = this.fDisplayName = Username;
+            _username = DisplayName = username;
 
-            Database.Habbo HabboData;
+            Database.Habbo habboData;
 
-            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
+            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
             {
-                HabboData = DB.CreateCriteria<Database.Habbo>()
-                                .SetProjection(NHibernate.Criterion.Projections.ProjectionList()
-                                    .Add(NHibernate.Criterion.Projections.Property("habbo_id"))
-                                    .Add(NHibernate.Criterion.Projections.Property("motto"))
-                                    .Add(NHibernate.Criterion.Projections.Property("figure"))
-                                    .Add(NHibernate.Criterion.Projections.Property("gender")))
-                                .Add(new NHibernate.Criterion.EqPropertyExpression("username", Username))
-                                .List<Database.Habbo>().First();
+                habboData = db.CreateCriteria<Database.Habbo>()
+                    .SetProjection(Projections.ProjectionList()
+                                       .Add(Projections.Property("habbo_id"))
+                                       .Add(Projections.Property("motto"))
+                                       .Add(Projections.Property("figure"))
+                                       .Add(Projections.Property("gender")))
+                    .Add(new EqPropertyExpression("username", username))
+                    .List<Database.Habbo>().First();
             }
 
-            this.fID = HabboData.habbo_id;
-            this.fMotto = HabboData.motto;
-            this.fFigure = CoreManager.GetCore().GetHabboFigureFactory().Parse(HabboData.figure, HabboData.gender);
+            _id = habboData.habbo_id;
+            _motto = habboData.motto;
+            Figure = CoreManager.GetServerCore().GetHabboFigureFactory().Parse(habboData.figure, habboData.gender);
         }
+
+        public Habbo(Database.Habbo habboData)
+        {
+            _id = habboData.habbo_id;
+
+            DisplayName = _username = habboData.username;
+            _motto = habboData.motto;
+            Figure = CoreManager.GetServerCore().GetHabboFigureFactory().Parse(habboData.figure, habboData.gender);
+        }
+
         #endregion
 
         #region Fields
+
         /// <summary>
         /// The user ID of the user.
         /// </summary>
-        private int fID;
-        /// <summary>
-        /// The username of the user.
-        /// </summary>
-        private string fUsername;
+        private readonly int _id;
+
         /// <summary>
         /// The motto of the user.
         /// </summary>
-        private string fMotto;
-        /// <summary>
-        /// The date and time of the last successful logon.
-        /// </summary>
-        private DateTime fLastAccess;
-        /// <summary>
-        /// Is the user logged in or is it a PreLoginUser?
-        /// </summary>
-        private bool fLoggedIn = false;
+        private readonly string _motto;
 
-        #region Connection Related
         /// <summary>
-        /// The current Connection of this user.
+        /// The username of the user.
         /// </summary>
-        private IonTcpConnection fConnection;
-        /// <summary>
-        /// True if the user replied to the last ping?
-        /// </summary>
-        private bool fPonged;
-
-        private Dictionary<string, object> fObjectVariables;
-        #endregion
-
+        private readonly string _username;
 
         /// <summary>
         /// The amount of credits the user has.
+        /// Set to null to update from the database next time the credits are accessed.
         /// </summary>
-        private int? fCreditBalance;
+        private int? _creditBalance;
+
+        /// <summary>
+        /// The date and time of the last successful logon.
+        /// </summary>
+        private DateTime _lastAccess;
+
+        /// <summary>
+        /// Is the user logged in or is it a PreLoginUser?
+        /// </summary>
+        private bool _isLoggedIn;
 
         #region Permissions
-        private HashSet<int> fPermissions;
+
+        private HashSet<int> _permissions;
+
+        #endregion
+
+        #region Connection Related
+
+        /// <summary>
+        /// The current Connection of this user.
+        /// </summary>
+        private IonTcpConnection _connection;
+
+        private Dictionary<string, object> _instanceVariables;
+
+        /// <summary>
+        /// True if the user replied to the last ping?
+        /// </summary>
+        private bool _ponged;
+
         #endregion
 
         public static event HabboEventHandler OnHabboLogin;
+
         #endregion
 
         #region Methods
+
         /// <summary>
         /// The ID of the User.
         /// </summary>
         public int GetID()
         {
-            return this.fID;
+            return _id;
         }
-        /// <summary>
-        /// The name of the User.
-        /// </summary>
-        public string GetUsername()
-        {
-            return this.fUsername;
-        }
+
         /// <summary>
         /// The motto of the User.
         /// </summary>
         public string GetMotto()
         {
-            return this.fMotto;
+            return _motto;
         }
+
         /// <summary>
         /// The date of the User's last login.
         /// </summary>
         public DateTime GetLastAccess()
         {
-            return this.fLastAccess;
+            return _lastAccess;
         }
 
         /// <summary>
@@ -155,131 +181,170 @@ namespace IHI.Server.Habbos
         /// </summary>
         public bool IsLoggedIn()
         {
-            return this.fLoggedIn;
+            return _isLoggedIn;
         }
+
+        /// <summary>
+        /// The name of the User.
+        /// </summary>
+        public string GetUsername()
+        {
+            return _username;
+        }
+
         /// <summary>
         /// Set if the user is logged in.
         /// This also updates the LastAccess time if required.
         /// </summary>
-        /// <param name="Value">The user's new logged in status.</param>
-        public Habbo SetLoggedIn(bool Value)
+        /// <param name="value">The user's new logged in status.</param>
+        public Habbo SetLoggedIn(bool value)
         {
-            if (!this.fLoggedIn && Value)
+            if (OnHabboLogin != null)
+                OnHabboLogin.Invoke(this, new HabboEventArgs());
+            HabboDistributor.InvokeHabboLoginEvent(this, new HabboEventArgs());
+
+            if (!_isLoggedIn && value)
             {
-                this.fLastAccess = DateTime.Now;
-                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
+                _lastAccess = DateTime.Now;
+                using (var db = CoreManager.GetServerCore().GetDatabaseSession())
                 {
-                    Database.Habbo H = DB.Get<Database.Habbo>(this.fID);
-                    H.last_access = this.fLastAccess;
-                    DB.Update(H);
+                    var habbo = db.Get<Database.Habbo>(_id);
+                    habbo.last_access = _lastAccess;
+                    db.Update(habbo);
                 }
-                if(OnHabboLogin != null)
-                    OnHabboLogin.Invoke(this, new UserEventArgs());
             }
 
-            this.fLoggedIn = Value;
+            _isLoggedIn = value;
             return this;
         }
+
         /// <summary>
         /// Returns the amount credits the user has.
         /// </summary>
         public int GetCreditBalance()
         {
-            if(this.fCreditBalance == null)
+            if (_creditBalance == null)
             {
-                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
+                using (var db = CoreManager.GetServerCore().GetDatabaseSession())
                 {
-                    // TODO: Heavily optimise (mapping).
-                    this.fCreditBalance = DB.Get<Database.Habbo>(this.GetID()).credits;
+                    _creditBalance = db.CreateCriteria<Habbo>().
+                        SetProjection(Projections.Property("credits")).
+                        Add(new EqPropertyExpression("habbo_id", GetID().ToString())).
+                        List<int>().First();
                 }
             }
 
-            return (int)this.fCreditBalance;
+            return (int) _creditBalance;
         }
+
         /// <summary>
         /// Set the amount credits the user has.
         /// </summary>
-        /// <param name="Balance">The amount of credits.</param>
-        public Habbo SetCreditBalance(int Balance)
+        /// <param name="balance">The amount of credits.</param>
+        public Habbo SetCreditBalance(int balance)
         {
-            this.fCreditBalance = Balance;
+            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            {
+                var habboData = db.CreateCriteria<Habbo>().
+                    SetProjection(Projections.Property("credits")).
+                    Add(new EqPropertyExpression("habbo_id", GetID().ToString())).
+                    List<Database.Habbo>().First();
+
+                _creditBalance = habboData.credits = balance;
+
+                db.Update(habboData);
+            }
             return this;
         }
+
         /// <summary>
         /// Adds credits to the user's balance.
         /// </summary>
-        /// <param name="Amount">The amount of credits.</param>
-        public Habbo GiveCredits(int Amount)
+        /// <param name="amount">The amount of credits.</param>
+        public Habbo GiveCredits(int amount)
         {
-            if(this.fCreditBalance == null)
+            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
             {
-                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
-                {
-                    // TODO: Heavily optimise (mapping).
-                    this.fCreditBalance = DB.Get<Database.Habbo>(this.GetID()).credits;
-                }
+                var habboData = db.CreateCriteria<Habbo>().
+                    SetProjection(Projections.Property("credits")).
+                    Add(new EqPropertyExpression("habbo_id", GetID().ToString())).
+                    List<Database.Habbo>().First();
+
+                _creditBalance = habboData.credits += amount;
+
+                db.Update(habboData);
             }
-            this.fCreditBalance += Amount;
             return this;
         }
+
         /// <summary>
         /// Deduct credits from the user's balance.
         /// </summary>
-        /// <param name="Amount">The amount of credits.</param>
-        public Habbo TakeCredits(int Amount)
+        /// <param name="amount">The amount of credits.</param>
+        public Habbo TakeCredits(int amount)
         {
-            if(this.fCreditBalance == null)
+            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
             {
-                using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
-                {
-                    // TODO: Heavily optimise (mapping).
-                    this.fCreditBalance = DB.Get<Database.Habbo>(this.GetID()).credits;
-                }
-            }
+                var habboData = db.CreateCriteria<Habbo>().
+                    SetProjection(Projections.Property("credits")).
+                    Add(new EqPropertyExpression("habbo_id", GetID().ToString())).
+                    List<Database.Habbo>().First();
 
-            this.fCreditBalance -= Amount;
+                _creditBalance = habboData.credits -= amount;
+
+                db.Update(habboData);
+            }
             return this;
         }
 
         #region Connection Related
+
         public IonTcpConnection GetConnection()
         {
-            return this.fConnection;
-        }
-        public Habbo Pong()
-        {
-            this.fPonged = true;
-            return this;
+            return _connection;
         }
 
-        public void LoginMerge(Habbo LoggedInUser)
+        public Habbo Pong()
         {
-            this.fConnection = LoggedInUser.fConnection;
-            
-            this.fConnection.fUser = this;
+            _ponged = true;
+            return this;
         }
+        public bool HasPonged()
+        {
+            return _ponged;
+        }
+
+        public void LoginMerge(Habbo loggedInUser)
+        {
+            _connection = loggedInUser._connection;
+
+            _connection.Habbo = this;
+        }
+
         #endregion
 
         #region Permissions
+
         #region IHI Permission System
+
         /// <summary>
         /// Reloads the permissions for the User.
         /// </summary>
         /// <returns>The User the permissions were reloaded for. This is for Chaining.</returns>
         public Habbo ReloadPermissions()
         {
-            this.fPermissions = new HashSet<int>(CoreManager.GetCore().GetPermissionManager().GetHabboPermissions(this.fID));
+            _permissions = new HashSet<int>(CoreManager.GetServerCore().GetPermissionManager().GetHabboPermissions(_id));
             return this;
         }
 
         /// <summary>
         /// Check if this User has PermissionID.
         /// </summary>
-        public bool HasPermission(int PermissionID)
+        public bool HasPermission(int permissionID)
         {
-            if(this.fPermissions == null)
-                this.ReloadPermissions();
-            return this.fPermissions.Contains(PermissionID);
+            if (_permissions == null)
+                ReloadPermissions();
+            return _permissions.Contains(permissionID);
         }
 
         /// <summary>
@@ -287,60 +352,97 @@ namespace IHI.Server.Habbos
         /// </summary>
         public int[] GetPermissions()
         {
-            if(this.fPermissions == null)
-                this.ReloadPermissions();
-            lock (this.fPermissions)
+            if (_permissions == null)
+                ReloadPermissions();
+            lock (_permissions)
             {
-                int[] PermissionArray = new int[this.fPermissions.Count];
+                var permissionArray = new int[_permissions.Count];
 
-                this.fPermissions.CopyTo(PermissionArray);
-                return PermissionArray;
+                _permissions.CopyTo(permissionArray);
+                return permissionArray;
             }
         }
-        #endregion
-        #endregion
-        #endregion
-        
-        public IMessageable SendMessage(IInternalOutgoingMessage Message)
-        {
-            this.fConnection.SendMessage(Message);
-            return this;
-        }
 
-        public object GetInstanceVariable(string Name)
+        #endregion
+
+        #endregion
+
+        #endregion
+
+        #region IBefriendable Members
+
+        public object GetInstanceVariable(string name)
         {
-            if (this.fObjectVariables == null || !this.fObjectVariables.ContainsKey(Name))
+            if (_instanceVariables == null || !_instanceVariables.ContainsKey(name))
                 return null;
-            return this.fObjectVariables[Name];
+            return _instanceVariables[name];
         }
 
-        public IObjectVariables SetInstanceVariable(string Name, object Value)
+        public IInstanceVariables SetInstanceVariable(string name, object value)
         {
-            if (this.fObjectVariables == null)
-                this.fObjectVariables = new Dictionary<string, object>();
+            if (_instanceVariables == null)
+                _instanceVariables = new Dictionary<string, object>();
 
-            if (this.fObjectVariables.ContainsKey(Name))
-                this.fObjectVariables[Name] = Value;
+            if (_instanceVariables.ContainsKey(name))
+                _instanceVariables[name] = value;
             else
-                this.fObjectVariables.Add(Name, Value);
+                _instanceVariables.Add(name, value);
 
             return this;
         }
 
 
-        public string GetPersistantVariable(string Name)
+        public string GetPersistantVariable(string name)
         {
-            throw new NotImplementedException();
+            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            {
+                var variables = (List<PersistantVariableHabbo>) db.CreateCriteria<PersistantVariableHabbo>().
+                                                                    Add(Restrictions.Eq("habbo_id", GetID())).
+                                                                    Add(Restrictions.Eq("variable_name", name)).
+                                                                    List<PersistantVariableHabbo>();
+                if (variables.Count != 0)
+                    return variables[0].variable_value;
+                return null;
+            }
         }
 
-        public IObjectVariables SetPersistantVariable(string Name, string Value)
+        public IPersistantVariables SetPersistantVariable(string name, string value)
         {
-            throw new NotImplementedException();
+            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            {
+                var variables = (List<PersistantVariableHabbo>) db.CreateCriteria<PersistantVariableHabbo>().
+                                                                    Add(Restrictions.Eq("habbo_id", GetID())).
+                                                                    Add(Restrictions.Eq("variable_name", name)).
+                                                                    List<PersistantVariableHabbo>();
+                if (variables.Count != 0)
+                {
+                    variables[0].variable_value = value;
+                    db.SaveOrUpdate(variables[0]);
+                    return this;
+                }
+
+                var newVariable = new PersistantVariableHabbo {variable_name = name, variable_value = value};
+
+                db.SaveOrUpdate(newVariable);
+
+                return this;
+            }
         }
+
+        #endregion
+
+        #region IMessageable Members
+
+        public IMessageable SendMessage(IInternalOutgoingMessage message)
+        {
+            _connection.SendMessage(message);
+            return this;
+        }
+
+        #endregion
     }
 
-    public class UserEventArgs : EventArgs
+    public class HabboEventArgs : EventArgs
     {
-
     }
 }

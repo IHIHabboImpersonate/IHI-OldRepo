@@ -1,32 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace IHI.Server.Rooms
 {
     public abstract class Human : RoomUnit
     {
-
         /// <summary>
-        /// Make the User wave for the default length of time.
+        /// Makes the Human wave.
         /// </summary>
         /// <returns>The current Human object. This allows chaining.</returns>
         /// <remarks>Unsure on the naming as of yet</remarks>
-        public RoomUnit SetWave(bool Active)
+        public RoomUnit SetWave(bool active)
         {
-
+            throw new NotImplementedException();
             return this;
         }
 
         /// <summary>
-        /// Make the User dance.
+        /// Make the Human dance a given style.
         /// </summary>
-        /// <param name="Style">The style of dance to use. 0 = Stop Dancing</param>
+        /// <param name="style">The style of dance to use. 0 = Stop Dancing</param>
         /// <returns>The current Human object. This allows chaining.</returns>
-        public RoomUnit SetDance(byte Style)
+        public RoomUnit SetDance(byte style)
         {
-
+            throw new NotImplementedException();
             return this;
         }
     }

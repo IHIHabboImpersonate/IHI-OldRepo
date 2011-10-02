@@ -101,12 +101,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\XMLConfig.cs" />
+    <Compile Include="CoreManager.cs" />
     <Compile Include="InGame\Room\Items\Instances\FloorPosition.cs" />
     <Compile Include="InGame\Room\Items\Instances\WallLocation.cs" />
     <Compile Include="InGame\Room\Items\Models\Virtual\EffectItemModel.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Floor\FloorItemModel.cs" />
+    <Compile Include="InGame\User\Networking\Connection\ConnectionEventArgs.cs" />
     <Compile Include="InGame\User\Networking\Message\IMessageable.cs" />
     <Compile Include="InGame\User\Networking\Message\OutgoingMessage.cs" />
+    <Compile Include="InGame\User\Networking\Message\PacketHandler.cs" />
+    <Compile Include="Install\Category.cs" />
+    <Compile Include="Install\InstallationEventArgs.cs" />
+    <Compile Include="Install\Steps\ByteStep.cs" />
+    <Compile Include="Install\Steps\PasswordStep.cs" />
+    <Compile Include="Install\Steps\IntStep.cs" />
+    <Compile Include="Install\Steps\UShortStep.cs" />
+    <Compile Include="Install\Steps\StringStep.cs" />
+    <Compile Include="Install\Steps\Step.cs" />
+    <Compile Include="OOP Revamp\IPersisstantVariables.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\FigureFactory.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\Jacket.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\WaistAccessory.cs" />
@@ -121,7 +133,7 @@
     <Compile Include="OOP Revamp\Habbo\FigureParts\Hair.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\Body.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\FigurePart.cs" />
-    <Compile Include="OOP Revamp\IObjectVariables.cs" />
+    <Compile Include="OOP Revamp\IInstanceVariables.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\BotFigure.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\IFigure.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\Bots\PetFigure.cs" />
@@ -131,15 +143,14 @@
     <Compile Include="OOP Revamp\Rooms\PublicRoom.cs" />
     <Compile Include="OOP Revamp\Rooms\Furni\ITogglable.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Floor\ItemCollisionType.cs" />
-    <Compile Include="InGame\Room\Items\Models\Physical\Floor\ItemColour.cs" />
+    <Compile Include="InGame\Room\Items\Models\Physical\Floor\ItemColours.cs" />
     <Compile Include="InGame\Room\Items\Models\ItemModel.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Floor\ItemShape.cs" />
     <Compile Include="OOP Revamp\Rooms\Furni\IUsable.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\PhysicalItemModel.cs" />
     <Compile Include="OOP Revamp\Rooms\Furni\PrivateFloorFurni.cs" />
     <Compile Include="InGame\User\Networking\ConnectionClosedReason.cs" />
-    <Compile Include="InGame\User\Networking\Message\Misc.cs" />
-    <Compile Include="InGame\User\PacketSender.cs" />
+    <Compile Include="InGame\User\Networking\Message\PacketHandlerPriority.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="EntryPoint.cs" />
     <Compile Include="InGame\User\Networking\Connection\IonTcpConnection.cs">
@@ -163,12 +174,8 @@
     <Compile Include="InGame\User\Permissions\PermissionManager.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Install\StandardOut.cs" />
-    <Compile Include="Install\Database.cs" />
     <Compile Include="Install\Core.cs" />
-    <Compile Include="Install\Network.cs" />
     <Compile Include="Install\InputException.cs" />
-    <Compile Include="Install\Input.cs" />
     <Compile Include="Install\Output.cs" />
     <Compile Include="IShutdown.cs" />
     <Compile Include="MonoAware.cs" />
@@ -197,7 +204,6 @@
     <Compile Include="PublicRoomModel.cs" />
     <Compile Include="RoomModel.cs" />
     <Compile Include="StandardOut.cs" />
-    <Compile Include="Users\PacketProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="InGame\User\Networking\Message\Encoding\Base64Encoding.cs" />
     <Compile Include="InGame\User\Networking\Message\Encoding\WireEncoding.cs" />
@@ -236,7 +242,6 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Database Structures\DB-Main\DB-Main.csproj">
       <Project>{62AF647E-C9BC-4E05-8A91-B044074A3147}</Project>

@@ -4,45 +4,77 @@ namespace IHI.Server
 {
     public class StandardOut
     {
-        private bool fHidden;
-        private object[,] fOutputHistory;
-        private StandardOutImportance fImportance;
+        private bool _hidden;
+
+        /// <summary>
+        /// The past message colours.
+        /// </summary>
+        private ConsoleColor[] _historyColours;
+
+        /// <summary>
+        /// The past header text.
+        /// </summary>
+        private string[] _historyHeaders;
+
+        /// <summary>
+        /// The past message text.
+        /// </summary>
+        private string[] _historyMessages;
+
+        /// <summary>
+        /// The past message timestamps.
+        /// </summary>
+        private DateTime?[] _historyTimestamps;
+
+        private StandardOutImportance _importance;
+
+        /// <summary>
+        /// The last index of the rolling history arrays that was written to.
+        /// </summary>
+        private int _lastIndexWritten;
 
         internal StandardOut()
         {
-            this.fOutputHistory = new object[Console.BufferHeight, 3];
+            _historyHeaders = new string[Console.BufferHeight];
+            _historyMessages = new string[Console.BufferHeight];
+            _historyColours = new ConsoleColor[Console.BufferHeight];
+            _historyTimestamps = new DateTime?[Console.BufferHeight];
+            _lastIndexWritten = 0;
         }
 
         /// <summary>
         /// Output a debug message.
         /// </summary>
-        /// <param name="Message">The message to output.</param>
-        public StandardOut PrintDebug(string Message)
+        /// <param name="message">The message to output.</param>
+        public StandardOut PrintDebug(string message)
         {
-            if (this.fImportance <= StandardOutImportance.Debug)
-                Raw("DEBUG", Message, ConsoleColor.White, true);
+            if (_importance <= StandardOutImportance.Debug)
+                Raw("DEBUG", message, ConsoleColor.White);
             return this;
         }
+
         /// <summary>
         /// Output a warning message.
         /// </summary>
-        /// <param name="Message">The message to output.</param>
-        public StandardOut PrintWarning(string Message)
+        /// <param name="message">The message to output.</param>
+        public StandardOut PrintWarning(string message)
         {
-            if (this.fImportance <= StandardOutImportance.Warning)
-                Raw("WARNING", Message, ConsoleColor.DarkYellow, true);
+            if (_importance <= StandardOutImportance.Warning)
+                Raw("WARNING", message, ConsoleColor.DarkYellow);
             return this;
         }
+
         /// <summary>
         /// Output an error message.
         /// </summary>
-        /// <param name="Message">The message to output.</param>
-        public StandardOut PrintError(string Message)
+        /// <param name="message">The message to output.</param>
+        public StandardOut PrintError(string message)
         {
-            if (this.fImportance <= StandardOutImportance.Error)
-                Raw("ERROR", Message, ConsoleColor.Red, true);
+            if (_importance <= StandardOutImportance.Error)
+                Raw("ERROR", message, ConsoleColor.Red);
             return this;
         }
+
         /// <summary>
         /// Output an exception in a formatted manner.
         /// </summary>
@@ -53,15 +85,16 @@ namespace IHI.Server
             PrintDebug(e.StackTrace);
             return this;
         }
+
         /// <summary>
         /// Output a general message.
         /// Use this for most things.
         /// </summary>
-        /// <param name="Message">The message to output.</param>
-        public StandardOut PrintNotice(string Message)
+        /// <param name="message">The message to output.</param>
+        public StandardOut PrintNotice(string message)
         {
-            if (this.fImportance <= StandardOutImportance.Notice)
-                Raw("NOTICE", Message, ConsoleColor.Gray, true);
+            if (_importance <= StandardOutImportance.Notice)
+                Raw("NOTICE", message, ConsoleColor.Gray);
             return this;
         }
 
@@ -69,11 +102,11 @@ namespace IHI.Server
         /// Output an important message.
         /// Use when the message is important but not debugging, a warning or an error.
         /// </summary>
-        /// <param name="Message">The message to output.</param>
-        public StandardOut PrintImportant(string Message)
+        /// <param name="message">The message to output.</param>
+        public StandardOut PrintImportant(string message)
         {
-            if (this.fImportance <= StandardOutImportance.Important)
-                Raw("IMPORTANT", Message, ConsoleColor.Green, true);
+            if (_importance <= StandardOutImportance.Important)
+                Raw("IMPORTANT", message, ConsoleColor.Green);
             return this;
         }
 
@@ -85,7 +118,11 @@ namespace IHI.Server
             lock (this)
             {
                 MonoAware.System.Console.Clear();
-                this.fOutputHistory = new object[Console.BufferHeight, 3];
+                _historyHeaders = new string[Console.BufferHeight];
+                _historyMessages = new string[Console.BufferHeight];
+                _historyColours = new ConsoleColor[Console.BufferHeight];
+                _historyTimestamps = new DateTime?[Console.BufferHeight];
+                _lastIndexWritten = 0;
                 return this;
             }
         }
@@ -96,64 +133,78 @@ namespace IHI.Server
         /// <returns>True if the output is hidden, false otherwise.</returns>
         public bool IsHidden()
         {
-            return this.fHidden;
+            return _hidden;
         }
+
         /// <summary>
         /// Set whether the output is hidden from the screen or not.
         /// </summary>
-        /// <returns>True to hide the output, false to show it.</returns>
-        internal void SetHidden(bool Hidden)
+        /// <param name="hidden">True to hide the output, false to show it.</param>
+        internal StandardOut SetHidden(bool hidden)
         {
-            if (this.fHidden != Hidden)
+            if (_hidden != hidden)
             {
-                this.fHidden = Hidden;
+                _hidden = hidden;
 
-                if (!fHidden)
+                if (!_hidden)
                     PrintHistroy();
             }
+            return this;
         }
 
-        private void Raw(string Header, string Message, ConsoleColor Colour, bool Record)
+        private void Raw(string header, string message, ConsoleColor colour, bool record = true,
+                         DateTime? timestamp = null)
         {
-            if (Record)
-                PushHistroy(Header, Message, Colour);
-            if (this.fHidden)
+            if (timestamp == null)
+                timestamp = DateTime.Now;
+
+            if (record)
+                PushHistroy(header, message, colour, timestamp.Value);
+            if (_hidden)
                 return;
+            if (String.IsNullOrEmpty(header))
+            {
+                Console.WriteLine();
+                return;
+            }
 
             lock (this)
             {
                 MonoAware.System.Console.ForegroundColor = ConsoleColor.Gray;
-                Console.Write(DateTime.Now.ToLongTimeString() + " >> [" + Header + "] ");
-                MonoAware.System.Console.ForegroundColor = Colour;
-                Console.WriteLine(Message);
+                Console.Write(timestamp.Value.ToLongTimeString() + " >> [" + header + "] ");
+                MonoAware.System.Console.ForegroundColor = colour;
+                Console.WriteLine(message);
             }
         }
-        private void PushHistroy(string Header, string Message, ConsoleColor Colour)
+
+        private void PushHistroy(string header, string message, ConsoleColor colour, DateTime timestamp)
         {
-            ushort Last = (ushort)this.fOutputHistory.GetLength(0);
-
-            lock (this.fOutputHistory)
+            lock (_historyHeaders)
             {
-                for (ushort i = 1; i < Last; i++)
-                {
-                    this.fOutputHistory[i - 1, 0] = this.fOutputHistory[i, 0];
-                    this.fOutputHistory[i - 1, 1] = this.fOutputHistory[i, 1];
-                    this.fOutputHistory[i - 1, 2] = this.fOutputHistory[i, 2];
-                }
+                if (_lastIndexWritten < Console.BufferHeight - 1)
+                    _lastIndexWritten++;
+                else
+                    _lastIndexWritten = 0;
 
-
-                this.fOutputHistory[Last - 1, 0] = Header;
-                this.fOutputHistory[Last - 1, 1] = Message;
-                this.fOutputHistory[Last - 1, 2] = Colour;
+                _historyHeaders[_lastIndexWritten] = header;
+                _historyMessages[_lastIndexWritten] = message;
+                _historyColours[_lastIndexWritten] = colour;
+                _historyTimestamps[_lastIndexWritten] = timestamp;
             }
         }
+
         private void PrintHistroy()
         {
-            lock (this.fOutputHistory)
+            lock (_historyHeaders)
             {
-                for (ushort i = 1; i < this.fOutputHistory.Length; i++)
+                MonoAware.System.Console.Clear();
+                for (var i = _lastIndexWritten + 1; i < _historyHeaders.Length; i++)
                 {
-                    Raw((string)this.fOutputHistory[i, 0], (string)this.fOutputHistory[i, 1], (ConsoleColor)this.fOutputHistory[i, 2], false);
+                    Raw(_historyHeaders[i], _historyMessages[i], _historyColours[i], false);
+                }
+                for (var i = 0; i <= _lastIndexWritten; i++)
+                {
+                    Raw(_historyHeaders[i], _historyMessages[i], _historyColours[i], false);
                 }
             }
         }
@@ -164,19 +215,19 @@ namespace IHI.Server
         /// <returns>True if the output is hidden, false otherwise.</returns>
         public StandardOutImportance GetImportance()
         {
-            return this.fImportance;
+            return _importance;
         }
+
         /// <summary>
         /// Set whether the output is hidden from the screen or not.
         /// </summary>
         /// <returns>True to hide the output, false to show it.</returns>
-        public void SetImportance(StandardOutImportance Importance)
+        public void SetImportance(StandardOutImportance importance)
         {
-            if (this.fImportance != Importance)
-            {
-                Raw("IMPORTANT", "StandardOut Importance Changed [ " + this.fImportance.ToString() + " -> " + Importance.ToString() + " ]", ConsoleColor.Yellow, true);
-                this.fImportance = Importance;
-            }
+            if (_importance == importance) return;
+            Raw("IMPORTANT", "StandardOut Importance Changed [ " + _importance + " -> " + importance + " ]",
+                ConsoleColor.Yellow);
+            _importance = importance;
         }
     }
 

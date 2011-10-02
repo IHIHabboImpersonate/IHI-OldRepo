@@ -1,27 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading;
 
 namespace IHI.Server.WebAdmin
 {
-    public delegate void HttpPathHandler(HttpListenerContext RequestContext);
-    
+    public delegate void HttpPathHandler(HttpListenerContext requestContext);
+
     public class WebAdminManager
     {
-        private Dictionary<string, HttpPathHandler> fPaths;
-        private AutoResetEvent fStopWaiter;
-        private ushort fPortNumber;
-        
-        internal WebAdminManager(ushort PortNumber)
-        {
-            this.fPaths = new Dictionary<string, HttpPathHandler>();
-            this.fPortNumber = PortNumber;
-            this.fStopWaiter = new AutoResetEvent(false);   
+        private readonly Dictionary<string, HttpPathHandler> _paths;
+        private readonly ushort _port;
+        private readonly AutoResetEvent _stopWaiter;
 
-            new Thread(new ThreadStart(Run)).Start();
+        internal WebAdminManager(ushort port)
+        {
+            _paths = new Dictionary<string, HttpPathHandler>();
+            _port = port;
+            _stopWaiter = new AutoResetEvent(false);
+
+            new Thread(Run).Start();
         }
 
         /// <summary>
@@ -29,66 +27,66 @@ namespace IHI.Server.WebAdmin
         /// </summary>
         private void Run()
         {
-            using (WebAdminServer listener = new WebAdminServer(this.fPortNumber))
+            using (var listener = new WebAdminServer(_port))
             {
                 listener.IncomingRequest += HandlePath;
                 listener.Start();
 
-                this.fStopWaiter.WaitOne();
+                _stopWaiter.WaitOne();
             }
         }
-         
+
         private void HandlePath(object sender, HttpRequestEventArgs e)
         {
-            string Path = e.RequestContext.Request.Url.AbsolutePath;
-            lock (this.fPaths)
+            var path = e.RequestContext.Request.Url.AbsolutePath;
+            lock (_paths)
             {
-                if (IsPathHandled(Path))
+                if (IsPathHandled(path))
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintDebug("WebAdmin Request [200]: " + Path);
-                    GetPathHandler(Path)(e.RequestContext);
+                    CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin Request [200]: " + path);
+                    GetPathHandler(path)(e.RequestContext);
                     return;
                 }
             }
-            CoreManager.GetCore().GetStandardOut().PrintDebug("WebAdmin Request [404]: " + Path);
+            CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin Request [404]: " + path);
 
-            HttpListenerResponse Response = e.RequestContext.Response;
-            byte[] buffer = Encoding.UTF8.GetBytes("Not Handled!");
-            Response.StatusCode = (int)HttpStatusCode.NotFound;
-            Response.StatusDescription = "Not Found";
-            Response.ContentLength64 = buffer.Length;
-            Response.ContentEncoding = Encoding.UTF8;
-            Response.AddHeader("plugin-name", "");
-            Response.OutputStream.Write(buffer, 0, buffer.Length);
-            Response.OutputStream.Close();
-            Response.Close();
+            var response = e.RequestContext.Response;
+            var buffer = Encoding.UTF8.GetBytes("Not Handled!");
+            response.StatusCode = (int) HttpStatusCode.NotFound;
+            response.StatusDescription = "Not Found";
+            response.ContentLength64 = buffer.Length;
+            response.ContentEncoding = Encoding.UTF8;
+            response.AddHeader("plugin-name", "");
+            response.OutputStream.Write(buffer, 0, buffer.Length);
+            response.OutputStream.Close();
+            response.Close();
         }
 
         /// <summary>
         /// Returns true if a path already has a handler, false otherwise.
         /// </summary>
-        /// <param name="Path">The path to check.</param>
-        public bool IsPathHandled(string Path)
+        /// <param name="path">The path to check.</param>
+        public bool IsPathHandled(string path)
         {
-            lock(this.fPaths)
-                return this.fPaths.ContainsKey(Path);
+            lock (_paths)
+                return _paths.ContainsKey(path);
         }
 
         /// <summary>
         /// Registers a path handler to a path.
         /// </summary>
-        /// <param name="Path">The path to register to.</param>
-        /// <param name="Handler">The handler for the path.</param>
+        /// <param name="path">The path to register to.</param>
+        /// <param name="handler">The handler for the path.</param>
         /// <returns>True on success, false on failure (handler already taken).</returns>
-        public bool AddPathHandler(string Path, HttpPathHandler Handler)
+        public bool AddPathHandler(string path, HttpPathHandler handler)
         {
-            lock (this.fPaths)
+            lock (_paths)
             {
-                if (IsPathHandled(Path))
+                if (IsPathHandled(path))
                     return false;
 
-                this.fPaths.Add(Path, Handler);
-                CoreManager.GetCore().GetStandardOut().PrintDebug("WebAdmin handler added: " + Path);
+                _paths.Add(path, handler);
+                CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin handler added: " + path);
                 return true;
             }
         }
@@ -96,17 +94,17 @@ namespace IHI.Server.WebAdmin
         /// <summary>
         /// Unregisters the registered path handler of a path.
         /// </summary>
-        /// <param name="Path">The path to register to.</param>
+        /// <param name="path">The path to register to.</param>
         /// <returns>True on success, false on failure (handler not registered).</returns>
-        public bool RemovePathHandler(string Path)
+        public bool RemovePathHandler(string path)
         {
-            lock (this.fPaths)
+            lock (_paths)
             {
-                if (!IsPathHandled(Path))
+                if (!IsPathHandled(path))
                     return false;
 
-                this.fPaths.Remove(Path);
-                CoreManager.GetCore().GetStandardOut().PrintDebug("WebAdmin handler removed: " + Path);
+                _paths.Remove(path);
+                CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin handler removed: " + path);
                 return true;
             }
         }
@@ -114,16 +112,16 @@ namespace IHI.Server.WebAdmin
         /// <summary>
         /// Get the registered path handler of a path.
         /// </summary>
-        /// <param name="Path">The path to get the handler of.</param>
+        /// <param name="path">The path to get the handler of.</param>
         /// <returns>The HttpPathHandler if it is register, null otherwise.</returns>
-        public HttpPathHandler GetPathHandler(string Path)
+        public HttpPathHandler GetPathHandler(string path)
         {
-            lock (this.fPaths)
+            lock (_paths)
             {
-                if (!IsPathHandled(Path))
+                if (!IsPathHandled(path))
                     return null;
 
-                return this.fPaths[Path];
+                return _paths[path];
             }
         }
 
@@ -131,24 +129,24 @@ namespace IHI.Server.WebAdmin
         /// Stops the web server.
         /// </summary>
         internal void Stop()
-        {   
-            this.fStopWaiter.Set();
-        }
-
-
-        public void SendResponse(HttpListenerResponse Response, string PluginName, string Content)
         {
-            CoreManager.GetCore().GetStandardOut().PrintDebug("WebAdmin Response [" + PluginName + "]: " + Content);
-            byte[] buffer = Encoding.UTF8.GetBytes(Content);
-            Response.StatusCode = (int)HttpStatusCode.OK;
-            Response.StatusDescription = "OK";
-            Response.ContentType = "text/html; charset=UTF-8";
-            Response.ContentLength64 = buffer.Length;
-            Response.ContentEncoding = Encoding.UTF8;
-            Response.AddHeader("plugin-name", PluginName);
-            Response.OutputStream.Write(buffer, 0, buffer.Length);
-            Response.OutputStream.Close();
-            Response.Close();
+            _stopWaiter.Set();
         }
-    } 
+
+
+        public static void SendResponse(HttpListenerResponse response, string pluginName, string content)
+        {
+            CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin Response [" + pluginName + "]: " + content);
+            var buffer = Encoding.UTF8.GetBytes(content);
+            response.StatusCode = (int) HttpStatusCode.OK;
+            response.StatusDescription = "OK";
+            response.ContentType = "text/html; charset=UTF-8";
+            response.ContentLength64 = buffer.Length;
+            response.ContentEncoding = Encoding.UTF8;
+            response.AddHeader("plugin-name", pluginName);
+            response.OutputStream.Write(buffer, 0, buffer.Length);
+            response.OutputStream.Close();
+            response.Close();
+        }
+    }
 }

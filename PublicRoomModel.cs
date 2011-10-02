@@ -1,5 +1,4 @@
-﻿
-namespace IHI.Server
+﻿namespace IHI.Server
 {
     public class PublicRoomModel : RoomModel
     {

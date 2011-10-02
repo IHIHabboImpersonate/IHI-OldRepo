@@ -1,22 +1,21 @@
-﻿
-namespace IHI.Server
+﻿namespace IHI.Server
 {
     /// <summary>
     /// Represents the a position and rotation on the floor of a room.
     /// </summary>
     public struct FloorPosition
     {
+        private byte fRotation;
         private byte fX;
         private byte fY;
         private float fZ;
-        private byte fRotation;
 
         /// <summary>
         /// Returns the X Coordinate (BottomLeft-TopRight).
         /// </summary>
         public byte GetX()
         {
-            return this.fX;
+            return fX;
         }
 
         /// <summary>
@@ -24,7 +23,7 @@ namespace IHI.Server
         /// </summary>
         public byte GetY()
         {
-            return this.fY;
+            return fY;
         }
 
         /// <summary>
@@ -32,7 +31,7 @@ namespace IHI.Server
         /// </summary>
         public float GetZ()
         {
-            return this.fZ;
+            return fZ;
         }
 
         /// <summary>
@@ -40,7 +39,7 @@ namespace IHI.Server
         /// </summary>
         public byte GetRotation()
         {
-            return this.fRotation;
+            return fRotation;
         }
 
         /// <summary>
@@ -48,7 +47,7 @@ namespace IHI.Server
         /// </summary>
         public byte[] Get2D()
         {
-            return new byte[] { this.fX, this.fY };
+            return new[] {fX, fY};
         }
 
         /// <summary>
@@ -56,7 +55,7 @@ namespace IHI.Server
         /// </summary>
         public byte[] GetRounded3D()
         {
-            return new byte[] { this.fX, this.fY, (byte)this.fZ };
+            return new[] {fX, fY, (byte) fZ};
         }
 
         /// <summary>
@@ -64,7 +63,7 @@ namespace IHI.Server
         /// </summary>
         public float[] GetFloat3D()
         {
-            return new float[] { this.fX, this.fY, this.fZ };
+            return new[] {fX, fY, fZ};
         }
     }
 }

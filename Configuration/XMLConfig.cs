@@ -6,37 +6,37 @@ namespace IHI.Server.Configuration
 {
     public class XmlConfig
     {
-        private string fPath;
-        private XmlDocument fDocument;
-        private readonly bool fCreated; // Set to true when EnsureFile had to create the file.
+        private readonly bool _created; // Set to true when EnsureFile had to create the file.
+        private readonly XmlDocument _document;
+        private readonly string _path;
 
         /// <summary>
         /// Loads an Xml config file into memory.
         /// </summary>
-        /// <param name="Path">The path to the Xml config file.</param>
-        public XmlConfig(string Path)
+        /// <param name="path">The path to the Xml config file.</param>
+        public XmlConfig(string path)
         {
-            if (!EnsureFile(new FileInfo(Path), out this.fCreated))
+            if (!EnsureFile(new FileInfo(path), out _created))
             {
-                CoreManager.GetCore().GetStandardOut().PrintError("File '" + Path + "' does not exist and couldn't be created automatically! (XmlConfig)");
+                CoreManager.GetServerCore().GetStandardOut().PrintError("File '" + path +
+                                                                        "' does not exist and couldn't be created automatically! (XmlConfig)");
             }
 
-            this.fDocument = new XmlDocument();
+            _document = new XmlDocument();
 
             try
             {
-                this.fDocument.Load(Path);
+                _document.Load(path);
             }
             catch (XmlException)
             {
-
-                this.fDocument.LoadXml(@"<?xml version='1.0' encoding='ISO-8859-1'?>
+                _document.LoadXml(@"<?xml version='1.0' encoding='ISO-8859-1'?>
 <config>
 </config>");
-                this.fDocument.Save(Path);
+                _document.Save(path);
             }
 
-            this.fPath = Path;
+            _path = path;
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace IHI.Server.Configuration
         /// </summary>
         public void Save()
         {
-            this.fDocument.Save(this.fPath);
+            _document.Save(_path);
         }
 
         /// <summary>
@@ -53,211 +53,227 @@ namespace IHI.Server.Configuration
         /// </summary>
         public XmlDocument GetInternalDocument()
         {
-            return this.fDocument;
+            return _document;
         }
 
         /// <summary>
         /// Returns a value as a byte.
         /// </summary>
-        /// <param name="XPath">The XPath query.</param>
-        /// <param name="Fallback">The value to return if the value is invalid.</param>
-        public byte ValueAsByte(string XPath, byte Fallback)
+        /// <param name="xPath">The XPath query.</param>
+        /// <param name="fallback">The value to return if the value is invalid.</param>
+        public byte ValueAsByte(string xPath, byte fallback)
         {
-            byte Result;
+            byte result;
 
             try
             {
-                if (!byte.TryParse(ValueAsString(XPath), out Result))
+                if (!byte.TryParse(ValueAsString(xPath), out result))
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid byte! Fallback: " + Fallback);
-                    return Fallback;
+                    CoreManager.GetServerCore().GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
+                                                                              "' is not a valid byte! Fallback: " +
+                                                                              fallback);
+                    return fallback;
                 }
             }
             catch
             {
-                Result = Fallback;
+                result = fallback;
             }
-            return Result;
+            return result;
         }
 
         /// <summary>
         /// Returns a value as a signed byte.
         /// </summary>
-        /// <param name="XPath">The XPath query.</param>
-        /// <param name="Fallback">The value to return if the value is invalid.</param>
-        public sbyte ValueAsSbyte(string XPath, sbyte Fallback)
+        /// <param name="xPath">The XPath query.</param>
+        /// <param name="fallback">The value to return if the value is invalid.</param>
+        public sbyte ValueAsSbyte(string xPath, sbyte fallback)
         {
-            sbyte Result;
+            sbyte result;
 
             try
             {
-                if (!sbyte.TryParse(ValueAsString(XPath), out Result))
+                if (!sbyte.TryParse(ValueAsString(xPath), out result))
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid sbyte! Fallback: " + Fallback);
-                    return Fallback;
+                    CoreManager.GetServerCore().GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
+                                                                              "' is not a valid sbyte! Fallback: " +
+                                                                              fallback);
+                    return fallback;
                 }
             }
             catch
             {
-                Result = Fallback;
+                result = fallback;
             }
-            return Result;
+            return result;
         }
 
         /// <summary>
         /// Returns a value as a short.
         /// </summary>
-        /// <param name="XPath">The XPath query.</param>
-        /// <param name="Fallback">The value to return if the value is invalid.</param>
-        public short ValueAsShort(string XPath, short Fallback)
+        /// <param name="xPath">The XPath query.</param>
+        /// <param name="fallback">The value to return if the value is invalid.</param>
+        public short ValueAsShort(string xPath, short fallback)
         {
-            short Result;
+            short result;
 
             try
             {
-                if (!short.TryParse(ValueAsString(XPath), out Result))
+                if (!short.TryParse(ValueAsString(xPath), out result))
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid short! Fallback: " + Fallback);
-                    return Fallback;
+                    CoreManager.GetServerCore().GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
+                                                                              "' is not a valid short! Fallback: " +
+                                                                              fallback);
+                    return fallback;
                 }
             }
             catch
             {
-                Result = Fallback;
+                result = fallback;
             }
-            return Result;
+            return result;
         }
 
         /// <summary>
         /// Returns a value as an unsigned short.
         /// </summary>
-        /// <param name="XPath">The XPath query.</param>
-        /// <param name="Fallback">The value to return if the value is invalid.</param>
-        public ushort ValueAsUshort(string XPath, ushort Fallback)
+        /// <param name="xPath">The XPath query.</param>
+        /// <param name="fallback">The value to return if the value is invalid.</param>
+        public ushort ValueAsUshort(string xPath, ushort fallback)
         {
-            ushort Result;
+            ushort result;
 
             try
             {
-                if (!ushort.TryParse(ValueAsString(XPath), out Result))
+                if (!ushort.TryParse(ValueAsString(xPath), out result))
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid ushort! Fallback: " + Fallback);
-                    return Fallback;
+                    CoreManager.GetServerCore().GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
+                                                                              "' is not a valid ushort! Fallback: " +
+                                                                              fallback);
+                    return fallback;
                 }
             }
             catch
             {
-                Result = Fallback;
+                result = fallback;
             }
-            return Result;
+            return result;
         }
 
         /// <summary>
         /// Returns a value as an int.
         /// </summary>
-        /// <param name="XPath">The XPath query.</param>
-        /// <param name="Fallback">The value to return if the value is invalid.</param>
-        public int ValueAsInt(string XPath, int Fallback)
+        /// <param name="xPath">The XPath query.</param>
+        /// <param name="fallback">The value to return if the value is invalid.</param>
+        public int ValueAsInt(string xPath, int fallback)
         {
-            int Result;
+            int result;
 
             try
             {
-                if (!int.TryParse(ValueAsString(XPath), out Result))
+                if (!int.TryParse(ValueAsString(xPath), out result))
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid int! Fallback: " + Fallback);
-                    return Fallback;
+                    CoreManager.GetServerCore().GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
+                                                                              "' is not a valid int! Fallback: " +
+                                                                              fallback);
+                    return fallback;
                 }
             }
             catch
             {
-                Result = Fallback;
+                result = fallback;
             }
-            return Result;
+            return result;
         }
 
         /// <summary>
         /// Returns a value as an unsigned int.
         /// </summary>
-        /// <param name="XPath">The XPath query.</param>
-        /// <param name="Fallback">The value to return if the value is invalid.</param>
-        public uint ValueAsUint(string XPath, uint Fallback)
+        /// <param name="xPath">The XPath query.</param>
+        /// <param name="fallback">The value to return if the value is invalid.</param>
+        public uint ValueAsUint(string xPath, uint fallback)
         {
-            uint Result;
+            uint result;
 
             try
             {
-                if (!uint.TryParse(ValueAsString(XPath), out Result))
+                if (!uint.TryParse(ValueAsString(xPath), out result))
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid uint! Fallback: " + Fallback);
-                    return Fallback;
+                    CoreManager.GetServerCore().GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
+                                                                              "' is not a valid uint! Fallback: " +
+                                                                              fallback);
+                    return fallback;
                 }
             }
             catch
             {
-                Result = Fallback;
+                result = fallback;
             }
-            return Result;
+            return result;
         }
 
         /// <summary>
         /// Returns a value as a long.
         /// </summary>
-        /// <param name="XPath">The XPath query.</param>
-        /// <param name="Fallback">The value to return if the value is invalid.</param>
-        public long ValueAsLong(string XPath, long Fallback)
+        /// <param name="xPath">The XPath query.</param>
+        /// <param name="fallback">The value to return if the value is invalid.</param>
+        public long ValueAsLong(string xPath, long fallback)
         {
-            long Result;
+            long result;
 
             try
             {
-                if (!long.TryParse(ValueAsString(XPath), out Result))
+                if (!long.TryParse(ValueAsString(xPath), out result))
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid long! Fallback: " + Fallback);
-                    return Fallback;
+                    CoreManager.GetServerCore().GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
+                                                                              "' is not a valid long! Fallback: " +
+                                                                              fallback);
+                    return fallback;
                 }
             }
             catch
             {
-                Result = Fallback;
+                result = fallback;
             }
-            return Result;
+            return result;
         }
 
         /// <summary>
         /// Returns a value as an unsigned long.
         /// </summary>
-        /// <param name="XPath">The XPath query.</param>
-        /// <param name="Fallback">The value to return if the value is invalid.</param>
-        public ulong ValueAsUlong(string XPath, ulong Fallback)
+        /// <param name="xPath">The XPath query.</param>
+        /// <param name="fallback">The value to return if the value is invalid.</param>
+        public ulong ValueAsUlong(string xPath, ulong fallback)
         {
-            ulong Result;
+            ulong result;
 
             try
             {
-                if (!ulong.TryParse(ValueAsString(XPath), out Result))
+                if (!ulong.TryParse(ValueAsString(xPath), out result))
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintWarning("Configuration Error: '" + XPath + "' is not a valid ulong! Fallback: " + Fallback);
-                    return Fallback;
+                    CoreManager.GetServerCore().GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
+                                                                              "' is not a valid ulong! Fallback: " +
+                                                                              fallback);
+                    return fallback;
                 }
             }
             catch
             {
-                Result = Fallback;
+                result = fallback;
             }
-            return Result;
+            return result;
         }
 
         /// <summary>
         /// Returns a value as a string.
         /// </summary>
-        /// <param name="XPath">The XPath query.</param>
-        public string ValueAsString(string XPath)
+        /// <param name="xPath">The XPath query.</param>
+        public string ValueAsString(string xPath)
         {
-            XmlNode Node = this.fDocument.SelectSingleNode(XPath + "/text()");
-            if (Node == null)
+            var node = _document.SelectSingleNode(xPath + "/text()");
+            if (node == null)
                 return "";
-            return Node.Value;
+            return node.Value;
         }
 
         /// <summary>
@@ -265,75 +281,76 @@ namespace IHI.Server.Configuration
         /// </summary>
         public bool WasCreated()
         {
-            return this.fCreated;
+            return _created;
         }
 
 
         /// <summary>
         /// Creates a file if it doesn't exist, creating all non-existing parent directories in the process.
         /// </summary>
-        /// <param name="File">The file to create.</param>
+        /// <param name="file">The file to create.</param>
         /// <returns>True if the file was created, false otherwise.</returns>
-        public static bool EnsureFile(FileInfo File)
+        public static bool EnsureFile(FileInfo file)
         {
-            if (File.Exists)    // Does the file already exist?
-                return true;    // Yes, nothing needed.
-            if (EnsureDirectory(File.Directory))    // Ensure all parent directories exist.
+            if (file.Exists) // Does the file already exist?
+                return true; // Yes, nothing needed.
+            if (EnsureDirectory(file.Directory)) // Ensure all parent directories exist.
             {
-                File.Create().Close(); ;  // All missing parent directories created, create the file.
+                file.Create().Close(); // All missing parent directories created, create the file.
                 return true;
             }
-            return false;   // Something went wrong, return false.
+            return false; // Something went wrong, return false.
         }
 
         /// <summary>
         /// Creates a file if it doesn't exist, creating all non-existing parent directories in the process.
         /// </summary>
-        /// <param name="File">The file to create.</param>
+        /// <param name="file">The file to create.</param>
+        /// <param name="created">If the file was created then this is set to true.</param>
         /// <returns>True if the file was created, false otherwise.</returns>
-        public static bool EnsureFile(FileInfo File, out bool Created)
+        public static bool EnsureFile(FileInfo file, out bool created)
         {
-            if (File.Exists)    // Does the file already exist?
+            if (file.Exists) // Does the file already exist?
             {
-                Created = false;
-                return true;    // Yes, nothing needed.
+                created = false;
+                return true; // Yes, nothing needed.
             }
-            if (EnsureDirectory(File.Directory))    // Ensure all parent directories exist.
+            if (EnsureDirectory(file.Directory)) // Ensure all parent directories exist.
             {
-                File.Create().Close(); ;  // All missing parent directories created, create the file.
-                Created = true;
+                file.Create().Close(); // All missing parent directories created, create the file.
+                created = true;
                 return true;
             }
-            Created = false;
-            return false;   // Something went wrong, return false.
+            created = false;
+            return false; // Something went wrong, return false.
         }
 
         /// <summary>
         /// Creates a directory if it doesn't exist, creating all non-existing parent directories in the process.
         /// </summary>
-        /// <param name="Directory">The directory to create.</param>
+        /// <param name="directory">The directory to create.</param>
         /// <returns>True if the directory was created, false otherwise.</returns>
-        public static bool EnsureDirectory(DirectoryInfo Directory)
+        public static bool EnsureDirectory(DirectoryInfo directory)
         {
-            if (Directory.Exists)   // Does the directory already exist?
-                return true;        // Yes, nothing needed.
+            if (directory.Exists) // Does the directory already exist?
+                return true; // Yes, nothing needed.
 
-            Stack<DirectoryInfo> MissingParents = new Stack<DirectoryInfo>(new DirectoryInfo[] { null, Directory });
+            var missingParents = new Stack<DirectoryInfo>(new[] {null, directory});
 
-            DirectoryInfo P = Directory.Parent;
+            var parent = directory.Parent;
 
-            while (!P.Exists)   // While the next parent directory don't exist...
+            while (!parent.Exists) // While the next parent directory don't exist...
             {
-                MissingParents.Push(P); // Push it onto the MissingParents stack.
-                P = P.Parent;           // Go to the next parent
+                missingParents.Push(parent); // Push it onto the MissingParents stack.
+                parent = parent.Parent; // Go to the next parent
             }
 
-            P = MissingParents.Pop();
+            parent = missingParents.Pop();
 
-            while (MissingParents.Count > 0)    // While their are missing parent directories
+            while (missingParents.Count > 0) // While their are missing parent directories
             {
-                P.Create();                 // Create the directory
-                P = MissingParents.Pop();   // Go to the next.
+                parent.Create(); // Create the directory
+                parent = missingParents.Pop(); // Go to the next.
             }
 
             return true;

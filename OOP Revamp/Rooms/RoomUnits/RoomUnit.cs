@@ -1,31 +1,79 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using IHI.Server.Networking.Messages;
-
 
 namespace IHI.Server.Rooms
 {
     public abstract class RoomUnit : IRollerable, ITalkable
     {
-        protected Room fRoom;
-        protected FloorPosition fPosition;
-        protected FloorPosition fDestination;
-        protected IFigure fFigure;
-        protected Queue<byte[]> fPath;
-        protected float fSpeed = 1.0f;
-        
-        protected string fDisplayName;
+        protected FloorPosition Destination;
+        protected string DisplayName;
+        protected IFigure Figure;
+        protected Queue<byte[]> Path;
+        protected FloorPosition Position;
+        protected Room Room;
+
+        #region IRollerable Members
+
+        public IRollerable Roll(FloorPosition to)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRollerable Roll(FloorPosition from, FloorPosition to)
+        {
+            throw new NotImplementedException();
+        }
+
+        public FloorPosition GetPosition()
+        {
+            throw new NotImplementedException();
+        }
+
+        public RoomUnit SetPosition(FloorPosition position)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region ITalkable Members
+
+        public ITalkable Shout(string message)
+        {
+            throw new NotImplementedException();
+            return this;
+        }
+
+        public ITalkable Whisper(ITalkable recipient, string message)
+        {
+            throw new NotImplementedException();
+            return this;
+        }
+
+        public ITalkable Say(string message)
+        {
+            throw new NotImplementedException();
+            return this;
+        }
+
+        #endregion
 
         /// <summary>
-        /// Returns the current IRoom the RoomUnit is in.
+        /// Returns the current Room the RoomUnit is in.
         /// </summary>
         /// <returns></returns>
         public Room GetRoom()
         {
-            return this.fRoom;
+            return Room;
+        }
+        /// <summary>
+        /// Sets the current Room the RoomUnit is in.
+        /// </summary>
+        /// <returns></returns>
+        public RoomUnit SetRoom(Room room)
+        {
+            Room = room;
+            return this;
         }
 
         /// <summary>
@@ -36,7 +84,6 @@ namespace IHI.Server.Rooms
         /// <returns>The current User object. This allows chaining.</returns>
         public RoomUnit Refresh()
         {
-
             return this;
         }
 
@@ -44,9 +91,9 @@ namespace IHI.Server.Rooms
         /// Sets the desired position in the room of this user.
         /// </summary>
         /// <returns>The current User object. This allows chaining.</returns>
-        public RoomUnit SetDestination(FloorPosition Destination)
+        public RoomUnit SetDestination(FloorPosition destination)
         {
-            this.fDestination = Destination;
+            Destination = destination;
             return this;
         }
 
@@ -55,96 +102,54 @@ namespace IHI.Server.Rooms
         /// </summary>
         public FloorPosition GetDestination()
         {
-            return this.fDestination;
+            return Destination;
         }
 
         public IFigure GetFigure()
         {
-            return this.fFigure;
+            return Figure;
         }
-        public RoomUnit SetFigure(IFigure Figure)
+
+        public RoomUnit SetFigure(IFigure figure)
         {
-            this.fFigure = Figure;
+            Figure = figure;
             return this;
         }
 
         public string GetDisplayName()
         {
-            return this.fDisplayName;
+            return DisplayName;
         }
 
-        public RoomUnit SetDisplayName(string DisplayName)
+        public RoomUnit SetDisplayName(string displayName)
         {
-            this.fDisplayName = DisplayName;
+            DisplayName = displayName;
             return this;
-        }
-
-        public ITalkable Shout(string Message)
-        {
-            throw new NotImplementedException();
-            return this;
-        }
-
-        public ITalkable Whisper(ITalkable Recipient, string Message)
-        {
-            throw new NotImplementedException();
-            return this;
-        }
-
-        public ITalkable Say(string Message)
-        {
-            throw new NotImplementedException();
-            return this;
-        }
-
-        public IRollerable Roll(FloorPosition To)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRollerable Roll(FloorPosition From, FloorPosition To)
-        {
-            throw new NotImplementedException();
-        }
-
-        public FloorPosition GetPosition()
-        {
-            throw new NotImplementedException();
-        }
-
-        public RoomUnit SetPosition(FloorPosition Position)
-        {
-            throw new NotImplementedException();
         }
 
         public byte[] GetNextStep()
         {
-            if (this.fPath.Count == 0)
+            if (Path.Count == 0)
                 return new byte[0];
 
-            return this.fPath.Dequeue();
+            return Path.Dequeue();
         }
-        public RoomUnit AddNextStep(byte[] Step)
+
+        public RoomUnit AddNextStep(byte[] step)
         {
-            this.fPath.Enqueue(Step);
+            Path.Enqueue(step);
             return this;
         }
-        public RoomUnit SetPath(ICollection<byte[]> Path)
+
+        public RoomUnit SetPath(ICollection<byte[]> path)
         {
-            this.fPath = (Queue<byte[]>)Path;
+            Path = (Queue<byte[]>) path;
             return this;
         }
+
         public RoomUnit ResetPath()
         {
-            this.fPath.Clear();
-            return this;
-        }
-        public float GetSpeed()
-        {
-            return this.fSpeed;
-        }
-        public RoomUnit SetSpeed(float Speed)
-        {
+            Path.Clear();
             return this;
         }
     }

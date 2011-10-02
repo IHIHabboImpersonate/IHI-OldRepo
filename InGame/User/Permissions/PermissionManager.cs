@@ -1,46 +1,43 @@
-﻿using System.Linq;
-using System.Collections.Generic;
-using System.Data;
-
-using NHibernate;
-using NHibernate.Linq;
-
+﻿using System.Collections.Generic;
+using System.Linq;
 using IHI.Database;
 
 namespace IHI.Server.Users.Permissions
 {
     public class PermissionManager
     {
-        private Dictionary<string, int> fPermissionNameCache;                   // Name to ID Permission cache.
-        private PermissionBranch[] fPermissionTreeCache;                        // Full tree cache
-        private Dictionary<int, PermissionBranch> fPermissionParentCache;       // Cache of parentIDs
+        private readonly PermissionBranch[] _permissionTreeCache; // Full tree cache
+        private Dictionary<string, int> _permissionNameCache; // Name to ID Permission cache.
+        private Dictionary<int, PermissionBranch> _permissionParentCache; // Cache of parentIDs
 
         internal PermissionManager()
         {
             #region Get the data
-            IList<Permission> PermissionCache;                                       // Raw permission cache
 
-            using (ISession DB = CoreManager.GetCore().GetDatabaseSession())
+            IList<Permission> permissionCache; // Raw permission cache
+
+            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
             {
-                PermissionCache = DB.CreateCriteria<Permission>()
-                                        .List<Permission>();
+                permissionCache = db.CreateCriteria<Permission>()
+                    .List<Permission>();
 
-                this.fPermissionTreeCache = DB.CreateCriteria<PermissionBranch>()
-                                                .List<PermissionBranch>()
-                                                    .ToArray();
+                _permissionTreeCache = db.CreateCriteria<PermissionBranch>()
+                    .List<PermissionBranch>()
+                    .ToArray();
             }
 
-                        
+
             // Process the Raw Cache into the standard cache.
-            foreach (Permission P in PermissionCache)
+            foreach (var permission in permissionCache)
             {
-                this.fPermissionNameCache.Add(P.permission_name, P.permission_id);
+                _permissionNameCache.Add(permission.permission_name, permission.permission_id);
             }
-            foreach (PermissionBranch B in this.fPermissionTreeCache)
+            foreach (var branch in _permissionTreeCache)
             {
-                this.fPermissionParentCache.Add(B.branch_id, GenerateParentBranch(B));
+                _permissionParentCache.Add(branch.branch_id, GenerateParentBranch(branch));
                 // TODO: Test if the parent is the same instance or a copy.
             }
+
             #endregion
         }
 
@@ -48,31 +45,33 @@ namespace IHI.Server.Users.Permissions
         /// 
         /// </summary>
         // TODO: Test
-        private PermissionBranch GenerateParentBranch(PermissionBranch Branch)
+        private PermissionBranch GenerateParentBranch(PermissionBranch branch)
         {
-            return (from bdata in this.fPermissionTreeCache
-                    where bdata.branch_left < Branch.branch_left
-                    where bdata.branch_right > Branch.branch_right
+            return (from bdata in _permissionTreeCache
+                    where bdata.branch_left < branch.branch_left
+                    where bdata.branch_right > branch.branch_right
                     orderby bdata.branch_left descending
                     select bdata).First();
         }
-        private PermissionBranch GetParentBranch(int BranchID)
+
+        private PermissionBranch GetParentBranch(int branchID)
         {
-            return this.fPermissionParentCache[BranchID];
-        }
-        private PermissionBranch GetParentBranch(PermissionBranch Branch)
-        {
-            return GetParentBranch(Branch.branch_id);
+            return _permissionParentCache[branchID];
         }
 
-        public int[] GetHabboPermissions(int HabboID)
+        private PermissionBranch GetParentBranch(PermissionBranch branch)
         {
-            return (from bdata in (from hdata in this.fPermissionTreeCache
-                                   where hdata.type == (byte)PermissionBranchType.Habbo
-                                   where hdata.value_id == HabboID
+            return GetParentBranch(branch.branch_id);
+        }
+
+        public IEnumerable<int> GetHabboPermissions(int habboID)
+        {
+            return (from bdata in (from hdata in _permissionTreeCache
+                                   where hdata.type == (byte) PermissionBranchType.Habbo
+                                   where hdata.value_id == habboID
                                    select GetParentBranch(hdata.branch_id))
-                    from pdata in this.fPermissionTreeCache
-                    where pdata.type == (byte)PermissionBranchType.Permission
+                    from pdata in _permissionTreeCache
+                    where pdata.type == (byte) PermissionBranchType.Permission
                     where pdata.branch_left > bdata.branch_left
                     where pdata.branch_right < bdata.branch_right
                     select pdata.value_id).ToArray();

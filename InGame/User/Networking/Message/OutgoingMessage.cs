@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace IHI.Server.Networking.Messages
 {
     public abstract class OutgoingMessage
     {
-        protected IInternalOutgoingMessage fInternalOutgoingMessage = new InternalOutgoingMessage();
+        protected readonly IInternalOutgoingMessage InternalOutgoingMessage = new InternalOutgoingMessage();
 
-        public abstract OutgoingMessage Send(IMessageable Target);
-        public OutgoingMessage Send(IEnumerable<IMessageable> Targets, bool SendOncePerConnection = false)
+        public abstract OutgoingMessage Send(IMessageable target);
+
+        public OutgoingMessage Send(IEnumerable<IMessageable> targets, bool sendOncePerConnection = false)
         {
-            if (SendOncePerConnection)
+            if (sendOncePerConnection)
                 throw new NotImplementedException();
-            foreach (IMessageable Target in Targets)
+            foreach (var target in targets)
             {
-                Target.SendMessage(this.fInternalOutgoingMessage);
+                Send(target);
             }
             return this;
         }

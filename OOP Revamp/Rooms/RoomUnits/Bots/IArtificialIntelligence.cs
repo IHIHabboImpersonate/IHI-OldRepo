@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace IHI.Server.Rooms
+﻿namespace IHI.Server.Rooms
 {
-    interface IArtificialIntelligence
+    internal interface IArtificialIntelligence
     {
-
     }
 }

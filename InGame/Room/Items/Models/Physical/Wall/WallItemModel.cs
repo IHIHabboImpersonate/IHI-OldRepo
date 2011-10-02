@@ -1,5 +1,4 @@
-﻿
-namespace IHI.Server
+﻿namespace IHI.Server
 {
     /// <summary>
     /// Represents the model of a wall furni.

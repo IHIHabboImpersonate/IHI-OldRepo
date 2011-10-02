@@ -1,40 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
-using IHI.Server.Networking.Messages;
-using IHI.Server.Users.Permissions;
-using IHI.Server.Networking;
-using System.Linq;
-using IHI.Database;
-using NHibernate;
-
-using IHI.Server.Rooms;
+﻿using System.Text;
 
 namespace IHI.Server.Habbos.Figure
 {
     public abstract class FigurePart
     {
-        protected ushort fPrimaryColour;
-        protected ushort fSecondaryColour;
+        private ushort _primaryColour;
+        private ushort _secondaryColour;
 
         public ushort GetPrimaryColour()
         {
-            return this.fPrimaryColour;
-        }
-        public ushort GetSecondaryColour()
-        {
-            return this.fSecondaryColour;
+            return _primaryColour;
         }
 
-        public FigurePart SetPrimaryColour(ushort Colour)
+        public ushort GetSecondaryColour()
         {
-            this.fPrimaryColour = Colour;
+            return _secondaryColour;
+        }
+
+        public FigurePart SetPrimaryColour(ushort colour)
+        {
+            _primaryColour = colour;
             return this;
         }
-        public FigurePart SetSecondaryColour(ushort Colour)
+
+        public FigurePart SetSecondaryColour(ushort colour)
         {
-            this.fSecondaryColour = Colour;
+            _secondaryColour = colour;
             return this;
         }
 
@@ -43,35 +34,35 @@ namespace IHI.Server.Habbos.Figure
 
         public byte GetAmountOfColours()
         {
-            if (this.fPrimaryColour == 0)
+            if (_primaryColour == 0)
                 return 0;
-            if (this.fSecondaryColour == 0)
+            if (_secondaryColour == 0)
                 return 1;
             return 2;
         }
 
-        public string ToString(bool PrefixRequired)
+        public string ToString(bool prefixRequired)
         {
-            StringBuilder SB = new StringBuilder();
+            var sb = new StringBuilder();
 
-            if (PrefixRequired)
-                SB.Append('.');
+            sb.Append(prefixRequired ? ".hd-" : "hd-");
 
-            SB.Append(GetModelID());
 
-            if (this.fPrimaryColour != 0)
+            sb.Append(GetModelID());
+
+            if (_primaryColour != 0)
             {
-                SB.Append('-');
-                SB.Append(this.fPrimaryColour);
+                sb.Append('-');
+                sb.Append(_primaryColour);
 
-                if (this.fSecondaryColour != 0)
+                if (_secondaryColour != 0)
                 {
-                    SB.Append('-');
-                    SB.Append(this.fSecondaryColour);
+                    sb.Append('-');
+                    sb.Append(_secondaryColour);
                 }
             }
 
-            return SB.ToString();
+            return sb.ToString();
         }
     }
 }

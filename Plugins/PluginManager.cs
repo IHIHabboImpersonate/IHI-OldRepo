@@ -1,128 +1,81 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace IHI.Server.Plugins
 {
     public class PluginManager
     {
-        private Dictionary<string, Plugin> fPlugins = new Dictionary<string, Plugin>();
+        private readonly Dictionary<string, Plugin> _plugins = new Dictionary<string, Plugin>();
 
         /// <summary>
         /// Load and start a plugin with a relative path to the plugin directory.
         /// </summary>
-        /// <param name="Filename">The filename of the plugin MINUS THE .dll!!</param>
-        public Plugin GetPlugin(string Name)
+        /// <param name="name">The filename of the plugin MINUS THE .dll!!</param>
+        public Plugin GetPlugin(string name)
         {
-            if(fPlugins.ContainsKey(Name))
-                return this.fPlugins[Name];
+            if (_plugins.ContainsKey(name))
+                return _plugins[name];
             return null;
         }
+
         /// <summary>
-        /// Load and start a plugin with a relative path to the plugin directory.
+        /// Start a plugin.
         /// </summary>
-        /// <param name="Filename">The filename of the plugin MINUS THE .dll!!</param>
-        public PluginManager StartPlugin(Plugin Plugin)
+        /// <param name="plugin">The plugin object you wish to start.</param>
+        internal PluginManager StartPlugin(Plugin plugin)
         {
-            if (!Plugin.IsRunning())
-            {
-                Plugin.Start();
-                Plugin.fIsRunning = true;
-                CoreManager.GetCore().GetStandardOut().PrintNotice("Plugin " + Plugin.GetName() + " has been started.");
-            }
+            plugin.Start();
+            CoreManager.GetServerCore().GetStandardOut().PrintNotice("Plugin " + plugin.GetName() + " has been started.");
             return this;
         }
+
         /// <summary>
         /// Load a plugin at a given path.
         /// </summary>
-        /// <param name="Path">The file path of the plugin.</param>
-        public Plugin LoadPluginAtPath(string PluginPath)
+        /// <param name="path">The file path of the plugin.</param>
+        internal Plugin LoadPluginAtPath(string path)
         {
-            Assembly PluginAssembly = Assembly.LoadFile(PluginPath);
-            Type PType = typeof(Plugin);
-            Plugin PluginObject = null;
+            var pluginAssembly = Assembly.LoadFile(path);
+            var pluginType = typeof (Plugin);
+            var pluginObject = (from T in pluginAssembly.GetTypes()
+                                   where T.IsSubclassOf(pluginType)
+                                   select Activator.CreateInstance(T) as Plugin).FirstOrDefault();
 
-            foreach (Type T in PluginAssembly.GetTypes())
+            if (pluginObject == null)
             {
-                if (T.IsSubclassOf(PType))
-                {
-                    PluginObject = Activator.CreateInstance(T) as Plugin;
-                    break;
-                }
-            }
-
-            if (PluginObject == null)
-            {
-                CoreManager.GetCore().GetStandardOut().PrintWarning("Plugin " + Path.GetFileNameWithoutExtension(PluginPath) + " failed to load!").PrintDebug(PluginPath);
+                CoreManager.GetServerCore().GetStandardOut().PrintWarning(Path.GetFileNameWithoutExtension(path) +
+                                                                          " is in the plugin directory but is not a plugin.")
+                    .PrintDebug(path);
                 return null;
             }
 
-            PluginObject.fName = Path.GetFileNameWithoutExtension(PluginPath);
+            pluginObject.fName = Path.GetFileNameWithoutExtension(path);
+            _plugins.Add(pluginObject.fName, pluginObject);
 
-            lock (this.fPlugins)
-            {
-                this.fPlugins.Add(PluginObject.fName, PluginObject);
-            }
-
-            CoreManager.GetCore().GetStandardOut().PrintNotice("Plugin '" + Path.GetFileNameWithoutExtension(PluginPath) + "' loaded.");
-            return PluginObject;
+            return pluginObject;
         }
 
         /// <summary>
-        /// Stop and unload a plugin.
+        /// Returns a string array containing the paths of all DLL files in the plugins directory.
         /// </summary>
-        /// <param name="Plugin">The plugin object to unload.</param>
-        public PluginManager StopPlugin(Plugin Plugin)
+        internal static IEnumerable<string> GetAllPotentialPluginPaths()
         {
-            if (Plugin.IsRunning())
-            {
-                Plugin.Stop();
-                Plugin.fIsRunning = false;
-                CoreManager.GetCore().GetStandardOut().PrintNotice("Plugin " + Plugin.GetName() + " has been stopped.");
-            }
-            return this;
+            return Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "plugins"), "*.dll",
+                                      SearchOption.TopDirectoryOnly);
         }
 
         /// <summary>
-        /// Stops all running plugins.
+        /// Returns a Plugin array containing all the loaded plugins.
         /// </summary>
-        public PluginManager StopAllPlugins()
+        public IEnumerable<Plugin> GetLoadedPlugins()
         {
-            lock (this.fPlugins)
-            {
-                foreach (Plugin Plugin in this.fPlugins.Values)
-                {
-                    StopPlugin(Plugin);
-                }
-            }
-            return this;
-        }
+            var returnArray = new Plugin[_plugins.Values.Count];
+            _plugins.Values.CopyTo(returnArray, 0);
 
-        /// <summary>
-        /// Returns a string array containing the paths of all DLL files in the plugin directory.
-        /// </summary>
-        public string[] GetAllPluginPaths()
-        {
-            return Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "plugins"), "*.dll", SearchOption.TopDirectoryOnly);
-            
-            //FileInfo[] Files = new DirectoryInfo("./plugins/").GetFiles("*.dll", SearchOption.TopDirectoryOnly);
-
-            //string[] Paths = new string[Files.Length];
-
-            //for (int i = 0; i < Files.Length; i++)
-            //{
-            //    Paths[i] = Files[i].FullName;
-            //}
-            //return Paths;
-        }
-
-        public Plugin[] GetLoadedPlugins()
-        {
-            Plugin[] ReturnArray = new Plugin[this.fPlugins.Values.Count];
-            this.fPlugins.Values.CopyTo(ReturnArray, 0);
-
-            return ReturnArray;
+            return returnArray;
         }
     }
 }

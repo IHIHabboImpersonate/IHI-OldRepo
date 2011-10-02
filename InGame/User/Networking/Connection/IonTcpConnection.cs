@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Threading;
-using IHI.Server;
-using IHI.Server.Networking.Messages;
 using IHI.Server.Habbos;
+using IHI.Server.Networking.Messages;
 using Ion.Specialized.Encoding;
 using Ion.Specialized.Utilities;
-using IHI.Server.Networking;
 
 namespace IHI.Server.Networking
 {
@@ -18,72 +15,126 @@ namespace IHI.Server.Networking
     public class IonTcpConnection
     {
         #region Fields
+
         /// <summary>
         /// The buffer size for receiving data.
         /// </summary>
-        private const int RECEIVEDATA_BUFFER_SIZE = 512;
+        private const int ReceivedataBufferSize = 512;
+
         /// <summary>
         /// The reply to the flash policy request.
         /// </summary>
-        private static readonly byte[] PolicyReplyData = new byte[] { 60, 63, 120, 109, 108, 32, 118, 101, 114, 115, 105, 111, 110, 61, 34, 49, 46, 48, 34, 63, 62, 13, 10, 60, 33, 68, 79, 67, 84, 89, 80, 69, 32, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 32, 83, 89, 83, 84, 69, 77, 32, 34, 47, 120, 109, 108, 47, 100, 116, 100, 115, 47, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 46, 100, 116, 100, 34, 62, 13, 10, 60, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 62, 13, 10, 60, 97, 108, 108, 111, 119, 45, 97, 99, 99, 101, 115, 115, 45, 102, 114, 111, 109, 32, 100, 111, 109, 97, 105, 110, 61, 34, 105, 109, 97, 103, 101, 115, 46, 104, 97, 98, 98, 111, 46, 99, 111, 109, 34, 32, 116, 111, 45, 112, 111, 114, 116, 115, 61, 34, 49, 45, 53, 48, 48, 48, 48, 34, 32, 47, 62, 13, 10, 60, 97, 108, 108, 111, 119, 45, 97, 99, 99, 101, 115, 115, 45, 102, 114, 111, 109, 32, 100, 111, 109, 97, 105, 110, 61, 34, 42, 34, 32, 116, 111, 45, 112, 111, 114, 116, 115, 61, 34, 49, 45, 53, 48, 48, 48, 48, 34, 32, 47, 62, 13, 10, 60, 47, 99, 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99, 121, 62, 0 };
+        private static readonly byte[] PolicyReplyData = new byte[]
+                                                             {
+                                                                 60, 63, 120, 109, 108, 32, 118, 101, 114, 115, 105, 111
+                                                                 ,
+                                                                 110, 61, 34, 49, 46, 48, 34, 63, 62, 13, 10, 60, 33, 68
+                                                                 ,
+                                                                 79, 67, 84, 89, 80, 69, 32, 99, 114, 111, 115, 115, 45,
+                                                                 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99
+                                                                 ,
+                                                                 121, 32, 83, 89, 83, 84, 69, 77, 32, 34, 47, 120, 109,
+                                                                 108
+                                                                 , 47, 100, 116, 100, 115, 47, 99, 114, 111, 115, 115,
+                                                                 45,
+                                                                 100, 111, 109, 97, 105, 110, 45, 112, 111, 108, 105, 99
+                                                                 ,
+                                                                 121, 46, 100, 116, 100, 34, 62, 13, 10, 60, 99, 114,
+                                                                 111,
+                                                                 115, 115, 45, 100, 111, 109, 97, 105, 110, 45, 112, 111
+                                                                 ,
+                                                                 108, 105, 99, 121, 62, 13, 10, 60, 97, 108, 108, 111,
+                                                                 119,
+                                                                 45, 97, 99, 99, 101, 115, 115, 45, 102, 114, 111, 109,
+                                                                 32,
+                                                                 100, 111, 109, 97, 105, 110, 61, 34, 105, 109, 97, 103,
+                                                                 101, 115, 46, 104, 97, 98, 98, 111, 46, 99, 111, 109,
+                                                                 34,
+                                                                 32, 116, 111, 45, 112, 111, 114, 116, 115, 61, 34, 49,
+                                                                 45,
+                                                                 53, 48, 48, 48, 48, 34, 32, 47, 62, 13, 10, 60, 97, 108
+                                                                 ,
+                                                                 108, 111, 119, 45, 97, 99, 99, 101, 115, 115, 45, 102,
+                                                                 114
+                                                                 , 111, 109, 32, 100, 111, 109, 97, 105, 110, 61, 34, 42
+                                                                 ,
+                                                                 34, 32, 116, 111, 45, 112, 111, 114, 116, 115, 61, 34,
+                                                                 49,
+                                                                 45, 53, 48, 48, 48, 48, 34, 32, 47, 62, 13, 10, 60, 47,
+                                                                 99
+                                                                 , 114, 111, 115, 115, 45, 100, 111, 109, 97, 105, 110,
+                                                                 45,
+                                                                 112, 111, 108, 105, 99, 121, 62, 0
+                                                             };
+
         /// <summary>
         /// The amount of milliseconds to sleep when receiving data before processing the message. When this constant is 0, the data will be processed immediately.
         /// </summary>
-        private static int RECEIVEDATA_MILLISECONDS_DELAY = 0;
-        
-        /// <summary>
-        /// The ID of this Connection as a 32 bit unsigned integer.
-        /// </summary>
-        private readonly uint fID;
+        private static int _receivedataMillisecondsDelay;
+
         /// <summary>
         /// A DateTime object representing the date and time this Connection was created.
         /// </summary>
-        private readonly DateTime fCreatedAt;
-       
+        private readonly DateTime _createdAt;
+
         /// <summary>
-        /// The System.Networking.Sockets.Socket object providing the Connection between client and server.
+        /// The ID of this Connection as a 32 bit unsigned integer.
         /// </summary>
-        private Socket fSocket = null;
+        private readonly uint _id;
+
+        private readonly PacketHandler[,] _packetHandlers;
 
         /// <summary>
         /// The byte array holding the buffer for receiving data from client.
         /// </summary>
-        private byte[] fDataBuffer = null;
+        private byte[] _dataBuffer;
+
         /// <summary>
         /// The AsyncCallback instance for the thread for receiving data asynchronously.
         /// </summary>
-        private AsyncCallback fDataReceivedCallback;
+        private AsyncCallback _dataReceivedCallback;
+
         /// <summary>
         /// The RouteReceivedDataCallback to route received data to another object.
         /// </summary>
-        private RouteReceivedDataCallback fRouteReceivedDataCallback;
+        private RouteReceivedDataCallback _routeReceivedDataCallback;
+
+        /// <summary>
+        /// The System.Networking.Sockets.Socket object providing the Connection between client and server.
+        /// </summary>
+        private Socket _socket;
+
         /// <summary>
         /// The User that holds this Connection.
         /// </summary>
-        internal Habbo fUser;
+        internal Habbo Habbo;
 
-        private PacketHandler[,] fPacketHandlers;
         #endregion
 
         #region Members
-        public delegate void RouteReceivedDataCallback(ref byte[] Data);
+
+        private delegate void RouteReceivedDataCallback(ref byte[] data);
+
         #endregion
 
         #region API
+
         /// <summary>
         /// Returns the ID of this Connection as a 32 bit unsigned integer.
         /// </summary>
         public uint GetID()
         {
-            return this.fID;
+            return _id;
         }
+
         /// <summary>
         /// Returns the Habbo that is using this Connection.
         /// </summary>
         public Habbo GetHabbo()
         {
-            return this.fUser;
+            return Habbo;
         }
+
         /// <summary>
         /// Returns the raw binary representation of the remote IP Address in the form of a signed 32bit integer.
         /// </summary>
@@ -91,107 +142,120 @@ namespace IHI.Server.Networking
         {
             // TODO: IPv6
 
-            if (fSocket == null)
+            IPEndPoint remoteIP;
+            if (_socket == null || (remoteIP = (_socket.RemoteEndPoint as IPEndPoint)) == null)
                 return 0;
 
-            byte[] Bytes = (fSocket.RemoteEndPoint as IPEndPoint).Address.GetAddressBytes();
+            var bytes = remoteIP.Address.GetAddressBytes();
 
-            return ((Bytes[0] << 24) | (Bytes[1] << 16) | (Bytes[2] << 8) | Bytes[3]);
+            return ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]);
         }
+
         /// <summary>
         /// Returns the classical string representation of the remote IP Address.
         /// </summary>
         public string GetIPAddressString()
         {
-            if (fSocket == null)
-                return string.Empty;
+            IPEndPoint remoteIP;
+            if (_socket == null || (remoteIP = (_socket.RemoteEndPoint as IPEndPoint)) == null)
+                return "";
 
-            return (fSocket.RemoteEndPoint as IPEndPoint).Address.ToString();
+            return remoteIP.Address.ToString();
         }
+
         /// <summary>
         /// Returns the DateTime object representing the date and time this Connection was created at.
         /// </summary>
         public DateTime GetCreationDateTime()
         {
-            return this.fCreatedAt;
+            return _createdAt;
         }
+
         /// <summary>
         /// Returns the age of this Connection as a TimeSpan
         /// </summary>
         public TimeSpan GetAge()
         {
-            return DateTime.Now - fCreatedAt;
+            return DateTime.Now - _createdAt;
         }
+
         /// <summary>
         /// Returns true if this Connection still possesses a socket object, false otherwise.
         /// </summary>
         public bool IsAlive()
         {
-            return (fSocket != null);
+            return (_socket != null);
         }
 
         /// <summary>
         /// Registers a packet handler.
         /// </summary>
-        /// <param name="HeaderID">The numeric packet ID to register this handler on.</param>
-        /// <param name="Priority">The priority this handler has.</param>
-        /// <param name="HandlerDelegate">The delegate that points to the handler.</param>
+        /// <param name="headerID">The numeric packet ID to register this handler on.</param>
+        /// <param name="priority">The priority this handler has.</param>
+        /// <param name="handlerDelegate">The delegate that points to the handler.</param>
         /// <returns>The current Connection. This allows chaining.</returns>
-        public IonTcpConnection AddHandler(uint HeaderID, PacketHandlerPriority Priority, PacketHandler HandlerDelegate)
+        public IonTcpConnection AddHandler(uint headerID, PacketHandlerPriority priority, PacketHandler handlerDelegate)
         {
-            if (this.fPacketHandlers[HeaderID, (int)Priority] != null)
-                lock (this.fPacketHandlers[HeaderID, (int)Priority])
-                    this.fPacketHandlers[HeaderID, (int)Priority] += HandlerDelegate;
+            if (_packetHandlers[headerID, (int) priority] != null)
+                lock (_packetHandlers[headerID, (int) priority])
+                    _packetHandlers[headerID, (int) priority] += handlerDelegate;
             else
-                this.fPacketHandlers[HeaderID, (int)Priority] += HandlerDelegate;
+                _packetHandlers[headerID, (int) priority] += handlerDelegate;
             return this;
         }
+
         /// <summary>
         /// Remove a previously registered packet handler.
         /// </summary>
-        /// <param name="HeaderID">The numeric packet ID  of the handler.</param>
-        /// <param name="Priority">The priority of the handler.</param>
-        /// <param name="HandlerDelegate">The delegate that points to the handler.</param>
+        /// <param name="headerID">The numeric packet ID  of the handler.</param>
+        /// <param name="priority">The priority of the handler.</param>
+        /// <param name="handlerDelegate">The delegate that points to the handler.</param>
         /// <returns>The current Connection. This allows chaining.</returns>
-        public IonTcpConnection RemoveHandler(uint HeaderID, PacketHandlerPriority Priority, PacketHandler HandlerDelegate)
+        public IonTcpConnection RemoveHandler(uint headerID, PacketHandlerPriority priority,
+                                              PacketHandler handlerDelegate)
         {
-            lock (this.fPacketHandlers[HeaderID, (int)Priority])
-                this.fPacketHandlers[HeaderID, (int)Priority] -= HandlerDelegate;
+            lock (_packetHandlers[headerID, (int) priority])
+                _packetHandlers[headerID, (int) priority] -= handlerDelegate;
             return this;
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Constructs a new instance of IonTcpConnection for a given Connection identifier and socket.
         /// </summary>
-        /// <param name="ID">The unique ID used to identify this Connection in the environment.</param>
-        /// <param name="Socket">The System.Networking.Sockets.Socket of the new Connection.</param>
-        public IonTcpConnection(uint ID, Socket pSocket)
+        /// <param name="id">The unique ID used to identify this Connection in the environment.</param>
+        /// <param name="socket">The System.Networking.Sockets.Socket of the new Connection.</param>
+        public IonTcpConnection(uint id, Socket socket)
         {
-            fID = ID;
-            fSocket = pSocket;
-            fCreatedAt = DateTime.Now;
+            _id = id;
+            _socket = socket;
+            _createdAt = DateTime.Now;
 
-            this.fPacketHandlers = new PacketHandler[2002 + 1, 4]; // "2002" copied from Ion.HabboHotel.Client.ClientMessageHandler.HIGHEST_MESSAGEID
+            _packetHandlers = new PacketHandler[2002 + 1,4];
+            // "2002" copied from Ion.HabboHotel.Client.ClientMessageHandler.HIGHEST_MESSAGEID
         }
+
         #endregion
 
         #region Methods
+
         /// <summary>
         /// Starts the Connection, prepares the received data buffer and waits for data.
         /// </summary>
         internal void Start()
         {
+            _dataBuffer = new byte[ReceivedataBufferSize];
+            _dataReceivedCallback = new AsyncCallback(DataReceived);
+            _routeReceivedDataCallback = new RouteReceivedDataCallback(HandleConnectionData);
 
-            fDataBuffer = new byte[RECEIVEDATA_BUFFER_SIZE];
-            fDataReceivedCallback = new AsyncCallback(DataReceived);
-            fRouteReceivedDataCallback = new IonTcpConnection.RouteReceivedDataCallback(HandleConnectionData);
 
-
-            this.fUser = new Habbo(this);
+            Habbo = new Habbo(this);
             WaitForData();
         }
+
         /// <summary>
         /// Stops the Connection, disconnects the socket and disposes used resources.
         /// </summary>
@@ -200,70 +264,77 @@ namespace IHI.Server.Networking
             if (!IsAlive())
                 return; // Already stopped
 
-            if (this.fUser.IsLoggedIn())
+            if (Habbo.IsLoggedIn())
             {
-                this.fUser.SetLoggedIn(false);
-                CoreManager.GetCore().GetStandardOut().PrintNotice("Connection stopped [" + this.GetIPAddressString() + ", " + this.fUser.GetUsername() + ']');
+                Habbo.SetLoggedIn(false);
+                CoreManager.GetServerCore().GetStandardOut().PrintNotice("Connection stopped [" + GetIPAddressString() +
+                                                                         ", " + Habbo.GetUsername() + ']');
             }
             else
             {
-                CoreManager.GetCore().GetStandardOut().PrintNotice("Connection stopped [" + this.GetIPAddressString() + ", UNKNOWN]");
+                CoreManager.GetServerCore().GetStandardOut().PrintNotice("Connection stopped [" + GetIPAddressString() +
+                                                                         ", UNKNOWN]");
             }
 
-            fSocket.Close();
-            fSocket = null;
-            fDataBuffer = null;
-            fDataReceivedCallback = null;
+            _socket.Close();
+            _socket = null;
+            _dataBuffer = null;
+            _dataReceivedCallback = null;
         }
+
         internal bool TestConnection()
         {
             try
             {
-                return fSocket.Send(new byte[] { 0 }) > 0;
+                return _socket.Send(new byte[] {0}) > 0;
             }
-            catch { }
-
-            return false;
+            catch
+            {
+                return false;
+            }
         }
+
         internal void Close()
         {
-            CoreManager.GetCore().GetConnectionManager().CloseConnection(this.GetID());
+            CoreManager.GetServerCore().GetConnectionManager().CloseConnection(GetID());
         }
 
-        internal void SendData(byte[] Data)
+        private void SendData(byte[] data)
         {
-            if (IsAlive())
+            if (!IsAlive())
+                return;
+            try
             {
-                try
-                {
-                    fSocket.Send(Data);
-                }
-                catch (SocketException)
-                {
-                    Close();
-                }
-                catch (ObjectDisposedException)
-                {
-                    Close();
-                }
-                catch (Exception ex)
-                {
-                    CoreManager.GetCore().GetStandardOut().PrintException(ex);
-                }
+                _socket.Send(data);
+            }
+            catch (SocketException)
+            {
+                Close();
+            }
+            catch (ObjectDisposedException)
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                CoreManager.GetServerCore().GetStandardOut().PrintException(ex);
             }
         }
-        internal void SendData(string sData)
+
+        internal void SendData(string data)
         {
-            SendData(CoreManager.GetCore().GetTextEncoding().GetBytes(sData));
+            SendData(CoreManager.GetServerCore().GetTextEncoding().GetBytes(data));
         }
 
-        internal void SendMessage(IInternalOutgoingMessage Imessage)
+        internal void SendMessage(IInternalOutgoingMessage internalMessage)
         {
-            InternalOutgoingMessage message = Imessage as InternalOutgoingMessage;
-            if (this.fUser.IsLoggedIn())
-                CoreManager.GetCore().GetStandardOut().PrintDebug("[" + GetHabbo().GetUsername() + "] <-- " + message.Header + message.GetContentString());
+            var message = internalMessage as InternalOutgoingMessage;
+            if (Habbo.IsLoggedIn())
+                CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + GetHabbo().GetUsername() + "] <-- " +
+                                                                        message.Header + message.GetContentString());
             else
-                CoreManager.GetCore().GetStandardOut().PrintDebug("[" + GetID() + "] <-- " + message.Header + message.GetContentString());
+                CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + GetID() + "] <-- " + message.Header +
+                                                                        message.GetContentString());
 
             SendData(message.GetBytes());
         }
@@ -273,27 +344,28 @@ namespace IHI.Server.Networking
         /// </summary>
         private void WaitForData()
         {
-            if (this.IsAlive())
+            if (!IsAlive())
+                return;
+            try
             {
-                try
-                {
-                    fSocket.BeginReceive(fDataBuffer, 0, RECEIVEDATA_BUFFER_SIZE, SocketFlags.None, fDataReceivedCallback, null);
-                }
-                catch (SocketException)
-                {
-                    Close();
-                }
-                catch (ObjectDisposedException)
-                {
-                    Close();
-                }
-                catch (Exception ex)
-                {
-                    CoreManager.GetCore().GetStandardOut().PrintException(ex);
-                    Close();
-                }
+                _socket.BeginReceive(_dataBuffer, 0, ReceivedataBufferSize, SocketFlags.None,
+                                     _dataReceivedCallback, null);
+            }
+            catch (SocketException)
+            {
+                Close();
+            }
+            catch (ObjectDisposedException)
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                CoreManager.GetServerCore().GetStandardOut().PrintException(ex);
+                Close();
             }
         }
+
         private void DataReceived(IAsyncResult iAr)
         {
             // Connection not stopped yet?
@@ -301,14 +373,14 @@ namespace IHI.Server.Networking
                 return;
 
             // Do an optional wait before processing the data
-            if (RECEIVEDATA_MILLISECONDS_DELAY > 0)
-                Thread.Sleep(RECEIVEDATA_MILLISECONDS_DELAY);
+            if (_receivedataMillisecondsDelay > 0)
+                Thread.Sleep(_receivedataMillisecondsDelay);
 
             // How many bytes has server received?
-            int numReceivedBytes = 0;
+            int numReceivedBytes;
             try
             {
-                numReceivedBytes = fSocket.EndReceive(iAr);
+                numReceivedBytes = _socket.EndReceive(iAr);
             }
             catch (ObjectDisposedException)
             {
@@ -317,8 +389,8 @@ namespace IHI.Server.Networking
             }
             catch (Exception ex)
             {
-                CoreManager.GetCore().GetStandardOut().PrintException(ex);
-                
+                CoreManager.GetServerCore().GetStandardOut().PrintException(ex);
+
                 Close();
                 return;
             }
@@ -326,7 +398,7 @@ namespace IHI.Server.Networking
             if (numReceivedBytes > 0)
             {
                 // Copy received data buffer
-                byte[] dataToProcess = ByteUtility.ChompBytes(fDataBuffer, 0, numReceivedBytes);
+                var dataToProcess = ByteUtility.ChompBytes(_dataBuffer, 0, numReceivedBytes);
 
                 // Route data to GameClient to parse and process messages
                 RouteData(ref dataToProcess);
@@ -338,100 +410,105 @@ namespace IHI.Server.Networking
 
         private void HandleConnectionData(ref byte[] data)
         {
-            int pos = 0;
+            var pos = 0;
             while (pos < data.Length)
             {
                 try
                 {
                     if (data[0] == 60)
                     {
-                        CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fID + "] --> Policy Request");
-                        this.SendData(PolicyReplyData);
-                        CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fID + "] <-- Policy Sent");
-                        this.Close();
+                        CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + _id + "] --> Policy Request");
+                        SendData(PolicyReplyData);
+                        CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + _id + "] <-- Policy Sent");
+                        Close();
                         return;
                     }
 
                     // Total length of message (without this): 3 Base64 bytes                    
-                    int messageLength = Base64Encoding.DecodeInt32(new byte[] { data[pos++], data[pos++], data[pos++] });
+                    var messageLength = Base64Encoding.DecodeInt32(new[] {data[pos++], data[pos++], data[pos++]});
 
                     // ID of message: 2 Base64 bytes
-                    uint messageID = Base64Encoding.DecodeUInt32(new byte[] { data[pos++], data[pos++] });
+                    var messageID = Base64Encoding.DecodeUInt32(new[] {data[pos++], data[pos++]});
 
                     // Data of message: (messageLength - 2) bytes
-                    byte[] Content = new byte[messageLength - 2];
-                    for (int i = 0; i < Content.Length; i++)
+                    var content = new byte[messageLength - 2];
+                    for (var i = 0; i < content.Length; i++)
                     {
-                        Content[i] = data[pos++];
+                        content[i] = data[pos++];
                     }
 
                     // Create message object
-                    IncomingMessage message = new IncomingMessage(messageID, Content);
+                    var message = new IncomingMessage(messageID, content);
 
-                    if (this.fUser.IsLoggedIn())
-                        CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fUser.GetUsername() + "] --> " + message.GetHeader() + message.GetContentString());
+                    if (Habbo.IsLoggedIn())
+                        CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + Habbo.GetUsername() + "] --> " +
+                                                                                message.GetHeader() +
+                                                                                message.GetContentString());
                     else
-                        CoreManager.GetCore().GetStandardOut().PrintDebug("[" + this.fID + "] --> " + message.GetHeader() + message.GetContentString());
+                        CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + _id + "] --> " +
+                                                                                message.GetHeader() +
+                                                                                message.GetContentString());
 
 
                     // Handle message object
-                    bool Unknown = true;
+                    var unknown = true;
 
-                    if (this.fPacketHandlers[messageID, 3] != null)
+                    if (_packetHandlers[messageID, 3] != null)
                     {
-                        lock (this.fPacketHandlers[messageID, 3])
+                        lock (_packetHandlers[messageID, 3])
                         {
-                            this.fPacketHandlers[messageID, 3].Invoke(this.fUser, message); // Execute High Priority
-                            Unknown = false;
+                            _packetHandlers[messageID, 3].Invoke(Habbo, message); // Execute High Priority
+                            unknown = false;
                         }
                     }
 
                     if (message.IsCancelled())
                         return;
 
-                    if (this.fPacketHandlers[messageID, 2] != null)
+                    if (_packetHandlers[messageID, 2] != null)
                     {
-                        lock (this.fPacketHandlers[messageID, 2])
+                        lock (_packetHandlers[messageID, 2])
                         {
-                            this.fPacketHandlers[messageID, 2].Invoke(this.fUser, message); // Execute Low Priority
-                            Unknown = false;
+                            _packetHandlers[messageID, 2].Invoke(Habbo, message); // Execute Low Priority
+                            unknown = false;
                         }
                     }
 
                     if (message.IsCancelled())
                         return;
 
-                    if (this.fPacketHandlers[messageID, 1] != null)
+                    if (_packetHandlers[messageID, 1] != null)
                     {
-                        lock (this.fPacketHandlers[messageID, 1])
+                        lock (_packetHandlers[messageID, 1])
                         {
-                            this.fPacketHandlers[messageID, 1].Invoke(this.fUser, message); // Execute Default Action
-                            Unknown = false;
+                            _packetHandlers[messageID, 1].Invoke(Habbo, message); // Execute Default Action
+                            unknown = false;
                         }
                     }
 
-                    if (this.fPacketHandlers[messageID, 0] != null)
+                    if (_packetHandlers[messageID, 0] != null)
                     {
-                        lock (this.fPacketHandlers[messageID, 0])
+                        lock (_packetHandlers[messageID, 0])
                         {
-                            this.fPacketHandlers[messageID, 0].Invoke(this.fUser, message); // Execute Watchers
-                            Unknown = false;
+                            _packetHandlers[messageID, 0].Invoke(Habbo, message); // Execute Watchers
+                            unknown = false;
                         }
                     }
 
-                    if (Unknown)
+                    if (unknown)
                     {
-                        CoreManager.GetCore().GetStandardOut().PrintWarning("Packet " + messageID + " ('" + message.GetHeader() + "') unhandled!");
+                        CoreManager.GetServerCore().GetStandardOut().PrintWarning("Packet " + messageID + " ('" +
+                                                                                  message.GetHeader() + "') unhandled!");
                     }
                 }
                 catch (IndexOutOfRangeException) // Bad formatting!
                 {
                     // TODO: Move this to IHI
-                    //IonEnvironment.GetHabboHotel().GetClients().StopClient(fID, 0);
+                    //IonEnvironment.GetHabboHotel().GetClients().StopClient(_id, 0);
                 }
                 catch (Exception ex)
                 {
-                    CoreManager.GetCore().GetStandardOut().PrintException(ex);
+                    CoreManager.GetServerCore().GetStandardOut().PrintException(ex);
                 }
             }
         }
@@ -439,20 +516,21 @@ namespace IHI.Server.Networking
         /// <summary>
         /// Routes a byte array passed as reference to another object.
         /// </summary>
-        /// <param name="Data">The byte array to route.</param>
-        private void RouteData(ref byte[] Data)
+        /// <param name="data">The byte array to route.</param>
+        private void RouteData(ref byte[] data)
         {
-            if (fRouteReceivedDataCallback != null)
+            if (_routeReceivedDataCallback != null)
             {
-                fRouteReceivedDataCallback.Invoke(ref Data);
+                _routeReceivedDataCallback.Invoke(ref data);
             }
         }
+
         #endregion
-        
+
         public void Disconnect()
         {
-            CoreManager.GetCore().GetConnectionManager().CloseConnection(this.GetID());
-            this.Stop();
+            CoreManager.GetServerCore().GetConnectionManager().CloseConnection(GetID());
+            Stop();
         }
     }
 }

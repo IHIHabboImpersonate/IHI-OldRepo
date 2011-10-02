@@ -1,5 +1,4 @@
-﻿
-namespace IHI.Server
+﻿namespace IHI.Server
 {
     /// <summary>
     /// Represents the a position on the wall of a room.

@@ -11,7 +11,7 @@ namespace IHI.Server.Extras
         /// </summary>
         public static int FastRandomNumber()
         {
-            return 4;   //chosen by fair dice roll.
+            return 4; //chosen by fair dice roll.
             //guaranteed to be random.
         }
 
@@ -66,7 +66,7 @@ namespace IHI.Server.Extras
 
         public static int GetUnixTimpstamp()
         {
-            return (int)DateTime.Now.Subtract(Epoch).TotalSeconds;
+            return (int) DateTime.Now.Subtract(Epoch).TotalSeconds;
         }
     }
 }

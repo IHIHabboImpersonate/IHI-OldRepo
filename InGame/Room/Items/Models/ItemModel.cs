@@ -1,5 +1,4 @@
-﻿
-namespace IHI.Server
+﻿namespace IHI.Server
 {
     /// <summary>
     /// Represents a model of an item of furni.
@@ -10,7 +9,7 @@ namespace IHI.Server
 
         public string GetSprite()
         {
-            return this.fSprite;
+            return fSprite;
         }
     }
 }

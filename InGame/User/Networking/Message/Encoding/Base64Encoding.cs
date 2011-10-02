@@ -8,11 +8,14 @@ namespace Ion.Specialized.Encoding
     public class Base64Encoding
     {
         #region Fields
-        public static byte NEGATIVE = 64; // '@'
-        public static byte POSITIVE = 65; // 'A'
+
+        public const byte Negative = 64; // '@'
+        public const byte Positive = 65; // 'A'
+
         #endregion
 
         #region Methods
+
         /// <summary>
         /// Encodes a 32 bit integer to a Base64 byte array of a given length.
         /// </summary>
@@ -21,18 +24,19 @@ namespace Ion.Specialized.Encoding
         /// <returns>A byte array holding the encoded integer.</returns>
         public static byte[] EncodeInt32(Int32 i, int numBytes)
         {
-            byte[] bzRes = new byte[numBytes];
-            for (int j = 1; j <= numBytes; j++)
+            var bzRes = new byte[numBytes];
+            for (var j = 1; j <= numBytes; j++)
             {
-                int k = ((numBytes - j) * 6);
-                bzRes[j - 1] = (byte)(0x40 + ((i >> k) & 0x3f));
+                var k = ((numBytes - j)*6);
+                bzRes[j - 1] = (byte) (0x40 + ((i >> k) & 0x3f));
             }
 
             return bzRes;
         }
+
         public static byte[] EncodeuUInt32(uint i, int numBytes)
         {
-            return EncodeInt32((Int32)i, numBytes);
+            return EncodeInt32((Int32) i, numBytes);
         }
 
         /// <summary>
@@ -42,13 +46,13 @@ namespace Ion.Specialized.Encoding
         /// <returns>The decoded 32 bit integer.</returns>
         public static Int32 DecodeInt32(byte[] bzData)
         {
-            int i = 0;
-            int j = 0;
-            for (int k = bzData.Length - 1; k >= 0; k--)
+            var i = 0;
+            var j = 0;
+            for (var k = bzData.Length - 1; k >= 0; k--)
             {
-                int x = bzData[k] - 0x40;
+                var x = bzData[k] - 0x40;
                 if (j > 0)
-                    x *= (int)Math.Pow(64.0, (double)j);
+                    x *= (int) Math.Pow(64.0, j);
 
                 i += x;
                 j++;
@@ -56,10 +60,12 @@ namespace Ion.Specialized.Encoding
 
             return i;
         }
+
         public static uint DecodeUInt32(byte[] bzData)
         {
-            return (uint)DecodeInt32(bzData);
+            return (uint) DecodeInt32(bzData);
         }
+
         #endregion
     }
 }

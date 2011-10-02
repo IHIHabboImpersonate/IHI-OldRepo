@@ -5,7 +5,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
 using System;
 using System.Globalization;
 using System.Net;
@@ -13,9 +12,9 @@ using System.Threading;
 
 namespace IHI.Server.WebAdmin
 {
-    public class WebAdminServer : IDisposable
+    public sealed class WebAdminServer : IDisposable
     {
-        public event EventHandler<HttpRequestEventArgs> IncomingRequest = null;
+        #region State enum
 
         public enum State
         {
@@ -25,59 +24,72 @@ namespace IHI.Server.WebAdmin
             Started
         }
 
-        private Thread _connectionManagerThread = null;
-        private bool _disposed = false;
-        private HttpListener _listener = null;
-        private long _runState = (long)State.Stopped;
+        #endregion
 
-        public State RunState
-        {
-            get
-            {
-                return (State)Interlocked.Read(ref _runState);
-            }
-        }
+        private readonly HttpListener _listener;
 
-        public virtual Guid UniqueId { get; private set; }
+        private Thread _connectionManagerThread;
+        private bool _disposed;
+        private long _runState = (long) State.Stopped;
 
-        public virtual Uri Url { get; private set; }
-
-        public WebAdminServer(ushort PortNumber)
+        public WebAdminServer(ushort port)
         {
             if (!HttpListener.IsSupported)
             {
                 throw new NotSupportedException("The HttpListener class is not supported on this operating system.");
             }
-            this.UniqueId = Guid.NewGuid();
-            this._listener = new HttpListener();
-            this._listener.Prefixes.Add("http://127.0.0.1:" + PortNumber + "/");
+            UniqueId = Guid.NewGuid();
+            _listener = new HttpListener();
+            _listener.Prefixes.Add("http://127.0.0.1:" + port + "/");
+            _listener.Prefixes.Add("http://localhost:" + port + "/");
+
+            _listener.Prefixes.Add("http://192.168.1.200:" + port + "/");
         }
+
+        private State RunState
+        {
+            get { return (State) Interlocked.Read(ref _runState); }
+        }
+
+        private Guid UniqueId { get; set; }
+        
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+
+        public event EventHandler<HttpRequestEventArgs> IncomingRequest = null;
 
         ~WebAdminServer()
         {
-            this.Dispose(false);
+            Dispose(false);
         }
 
         private void ConnectionManagerThreadStart()
         {
-            Interlocked.Exchange(ref this._runState, (long)State.Starting);
+            Interlocked.Exchange(ref _runState, (long) State.Starting);
             try
             {
-                if (!this._listener.IsListening)
+                if (!_listener.IsListening)
                 {
-                    this._listener.Start();
+                    _listener.Start();
                 }
-                if (this._listener.IsListening)
+                if (_listener.IsListening)
                 {
-                    Interlocked.Exchange(ref this._runState, (long)State.Started);
+                    Interlocked.Exchange(ref _runState, (long) State.Started);
                 }
 
                 try
                 {
                     while (RunState == State.Started)
                     {
-                        HttpListenerContext context = this._listener.GetContext();
-                        this.RaiseIncomingRequest(context);
+                        var context = _listener.GetContext();
+                        RaiseIncomingRequest(context);
                     }
                 }
                 catch (HttpListenerException)
@@ -88,74 +100,73 @@ namespace IHI.Server.WebAdmin
             }
             finally
             {
-                Interlocked.Exchange(ref this._runState, (long)State.Stopped);
+                Interlocked.Exchange(ref _runState, (long) State.Stopped);
             }
-        }
-
-        public virtual void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         private void Dispose(bool disposing)
         {
-            if (this._disposed)
+            if (_disposed)
             {
                 return;
             }
             if (disposing)
             {
-                if (this.RunState != State.Stopped)
+                if (RunState != State.Stopped)
                 {
-                    this.Stop();
+                    Stop();
                 }
-                if (this._connectionManagerThread != null)
+                if (_connectionManagerThread != null)
                 {
-                    this._connectionManagerThread.Abort();
-                    this._connectionManagerThread = null;
+                    _connectionManagerThread.Abort();
+                    _connectionManagerThread = null;
                 }
             }
-            this._disposed = true;
+            _disposed = true;
         }
 
         private void RaiseIncomingRequest(HttpListenerContext context)
         {
-            HttpRequestEventArgs e = new HttpRequestEventArgs(context);
+            var e = new HttpRequestEventArgs(context);
             try
             {
-                if (this.IncomingRequest != null)
+                if (IncomingRequest != null)
                 {
-                    this.IncomingRequest.BeginInvoke(this, e, null, null);
+                    IncomingRequest.BeginInvoke(this, e, null, null);
                 }
             }
             catch
             {
-                // Swallow the exception and/or log it, but you probably don't want to exit
-                // just because an incoming request handler failed.
+                return;
             }
         }
 
-        public virtual void Start()
+        public void Start()
         {
-            if (this._connectionManagerThread == null || this._connectionManagerThread.ThreadState == ThreadState.Stopped)
+            if (_connectionManagerThread == null || _connectionManagerThread.ThreadState == ThreadState.Stopped)
             {
-                this._connectionManagerThread = new Thread(new ThreadStart(this.ConnectionManagerThreadStart));
-                this._connectionManagerThread.Name = String.Format(CultureInfo.InvariantCulture, "ConnectionManager_{0}", this.UniqueId);
+                _connectionManagerThread = new Thread(ConnectionManagerThreadStart)
+                                               {
+                                                   Name =
+                                                       String.Format(CultureInfo.InvariantCulture,
+                                                                     "ConnectionManager_{0}",
+                                                                     UniqueId)
+                                               };
             }
-            else if (this._connectionManagerThread.ThreadState == ThreadState.Running)
+            else if (_connectionManagerThread.ThreadState == ThreadState.Running)
             {
                 throw new ThreadStateException("The request handling process is already running.");
             }
 
-            if (this._connectionManagerThread.ThreadState != ThreadState.Unstarted)
+            if (_connectionManagerThread.ThreadState != ThreadState.Unstarted)
             {
-                throw new ThreadStateException("The request handling process was not properly initialized so it could not be started.");
+                throw new ThreadStateException(
+                    "The request handling process was not properly initialized so it could not be started.");
             }
-            this._connectionManagerThread.Start();
+            _connectionManagerThread.Start();
 
-            long waitTime = DateTime.Now.Ticks + TimeSpan.TicksPerSecond * 10;
-            while (this.RunState != State.Started)
+            var waitTime = DateTime.Now.Ticks + TimeSpan.TicksPerSecond*10;
+            while (RunState != State.Started)
             {
                 Thread.Sleep(100);
                 if (DateTime.Now.Ticks > waitTime)
@@ -165,19 +176,19 @@ namespace IHI.Server.WebAdmin
             }
         }
 
-        public virtual void Stop()
+        private void Stop()
         {
             // Setting the runstate to something other than "started" and
             // stopping the listener should abort the AddIncomingRequestToQueue
             // method and allow the ConnectionManagerThreadStart sequence to
             // end, which sets the RunState to Stopped.
-            Interlocked.Exchange(ref this._runState, (long)State.Stopping);
-            if (this._listener.IsListening)
+            Interlocked.Exchange(ref _runState, (long) State.Stopping);
+            if (_listener.IsListening)
             {
-                this._listener.Stop();
+                _listener.Stop();
             }
-            long waitTime = DateTime.Now.Ticks + TimeSpan.TicksPerSecond * 10;
-            while (this.RunState != State.Stopped)
+            var waitTime = DateTime.Now.Ticks + TimeSpan.TicksPerSecond*10;
+            while (RunState != State.Stopped)
             {
                 Thread.Sleep(100);
                 if (DateTime.Now.Ticks > waitTime)
@@ -186,17 +197,17 @@ namespace IHI.Server.WebAdmin
                 }
             }
 
-            this._connectionManagerThread = null;
+            _connectionManagerThread = null;
         }
     }
 
     public class HttpRequestEventArgs : EventArgs
     {
-        public HttpListenerContext RequestContext { get; private set; }
-
         public HttpRequestEventArgs(HttpListenerContext requestContext)
         {
-            this.RequestContext = requestContext;
+            RequestContext = requestContext;
         }
+
+        public HttpListenerContext RequestContext { get; private set; }
     }
 }

@@ -77,7 +77,7 @@ namespace IHI.Server.Install
                 e.Display();
 
                 Console.SetCursorPosition(3, 15);
-                Console.Write(string.Empty.PadRight(MonoAware.System.Console.BufferWidth - 3));
+                Console.Write("".PadRight(MonoAware.System.Console.BufferWidth - 3));
                 Console.SetCursorPosition(3, 15);
 
                 goto Retry;
@@ -172,7 +172,7 @@ namespace IHI.Server.Install
                 e.Display();
 
                 Console.SetCursorPosition(3, 15);
-                Console.Write(string.Empty.PadRight(MonoAware.System.Console.BufferWidth - 3));
+                Console.Write("".PadRight(MonoAware.System.Console.BufferWidth - 3));
                 Console.SetCursorPosition(3, 15);
 
                 goto Retry;
@@ -207,7 +207,7 @@ namespace IHI.Server.Install
                 e.Display();
 
                 Console.SetCursorPosition(3, 15);
-                Console.Write(string.Empty.PadRight(MonoAware.System.Console.BufferWidth - 3));
+                Console.Write("".PadRight(MonoAware.System.Console.BufferWidth - 3));
                 Console.SetCursorPosition(3, 15);
 
                 goto Retry;

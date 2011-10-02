@@ -1,62 +1,74 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace IHI.Server.Install
 {
-    internal static class Output
+    public class StandardOut
     {
-        internal static void SetTitle(string Text)
+        internal StandardOut SetCategoryTitle(string text)
         {
-            int RequiredPadding = Console.BufferWidth - Text.Length;
-            
-            if((RequiredPadding & 1) == 1) // Is RequiredPadding odd?
+            var requiredPadding = Console.BufferWidth - text.Length;
+
+            if ((requiredPadding & 1) == 1) // Is RequiredPadding odd?
             {
-                Text += " "; // Yes, make it even.
-                RequiredPadding--;
+                text += " "; // Yes, make it even.
+                requiredPadding--;
             }
 
-            Text = Text.PadLeft(Text.Length + RequiredPadding/2).PadRight(Console.BufferWidth).PadRight(Console.BufferWidth*2, '=');
+            text =
+                text.PadLeft(text.Length + requiredPadding/2).PadRight(Console.BufferWidth).PadRight(
+                    Console.BufferWidth*2, '=');
 
             Console.SetCursorPosition(0, 0);
-            Console.Write(Text);            
+            Console.Write(text);
+            return this;
         }
 
-        internal static void SetStep(byte Current, byte Total)
+        internal StandardOut SetStep(byte current, byte total)
         {
-            string Text = Current + "/" + Total;
+            var text = current + "/" + total;
 
             Console.SetCursorPosition(0, 2);
-            Console.Write(Text.PadLeft(Console.BufferWidth));
+            Console.Write(text.PadLeft(Console.BufferWidth));
+            return this;
         }
-        
-        internal static void SetStatus(string Text, ConsoleColor Foreground = ConsoleColor.Gray, ConsoleColor Background = ConsoleColor.Black)
+
+        internal StandardOut SetStatus(string text, ConsoleColor foreground = ConsoleColor.Gray,
+                                       ConsoleColor background = ConsoleColor.Black)
         {
-            MonoAware.System.Console.ForegroundColor = Foreground;
-            MonoAware.System.Console.BackgroundColor = Background;
+            MonoAware.System.Console.ForegroundColor = foreground;
+            MonoAware.System.Console.BackgroundColor = background;
 
-            if (Text.Length > Console.BufferWidth - 1)
-                Text = Text.Substring(0, Console.BufferWidth-1);
-            else
-                Text = Text.PadRight(Console.BufferWidth-1);
+            text = text.Length > Console.BufferWidth - 1 ? text.Substring(0, Console.BufferWidth - 1) : text.PadRight(Console.BufferWidth - 1);
 
-            Console.SetCursorPosition(0, Console.BufferHeight-1);
-            Console.Write(Text);
+            Console.SetCursorPosition(0, Console.BufferHeight - 1);
+            Console.Write(text);
 
             MonoAware.System.Console.ForegroundColor = ConsoleColor.Gray;
             MonoAware.System.Console.BackgroundColor = ConsoleColor.Black;
+            return this;
         }
-        
-        internal static void ClearPage()
+
+        internal StandardOut ClearPage()
         {
             Console.SetCursorPosition(0, 6);
 
-            StringBuilder Blankness = new StringBuilder();
-            Blankness.Length = Console.BufferWidth * (Console.BufferHeight - 7);
+            var blankness = new StringBuilder
+                                {
+                                    Length = Console.BufferWidth*(Console.BufferHeight - 7)
+                                };
 
-            Console.Write(Blankness.ToString());
+            Console.Write(blankness.ToString());
             Console.SetCursorPosition(0, 6);
+            return this;
+        }
+
+        internal StandardOut SetPage(string contents)
+        {
+            ClearPage();
+            Console.SetCursorPosition(0, 6);
+            Console.Write(contents);
+            return this;
         }
     }
 }
