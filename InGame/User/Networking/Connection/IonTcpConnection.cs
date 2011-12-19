@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using IHI.Server.Habbos;
 using IHI.Server.Networking.Messages;
 using Ion.Specialized.Encoding;
@@ -66,12 +65,6 @@ namespace IHI.Server.Networking
                                                                  45,
                                                                  112, 111, 108, 105, 99, 121, 62, 0
                                                              };
-
-        /// <summary>
-        /// The amount of milliseconds to sleep when receiving data before processing the message. When this constant is 0, the data will be processed immediately.
-        /// </summary>
-        private static int _receivedataMillisecondsDelay;
-
         /// <summary>
         /// A DateTime object representing the date and time this Connection was created.
         /// </summary>
@@ -82,7 +75,7 @@ namespace IHI.Server.Networking
         /// </summary>
         private readonly uint _id;
 
-        private readonly PacketHandler[,] _packetHandlers;
+        private PacketHandler[,] _packetHandlers;
 
         /// <summary>
         /// The byte array holding the buffer for receiving data from client.
@@ -194,13 +187,21 @@ namespace IHI.Server.Networking
         /// <param name="priority">The priority this handler has.</param>
         /// <param name="handlerDelegate">The delegate that points to the handler.</param>
         /// <returns>The current Connection. This allows chaining.</returns>
-        public IonTcpConnection AddHandler(uint headerID, PacketHandlerPriority priority, PacketHandler handlerDelegate)
+        public IonTcpConnection AddHandler(int headerID, PacketHandlerPriority priority, PacketHandler handlerDelegate)
         {
-            if (_packetHandlers[headerID, (int) priority] != null)
+            lock (_packetHandlers)
+            {
+                if (headerID >= _packetHandlers.GetLength(0))
+                {
+                    SetHighestHeaderID(headerID + 1);
+                }
+            }
+           if (_packetHandlers[headerID, (int) priority] != null)
                 lock (_packetHandlers[headerID, (int) priority])
                     _packetHandlers[headerID, (int) priority] += handlerDelegate;
             else
                 _packetHandlers[headerID, (int) priority] += handlerDelegate;
+
             return this;
         }
 
@@ -211,11 +212,15 @@ namespace IHI.Server.Networking
         /// <param name="priority">The priority of the handler.</param>
         /// <param name="handlerDelegate">The delegate that points to the handler.</param>
         /// <returns>The current Connection. This allows chaining.</returns>
-        public IonTcpConnection RemoveHandler(uint headerID, PacketHandlerPriority priority,
+        public IonTcpConnection RemoveHandler(int headerID, PacketHandlerPriority priority,
                                               PacketHandler handlerDelegate)
         {
             lock (_packetHandlers[headerID, (int) priority])
                 _packetHandlers[headerID, (int) priority] -= handlerDelegate;
+
+            lock(_packetHandlers)
+                if (headerID < _packetHandlers.GetLength(0))
+                    SetHighestHeaderID();
             return this;
         }
 
@@ -231,11 +236,11 @@ namespace IHI.Server.Networking
         public IonTcpConnection(uint id, Socket socket)
         {
             _id = id;
+            
             _socket = socket;
             _createdAt = DateTime.Now;
 
-            _packetHandlers = new PacketHandler[2002 + 1,4];
-            // "2002" copied from Ion.HabboHotel.Client.ClientMessageHandler.HIGHEST_MESSAGEID
+            _packetHandlers = new PacketHandler[0, 4];
         }
 
         #endregion
@@ -267,16 +272,22 @@ namespace IHI.Server.Networking
             if (Habbo.IsLoggedIn())
             {
                 Habbo.SetLoggedIn(false);
-                CoreManager.GetServerCore().GetStandardOut().PrintNotice("Connection stopped [" + GetIPAddressString() +
-                                                                         ", " + Habbo.GetUsername() + ']');
+                CoreManager.ServerCore.GetStandardOut().PrintNotice("Connection stopped [" + GetIPAddressString() +
+                                                                    ", " + Habbo.GetUsername() + ']');
             }
             else
             {
-                CoreManager.GetServerCore().GetStandardOut().PrintNotice("Connection stopped [" + GetIPAddressString() +
-                                                                         ", UNKNOWN]");
+                CoreManager.ServerCore.GetStandardOut().PrintNotice("Connection stopped [" + GetIPAddressString() +
+                                                                    ", UNKNOWN]");
             }
-
-            _socket.Close();
+            try
+            {
+                _socket.Close();
+            }
+            catch (NullReferenceException)
+            {
+                throw;
+            }
             _socket = null;
             _dataBuffer = null;
             _dataReceivedCallback = null;
@@ -296,44 +307,44 @@ namespace IHI.Server.Networking
 
         internal void Close()
         {
-            CoreManager.GetServerCore().GetConnectionManager().CloseConnection(GetID());
+            CoreManager.ServerCore.GetConnectionManager().CloseConnection(GetID());
         }
 
         private void SendData(byte[] data)
         {
-            if (!IsAlive())
-                return;
-            try
-            {
-                _socket.Send(data);
-            }
-            catch (SocketException)
-            {
-                Close();
-            }
-            catch (ObjectDisposedException)
-            {
-                Close();
-            }
-            catch (Exception ex)
-            {
-                CoreManager.GetServerCore().GetStandardOut().PrintException(ex);
-            }
+                if (!IsAlive())
+                    return;
+                try
+                {
+                    _socket.Send(data);
+                }
+                catch (SocketException)
+                {
+                    Close();
+                }
+                catch (ObjectDisposedException)
+                {
+                    Close();
+                }
+                catch (Exception ex)
+                {
+                    CoreManager.ServerCore.GetStandardOut().PrintException(ex);
+                }
         }
 
         internal void SendData(string data)
         {
-            SendData(CoreManager.GetServerCore().GetTextEncoding().GetBytes(data));
+            SendData(CoreManager.ServerCore.GetTextEncoding().GetBytes(data));
         }
 
         internal void SendMessage(IInternalOutgoingMessage internalMessage)
         {
-            var message = internalMessage as InternalOutgoingMessage;
+            InternalOutgoingMessage message = internalMessage as InternalOutgoingMessage;
             if (Habbo.IsLoggedIn())
-                CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + GetHabbo().GetUsername() + "] <-- " +
+                CoreManager.ServerCore.GetStandardOut().PrintDebug("[" + GetHabbo().GetUsername() + "] <-- " +
                                                                         message.Header + message.GetContentString());
             else
-                CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + GetID() + "] <-- " + message.Header +
+                CoreManager.ServerCore.GetStandardOut().PrintDebug("[" + GetID() + "] <-- " + message.Header +
                                                                         message.GetContentString());
 
             SendData(message.GetBytes());
@@ -361,20 +372,17 @@ namespace IHI.Server.Networking
             }
             catch (Exception ex)
             {
-                CoreManager.GetServerCore().GetStandardOut().PrintException(ex);
+                CoreManager.ServerCore.GetStandardOut().PrintException(ex);
                 Close();
             }
-        }
+        
+    }
 
         private void DataReceived(IAsyncResult iAr)
         {
             // Connection not stopped yet?
             if (!IsAlive())
                 return;
-
-            // Do an optional wait before processing the data
-            if (_receivedataMillisecondsDelay > 0)
-                Thread.Sleep(_receivedataMillisecondsDelay);
 
             // How many bytes has server received?
             int numReceivedBytes;
@@ -389,7 +397,7 @@ namespace IHI.Server.Networking
             }
             catch (Exception ex)
             {
-                CoreManager.GetServerCore().GetStandardOut().PrintException(ex);
+                CoreManager.ServerCore.GetStandardOut().PrintException(ex);
 
                 Close();
                 return;
@@ -406,6 +414,7 @@ namespace IHI.Server.Networking
 
             // Wait for new data
             WaitForData();
+
         }
 
         private void HandleConnectionData(ref byte[] data)
@@ -417,9 +426,9 @@ namespace IHI.Server.Networking
                 {
                     if (data[0] == 60)
                     {
-                        CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + _id + "] --> Policy Request");
+                        CoreManager.ServerCore.GetStandardOut().PrintDebug("[" + _id + "] --> Policy Request");
                         SendData(PolicyReplyData);
-                        CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + _id + "] <-- Policy Sent");
+                        CoreManager.ServerCore.GetStandardOut().PrintDebug("[" + _id + "] <-- Policy Sent");
                         Close();
                         return;
                     }
@@ -441,64 +450,67 @@ namespace IHI.Server.Networking
                     var message = new IncomingMessage(messageID, content);
 
                     if (Habbo.IsLoggedIn())
-                        CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + Habbo.GetUsername() + "] --> " +
-                                                                                message.GetHeader() +
-                                                                                message.GetContentString());
+                        CoreManager.ServerCore.GetStandardOut().PrintDebug("[" + Habbo.GetUsername() + "] --> " +
+                                                                           message.GetHeader() +
+                                                                           message.GetContentString());
                     else
-                        CoreManager.GetServerCore().GetStandardOut().PrintDebug("[" + _id + "] --> " +
-                                                                                message.GetHeader() +
-                                                                                message.GetContentString());
+                        CoreManager.ServerCore.GetStandardOut().PrintDebug("[" + _id + "] --> " +
+                                                                           message.GetHeader() +
+                                                                           message.GetContentString());
 
 
                     // Handle message object
                     var unknown = true;
 
-                    if (_packetHandlers[messageID, 3] != null)
+                    if (_packetHandlers.GetLength(0) > messageID)
                     {
-                        lock (_packetHandlers[messageID, 3])
+                        if (_packetHandlers[messageID, 3] != null)
                         {
-                            _packetHandlers[messageID, 3].Invoke(Habbo, message); // Execute High Priority
-                            unknown = false;
+                            lock (_packetHandlers[messageID, 3])
+                            {
+                                _packetHandlers[messageID, 3].Invoke(Habbo, message); // Execute High Priority
+                                unknown = false;
+                            }
                         }
-                    }
 
-                    if (message.IsCancelled())
-                        return;
+                        if (message.IsCancelled())
+                            return;
 
-                    if (_packetHandlers[messageID, 2] != null)
-                    {
-                        lock (_packetHandlers[messageID, 2])
+                        if (_packetHandlers[messageID, 2] != null)
                         {
-                            _packetHandlers[messageID, 2].Invoke(Habbo, message); // Execute Low Priority
-                            unknown = false;
+                            lock (_packetHandlers[messageID, 2])
+                            {
+                                _packetHandlers[messageID, 2].Invoke(Habbo, message); // Execute Low Priority
+                                unknown = false;
+                            }
                         }
-                    }
 
-                    if (message.IsCancelled())
-                        return;
+                        if (message.IsCancelled())
+                            return;
 
-                    if (_packetHandlers[messageID, 1] != null)
-                    {
-                        lock (_packetHandlers[messageID, 1])
+                        if (_packetHandlers[messageID, 1] != null)
                         {
-                            _packetHandlers[messageID, 1].Invoke(Habbo, message); // Execute Default Action
-                            unknown = false;
+                            lock (_packetHandlers[messageID, 1])
+                            {
+                                _packetHandlers[messageID, 1].Invoke(Habbo, message); // Execute Default Action
+                                unknown = false;
+                            }
                         }
-                    }
 
-                    if (_packetHandlers[messageID, 0] != null)
-                    {
-                        lock (_packetHandlers[messageID, 0])
+                        if (_packetHandlers[messageID, 0] != null)
                         {
-                            _packetHandlers[messageID, 0].Invoke(Habbo, message); // Execute Watchers
-                            unknown = false;
+                            lock (_packetHandlers[messageID, 0])
+                            {
+                                _packetHandlers[messageID, 0].Invoke(Habbo, message); // Execute Watchers
+                                unknown = false;
+                            }
                         }
                     }
 
                     if (unknown)
                     {
-                        CoreManager.GetServerCore().GetStandardOut().PrintWarning("Packet " + messageID + " ('" +
-                                                                                  message.GetHeader() + "') unhandled!");
+                        CoreManager.ServerCore.GetStandardOut().PrintWarning("Packet " + messageID + " ('" +
+                                                                             message.GetHeader() + "') unhandled!");
                     }
                 }
                 catch (IndexOutOfRangeException) // Bad formatting!
@@ -508,7 +520,7 @@ namespace IHI.Server.Networking
                 }
                 catch (Exception ex)
                 {
-                    CoreManager.GetServerCore().GetStandardOut().PrintException(ex);
+                    CoreManager.ServerCore.GetStandardOut().PrintException(ex);
                 }
             }
         }
@@ -529,8 +541,36 @@ namespace IHI.Server.Networking
 
         public void Disconnect()
         {
-            CoreManager.GetServerCore().GetConnectionManager().CloseConnection(GetID());
+            CoreManager.ServerCore.GetConnectionManager().CloseConnection(GetID());
             Stop();
+        }
+
+        private void SetHighestHeaderID(int headerID)
+        {
+            lock (_packetHandlers)
+            {
+                PacketHandler[,] array = new PacketHandler[headerID + 1, 4];
+                if (headerID < _packetHandlers.GetLength(0))
+                    Array.Copy(_packetHandlers, array, headerID);
+                else
+                    Array.Copy(_packetHandlers, array, _packetHandlers.GetLength(0));
+                _packetHandlers = array;
+            }
+        }
+        private void SetHighestHeaderID()
+        {
+            lock (_packetHandlers)
+            {
+                int headerID = _packetHandlers.GetLength(0);
+                while (
+                    _packetHandlers[headerID, 0] == null &&
+                    _packetHandlers[headerID, 1] == null &&
+                    _packetHandlers[headerID, 2] == null &&
+                    _packetHandlers[headerID, 3] == null)
+                    headerID--;
+
+                SetHighestHeaderID(headerID);
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ namespace IHI.Server.Users.Permissions
 
             IList<Permission> permissionCache; // Raw permission cache
 
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            using (var db = CoreManager.ServerCore.GetDatabaseSession())
             {
                 permissionCache = db.CreateCriteria<Permission>()
                     .List<Permission>();
@@ -64,7 +64,7 @@ namespace IHI.Server.Users.Permissions
             return GetParentBranch(branch.branch_id);
         }
 
-        public IEnumerable<int> GetHabboPermissions(int habboID)
+        internal IEnumerable<int> GetHabboPermissions(int habboID)
         {
             return (from bdata in (from hdata in _permissionTreeCache
                                    where hdata.type == (byte) PermissionBranchType.Habbo

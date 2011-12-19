@@ -61,6 +61,9 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="MySql.Data">
       <HintPath>bin\Debug\requirements\MySql.Data.dll</HintPath>
@@ -112,12 +115,17 @@
     <Compile Include="InGame\User\Networking\Message\PacketHandler.cs" />
     <Compile Include="Install\Category.cs" />
     <Compile Include="Install\InstallationEventArgs.cs" />
+    <Compile Include="Install\InstallerIn.cs" />
+    <Compile Include="Install\InstallerOut.cs" />
     <Compile Include="Install\Steps\ByteStep.cs" />
     <Compile Include="Install\Steps\PasswordStep.cs" />
     <Compile Include="Install\Steps\IntStep.cs" />
     <Compile Include="Install\Steps\UShortStep.cs" />
     <Compile Include="Install\Steps\StringStep.cs" />
     <Compile Include="Install\Steps\Step.cs" />
+    <Compile Include="OOP Revamp\Habbo\HabboEventArgs.cs" />
+    <Compile Include="OOP Revamp\Habbo\MessengerBlock.cs" />
+    <Compile Include="OOP Revamp\Habbo\MessengerBlockFlagEventArgs.cs" />
     <Compile Include="OOP Revamp\IPersisstantVariables.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\FigureFactory.cs" />
     <Compile Include="OOP Revamp\Habbo\FigureParts\Jacket.cs" />
@@ -178,7 +186,6 @@
     <Compile Include="Install\InputException.cs" />
     <Compile Include="Install\Output.cs" />
     <Compile Include="IShutdown.cs" />
-    <Compile Include="MonoAware.cs" />
     <Compile Include="OOP Revamp\Habbo\Catalogue\CatalogueItem.cs" />
     <Compile Include="OOP Revamp\Habbo\Effect.cs" />
     <Compile Include="OOP Revamp\Rooms\Room.cs" />
@@ -199,6 +206,8 @@
     <Compile Include="OOP Revamp\Rooms\RoomUnits\RoomUnit.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\IPositionable.cs" />
     <Compile Include="OOP Revamp\Rooms\RoomUnits\IRollerable.cs" />
+    <Compile Include="Plugins\CompatibilityLockAttribute.cs" />
+    <Compile Include="Plugins\IncompatiblePluginException.cs" />
     <Compile Include="Plugins\Plugin.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="PublicRoomModel.cs" />
@@ -213,6 +222,7 @@
     <Compile Include="InGame\User\HabboDistributor.cs" />
     <Compile Include="InGame\Room\Items\Models\Virtual\VirtualItemModel.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Wall\WallItemModel.cs" />
+    <Compile Include="UnixAware.cs" />
     <Compile Include="WebAdmin\WebAdminManager.cs" />
     <Compile Include="WebAdmin\WebAdminServer.cs" />
   </ItemGroup>

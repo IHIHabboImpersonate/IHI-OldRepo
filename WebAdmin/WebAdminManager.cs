@@ -43,12 +43,12 @@ namespace IHI.Server.WebAdmin
             {
                 if (IsPathHandled(path))
                 {
-                    CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin Request [200]: " + path);
+                    CoreManager.ServerCore.GetStandardOut().PrintDebug("WebAdmin Request [200]: " + path);
                     GetPathHandler(path)(e.RequestContext);
                     return;
                 }
             }
-            CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin Request [404]: " + path);
+            CoreManager.ServerCore.GetStandardOut().PrintDebug("WebAdmin Request [404]: " + path);
 
             var response = e.RequestContext.Response;
             var buffer = Encoding.UTF8.GetBytes("Not Handled!");
@@ -86,7 +86,7 @@ namespace IHI.Server.WebAdmin
                     return false;
 
                 _paths.Add(path, handler);
-                CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin handler added: " + path);
+                CoreManager.ServerCore.GetStandardOut().PrintDebug("WebAdmin handler added: " + path);
                 return true;
             }
         }
@@ -104,7 +104,7 @@ namespace IHI.Server.WebAdmin
                     return false;
 
                 _paths.Remove(path);
-                CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin handler removed: " + path);
+                CoreManager.ServerCore.GetStandardOut().PrintDebug("WebAdmin handler removed: " + path);
                 return true;
             }
         }
@@ -136,7 +136,7 @@ namespace IHI.Server.WebAdmin
 
         public static void SendResponse(HttpListenerResponse response, string pluginName, string content)
         {
-            CoreManager.GetServerCore().GetStandardOut().PrintDebug("WebAdmin Response [" + pluginName + "]: " + content);
+            CoreManager.ServerCore.GetStandardOut().PrintDebug("WebAdmin Response [" + pluginName + "]: " + content);
             var buffer = Encoding.UTF8.GetBytes(content);
             response.StatusCode = (int) HttpStatusCode.OK;
             response.StatusDescription = "OK";

@@ -5,6 +5,7 @@ using IHI.Database;
 using IHI.Server.Networking;
 using IHI.Server.Networking.Messages;
 using IHI.Server.Rooms;
+using IHI.Server.Rooms.RoomUnits;
 using NHibernate.Criterion;
 
 namespace IHI.Server.Habbos
@@ -34,22 +35,13 @@ namespace IHI.Server.Habbos
             _id = id;
             Database.Habbo habboData;
 
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            using (var db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                habboData = db.CreateCriteria<Database.Habbo>().
-                    Add(Restrictions.Eq("habbo_id", id)).
-                    SetProjection(Projections.ProjectionList().
-                                      Add(Projections.Property("username"), "username").
-                                      Add(Projections.Property("motto"), "motto").
-                                      Add(Projections.Property("figure"), "figure").
-                                      Add(Projections.Property("gender"), "gender")).
-                    Add(Restrictions.Eq("habbo_id", id)).
-                    List<Database.Habbo>().
-                    First();
+                habboData = db.Get<Database.Habbo>(id);
             }
             DisplayName = _username = habboData.username;
             _motto = habboData.motto;
-            Figure = CoreManager.GetServerCore().GetHabboFigureFactory().Parse(habboData.figure, habboData.gender);
+            Figure = CoreManager.ServerCore.GetHabboFigureFactory().Parse(habboData.figure, habboData.gender);
         }
 
         /// <summary>
@@ -60,24 +52,20 @@ namespace IHI.Server.Habbos
         internal Habbo(string username)
         {
             _username = DisplayName = username;
-
-            Database.Habbo habboData;
-
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            Database.Habbo habbo = new Database.Habbo
+                                       {
+                                           username = username
+                                       };
+            using (var db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                habboData = db.CreateCriteria<Database.Habbo>()
-                    .SetProjection(Projections.ProjectionList()
-                                       .Add(Projections.Property("habbo_id"))
-                                       .Add(Projections.Property("motto"))
-                                       .Add(Projections.Property("figure"))
-                                       .Add(Projections.Property("gender")))
-                    .Add(new EqPropertyExpression("username", username))
-                    .List<Database.Habbo>().First();
+                habbo = db.CreateCriteria<Database.Habbo>()
+                    .Add(Example.Create(habbo))
+                    .UniqueResult<Database.Habbo>();
             }
 
-            _id = habboData.habbo_id;
-            _motto = habboData.motto;
-            Figure = CoreManager.GetServerCore().GetHabboFigureFactory().Parse(habboData.figure, habboData.gender);
+            _id = habbo.habbo_id;
+            _motto = habbo.motto;
+            Figure = CoreManager.ServerCore.GetHabboFigureFactory().Parse(habbo.figure, habbo.gender);
         }
 
         public Habbo(Database.Habbo habboData)
@@ -86,7 +74,7 @@ namespace IHI.Server.Habbos
 
             DisplayName = _username = habboData.username;
             _motto = habboData.motto;
-            Figure = CoreManager.GetServerCore().GetHabboFigureFactory().Parse(habboData.figure, habboData.gender);
+            Figure = CoreManager.ServerCore.GetHabboFigureFactory().Parse(habboData.figure, habboData.gender);
         }
 
         #endregion
@@ -125,9 +113,9 @@ namespace IHI.Server.Habbos
         private bool _isLoggedIn;
 
         #region Permissions
-
         private HashSet<int> _permissions;
-
+        private HashSet<string> _fusePermissions;
+        private HashSet<string> _sentFusePermissions;
         #endregion
 
         #region Connection Related
@@ -146,8 +134,30 @@ namespace IHI.Server.Habbos
 
         #endregion
 
-        public static event HabboEventHandler OnHabboLogin;
+        #region Events
+        public event HabboEventHandler OnPreHabboLogin;
+        public event HabboEventHandler OnHabboLogin;
+        public event HabboEventHandler OnRebuildFusePermissions;
+        public event MessengerBlockFlagEventHandler OnBlockFlagChanged;
+        #endregion
 
+        #region IBefriendable Members
+        public bool BlockStalking
+        {
+            get;
+            set;
+        }
+        public bool BlockRequests
+        {
+            get;
+            set;
+        }
+        public bool BlockInvites
+        {
+            get;
+            set;
+        }
+        #endregion
         #endregion
 
         #region Methods
@@ -199,14 +209,21 @@ namespace IHI.Server.Habbos
         /// <param name="value">The user's new logged in status.</param>
         public Habbo SetLoggedIn(bool value)
         {
-            if (OnHabboLogin != null)
-                OnHabboLogin.Invoke(this, new HabboEventArgs());
-            HabboDistributor.InvokeHabboLoginEvent(this, new HabboEventArgs());
-
-            if (!_isLoggedIn && value)
+            if(!_isLoggedIn && value)
             {
+                HabboEventArgs habboEventArgs = new HabboEventArgs();
+                if (OnPreHabboLogin != null)
+                    OnPreHabboLogin(this, habboEventArgs);
+
+                CoreManager.ServerCore.GetHabboDistributor().InvokeOnPreHabboLogin(this, habboEventArgs);
+                if(habboEventArgs.Cancelled)
+                {
+                    GetConnection().Disconnect();
+                    return this;
+                }
+
                 _lastAccess = DateTime.Now;
-                using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+                using (var db = CoreManager.ServerCore.GetDatabaseSession())
                 {
                     var habbo = db.Get<Database.Habbo>(_id);
                     habbo.last_access = _lastAccess;
@@ -218,23 +235,24 @@ namespace IHI.Server.Habbos
             return this;
         }
 
+        #region Credits
         /// <summary>
         /// Returns the amount credits the user has.
         /// </summary>
         public int GetCreditBalance()
         {
-            if (_creditBalance == null)
+            if (!_creditBalance.HasValue)
             {
-                using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+                using (var db = CoreManager.ServerCore.GetDatabaseSession())
                 {
-                    _creditBalance = db.CreateCriteria<Habbo>().
-                        SetProjection(Projections.Property("credits")).
-                        Add(new EqPropertyExpression("habbo_id", GetID().ToString())).
-                        List<int>().First();
+                    _creditBalance = db.CreateCriteria<Habbo>()
+                        .SetProjection(Projections.Property("credits"))
+                        .Add(new EqPropertyExpression("habbo_id", GetID().ToString()))
+                        .UniqueResult<int>();
                 }
             }
 
-            return (int) _creditBalance;
+            return _creditBalance.Value;
         }
 
         /// <summary>
@@ -243,12 +261,12 @@ namespace IHI.Server.Habbos
         /// <param name="balance">The amount of credits.</param>
         public Habbo SetCreditBalance(int balance)
         {
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            using (var db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                var habboData = db.CreateCriteria<Habbo>().
-                    SetProjection(Projections.Property("credits")).
-                    Add(new EqPropertyExpression("habbo_id", GetID().ToString())).
-                    List<Database.Habbo>().First();
+                var habboData = db.CreateCriteria<Habbo>()
+                    .SetProjection(Projections.Property("credits"))
+                    .Add(new EqPropertyExpression("habbo_id", _id.ToString()))
+                    .UniqueResult<Database.Habbo>();
 
                 _creditBalance = habboData.credits = balance;
 
@@ -263,12 +281,12 @@ namespace IHI.Server.Habbos
         /// <param name="amount">The amount of credits.</param>
         public Habbo GiveCredits(int amount)
         {
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            using (var db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                var habboData = db.CreateCriteria<Habbo>().
-                    SetProjection(Projections.Property("credits")).
-                    Add(new EqPropertyExpression("habbo_id", GetID().ToString())).
-                    List<Database.Habbo>().First();
+                var habboData = db.CreateCriteria<Habbo>()
+                    .SetProjection(Projections.Property("credits"))
+                    .Add(new EqPropertyExpression("habbo_id", _id.ToString()))
+                    .UniqueResult<Database.Habbo>();
 
                 _creditBalance = habboData.credits += amount;
 
@@ -283,12 +301,12 @@ namespace IHI.Server.Habbos
         /// <param name="amount">The amount of credits.</param>
         public Habbo TakeCredits(int amount)
         {
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            using (var db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                var habboData = db.CreateCriteria<Habbo>().
-                    SetProjection(Projections.Property("credits")).
-                    Add(new EqPropertyExpression("habbo_id", GetID().ToString())).
-                    List<Database.Habbo>().First();
+                var habboData = db.CreateCriteria<Habbo>()
+                    .SetProjection(Projections.Property("credits"))
+                    .Add(new EqPropertyExpression("habbo_id", _id.ToString()))
+                    .UniqueResult<Database.Habbo>();
 
                 _creditBalance = habboData.credits -= amount;
 
@@ -296,6 +314,7 @@ namespace IHI.Server.Habbos
             }
             return this;
         }
+        #endregion
 
         #region Connection Related
 
@@ -324,7 +343,6 @@ namespace IHI.Server.Habbos
         #endregion
 
         #region Permissions
-
         #region IHI Permission System
 
         /// <summary>
@@ -333,7 +351,7 @@ namespace IHI.Server.Habbos
         /// <returns>The User the permissions were reloaded for. This is for Chaining.</returns>
         public Habbo ReloadPermissions()
         {
-            _permissions = new HashSet<int>(CoreManager.GetServerCore().GetPermissionManager().GetHabboPermissions(_id));
+            _permissions = new HashSet<int>(CoreManager.ServerCore.GetPermissionManager().GetHabboPermissions(_id));
             return this;
         }
 
@@ -365,12 +383,54 @@ namespace IHI.Server.Habbos
 
         #endregion
 
+        #region Fuse Permission System
+        public Habbo GiveFusePermission(string fusePermission)
+        {
+            _fusePermissions.Add(fusePermission);
+            return this;
+        }
+        public Habbo RebuildFusePermissions()
+        {
+            _fusePermissions = new HashSet<string>();
+            if (_sentFusePermissions == null)
+                _sentFusePermissions = new HashSet<string>();
+
+            if (OnRebuildFusePermissions != null)
+                OnRebuildFusePermissions(this, new HabboEventArgs());
+
+            return this;
+        }
+        public IEnumerable<string> GetFusePermissions(bool excludeSent = false)
+        {
+            if (_fusePermissions == null)
+                RebuildFusePermissions();
+            if (!excludeSent)
+                return _fusePermissions;
+            return _fusePermissions.Except(_sentFusePermissions);
+        }
+        public Habbo SetFusePermissionSent(string fusePermission, bool sent = true)
+        {
+            if (sent)
+                _sentFusePermissions.Add(fusePermission);
+            else
+                _sentFusePermissions.Remove(fusePermission);
+            return this;
+        }
+        public Habbo SetFusePermissionSent(IEnumerable<string> fusePermissions, bool sent = true)
+        {
+            if (sent)
+                _sentFusePermissions.UnionWith(fusePermissions);
+            else
+                _sentFusePermissions.ExceptWith(fusePermissions);
+            return this;
+        }
+        #endregion
         #endregion
 
         #endregion
 
         #region IBefriendable Members
-
+        #region IInstanceVariables Members
         public object GetInstanceVariable(string name)
         {
             if (_instanceVariables == null || !_instanceVariables.ContainsKey(name))
@@ -390,45 +450,60 @@ namespace IHI.Server.Habbos
 
             return this;
         }
+        #endregion
 
-
+        #region IPersistantVariables Members
         public string GetPersistantVariable(string name)
         {
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            PersistantVariableHabbo variable = new PersistantVariableHabbo
+                                                   {
+                                                       habbo_id = _id,
+                                                       variable_name = name
+                                                   };
+
+            using (var db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                var variables = (List<PersistantVariableHabbo>) db.CreateCriteria<PersistantVariableHabbo>().
-                                                                    Add(Restrictions.Eq("habbo_id", GetID())).
-                                                                    Add(Restrictions.Eq("variable_name", name)).
-                                                                    List<PersistantVariableHabbo>();
-                if (variables.Count != 0)
-                    return variables[0].variable_value;
-                return null;
+                variable = db.CreateCriteria<PersistantVariableHabbo>()
+                    .Add(Example.Create(variable))
+                    .UniqueResult<PersistantVariableHabbo>();
             }
+
+            if (variable == null)
+                return null;
+            return variable.variable_value;
         }
 
         public IPersistantVariables SetPersistantVariable(string name, string value)
         {
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            PersistantVariableHabbo variable = new PersistantVariableHabbo
             {
-                var variables = (List<PersistantVariableHabbo>) db.CreateCriteria<PersistantVariableHabbo>().
-                                                                    Add(Restrictions.Eq("habbo_id", GetID())).
-                                                                    Add(Restrictions.Eq("variable_name", name)).
-                                                                    List<PersistantVariableHabbo>();
-                if (variables.Count != 0)
-                {
-                    variables[0].variable_value = value;
-                    db.SaveOrUpdate(variables[0]);
-                    return this;
-                }
+                habbo_id = _id,
+                variable_name = name,
+                variable_value = value
+            };
 
-                var newVariable = new PersistantVariableHabbo {variable_name = name, variable_value = value};
-
-                db.SaveOrUpdate(newVariable);
-
-                return this;
+            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            {
+                db.SaveOrUpdate(variable);
             }
+            return this;
+        }
+        #endregion
+
+        public bool IsStalkable()
+        {
+            throw new NotImplementedException();
         }
 
+        public bool IsRequestable()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsInviteable()
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
         #region IMessageable Members
@@ -440,9 +515,5 @@ namespace IHI.Server.Habbos
         }
 
         #endregion
-    }
-
-    public class HabboEventArgs : EventArgs
-    {
     }
 }

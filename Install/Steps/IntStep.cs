@@ -40,7 +40,7 @@ namespace IHI.Server.Install
 
         public override object Run()
         {
-            CoreManager.GetInstallerCore().GetStandardOut().SetPage(ToString(_default.ToString()));
+            CoreManager.InstallerCore.Out.OverwritePageContents(ToString(_default.ToString()));
 
             var inputString = Console.ReadLine();
 

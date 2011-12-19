@@ -7,10 +7,22 @@ namespace IHI.Server
 {
     public static class EntryPoint
     {
+
         [STAThreadAttribute]
         public static void Main(string[] arguments)
         {
-            var monoMode = false;
+            UnixAware.UnixMode = false;
+            switch (Environment.OSVersion.Platform)
+            {
+                case PlatformID.Unix:
+                case PlatformID.MacOSX:
+                    {
+                        UnixAware.UnixMode = true;
+                        break;
+                    }
+            }
+
+
             var configFile = "config.xml";
             var disableAutoExit = false;
 
@@ -24,12 +36,6 @@ namespace IHI.Server
 
                 switch (name)
                 {
-                    case "mode":
-                        {
-                            if (value.ToLower() == "mono")
-                                monoMode = true;
-                            break;
-                        }
                     case "config-file":
                         {
                             configFile = value;
@@ -52,32 +58,31 @@ namespace IHI.Server
                 }
             }
 
-            MonoAware.Init(monoMode);
-
-            MonoAware.System.Console.BackgroundColor = ConsoleColor.Black;
-            MonoAware.System.Console.ForegroundColor = ConsoleColor.Gray;
-
-            MonoAware.System.Console.Clear();
-
-            if (!monoMode)
+            if (!UnixAware.UnixMode)
             {
-                Console.Title = "IHI | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4);
-                Console.WriteLine("\n    IHI | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4) + "\n");
+                if (Type.GetType("Mono.Runtime") == null)
+                {
+                    Console.Title = "IHI [Windows] [.NET] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4);
+                    Console.WriteLine("\n    IHI [Windows] [.NET] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4) + "\n");
+                }
+                else
+                {
+                    Console.Title = "IHI [Windows] [Mono] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4);
+                    Console.WriteLine("\n    IHI [Windows] [Mono] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4) + "\n");
+                }
             }
             else
             {
-                Console.Title = "IHI [Mono] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4);
-                Console.WriteLine("\n    IHI [Mono] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4) +
-                                  "\n");
+                Console.Title = "IHI [Unix] [Mono] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4);
+                Console.WriteLine("\n    IHI [Unix] [Mono] | V" + Assembly.GetExecutingAssembly().GetName().Version.ToString(4) + "\n");
             }
 
             Console.Beep();
 
-            CoreManager.InitializeServerCore();
-            CoreManager.InitializeInstallerCore();
+            CoreManager.InitialiseServerCore();
+            CoreManager.InitialiseInstallerCore();
 
-            var bootResult =
-                CoreManager.GetServerCore().Boot(Path.Combine(Environment.CurrentDirectory, configFile));
+            BootResult bootResult = CoreManager.ServerCore.Boot(Path.Combine(Environment.CurrentDirectory, configFile));
             CoreManager.DereferenceInstallerCore();
             GC.Collect();
 
@@ -107,13 +112,12 @@ namespace IHI.Server
 
 
         private static void ShutdownKey(object sender, ConsoleCancelEventArgs e)
-
         {
-            if(e.SpecialKey == ConsoleSpecialKey.ControlBreak)
+            if (e.SpecialKey == ConsoleSpecialKey.ControlBreak)
                 return;
             Console.CancelKeyPress -= ShutdownKey;
             e.Cancel = true;
-            CoreManager.GetServerCore().Shutdown();
+            CoreManager.ServerCore.Shutdown();
         }
     }
 

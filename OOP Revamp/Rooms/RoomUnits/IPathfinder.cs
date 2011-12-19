@@ -4,7 +4,7 @@ namespace IHI.Server.Rooms.RoomUnits
 {
     public interface IPathfinder
     {
-        void ApplyCollisionMap(byte[,] Map, float[,] Height);
-        ICollection<byte[]> Path(byte StartX, byte StartY, byte EndX, byte EndY, float MaxDrop, float MaxJump);
+        void ApplyCollisionMap(byte[,] map, float[,] height);
+        ICollection<byte[]> Path(byte startX, byte startY, byte endX, byte endY, float maxDrop, float maxJump);
     }
 }

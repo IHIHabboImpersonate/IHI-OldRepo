@@ -6,7 +6,7 @@ namespace IHI.Server.Rooms
     {
         #region IMessageable Members
 
-        public IMessageable SendMessage(IInternalOutgoingMessage Message)
+        public IMessageable SendMessage(IInternalOutgoingMessage message)
         {
             return this;
         }

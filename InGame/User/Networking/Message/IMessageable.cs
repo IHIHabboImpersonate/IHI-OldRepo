@@ -2,6 +2,6 @@
 {
     public interface IMessageable
     {
-        IMessageable SendMessage(IInternalOutgoingMessage Message);
+        IMessageable SendMessage(IInternalOutgoingMessage message);
     }
 }

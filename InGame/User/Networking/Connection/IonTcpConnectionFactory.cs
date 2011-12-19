@@ -33,7 +33,7 @@ namespace IHI.Server.Networking
                 return null;
 
             var connection = new IonTcpConnection(++Count, socket);
-            CoreManager.GetServerCore().GetStandardOut().PrintNotice(string.Format("Created Connection for {0}.",
+            CoreManager.ServerCore.GetStandardOut().PrintNotice(string.Format("Created Connection for {0}.",
                                                                                    connection.GetIPAddressString()));
 
             return connection;

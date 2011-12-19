@@ -42,8 +42,6 @@ namespace IHI.Server.WebAdmin
             _listener = new HttpListener();
             _listener.Prefixes.Add("http://127.0.0.1:" + port + "/");
             _listener.Prefixes.Add("http://localhost:" + port + "/");
-
-            _listener.Prefixes.Add("http://192.168.1.200:" + port + "/");
         }
 
         private State RunState
@@ -97,6 +95,11 @@ namespace IHI.Server.WebAdmin
                     // This will occur when the listener gets shut down.
                     // Just swallow it and move on.
                 }
+            }
+            catch (HttpListenerException e)
+            {
+                if (e.Message == "The process cannot access the file because it is being used by another process")
+                    throw new Exception("The WebAdminServer was unable to start. Is the port already in use?", e);
             }
             finally
             {

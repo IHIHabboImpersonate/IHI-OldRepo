@@ -15,25 +15,25 @@ namespace IHI.Server.Extras
             //guaranteed to be random.
         }
 
-        public static byte CalculateDirection(byte X1, byte Y1, byte X2, byte Y2)
+        public static byte CalculateDirection(byte x1, byte y1, byte x2, byte y2)
         {
-            if (Y2 > Y1)
+            if (y2 > y1)
             {
-                if (X2 == X1)
+                if (x2 == x1)
                     return 4;
-                if (X2 < X1)
+                if (x2 < x1)
                     return 5;
                 return 3;
             }
-            if (Y2 < Y1)
+            if (y2 < y1)
             {
-                if (X2 == X1)
+                if (x2 == x1)
                     return 0;
-                if (X2 < X1)
+                if (x2 < x1)
                     return 7;
                 return 1;
             }
-            if (X2 < X1)
+            if (x2 < x1)
                 return 6;
             return 2;
         }
@@ -41,25 +41,25 @@ namespace IHI.Server.Extras
         /// <summary>
         /// Might as well make it.
         /// </summary>
-        public static byte MoonWalkCalculateDirection(byte X1, byte Y1, byte X2, byte Y2)
+        public static byte MoonWalkCalculateDirection(byte x1, byte y1, byte x2, byte y2)
         {
-            if (Y1 < Y2)
+            if (y1 < y2)
             {
-                if (X1 == X2)
+                if (x1 == x2)
                     return 0;
-                if (X1 > X2)
+                if (x1 > x2)
                     return 1;
                 return 7;
             }
-            if (Y1 > Y2)
+            if (y1 > y2)
             {
-                if (X1 == X2)
+                if (x1 == x2)
                     return 4;
-                if (X1 > X2)
+                if (x1 > x2)
                     return 3;
                 return 5;
             }
-            if (X1 > X2)
+            if (x1 > x2)
                 return 2;
             return 6;
         }

@@ -2,8 +2,8 @@
 {
     public interface IInstanceVariables
     {
-        object GetInstanceVariable(string Name);
+        object GetInstanceVariable(string name);
 
-        IInstanceVariables SetInstanceVariable(string Name, object Value);
+        IInstanceVariables SetInstanceVariable(string name, object value);
     }
 }

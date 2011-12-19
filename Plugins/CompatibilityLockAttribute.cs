@@ -16,9 +16,7 @@ namespace IHI.Server.Plugins
             private set;
         }
 
-        public CompatibilityLockAttribute(int release) : this(release, -1){}
-
-        public CompatibilityLockAttribute(int release, int subRelease)
+        public CompatibilityLockAttribute(int release, int subRelease = -1)
         {
             Release = release;
             SubRelease = subRelease;

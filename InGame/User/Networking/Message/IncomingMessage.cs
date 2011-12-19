@@ -22,11 +22,6 @@ namespace IHI.Server.Networking.Messages
         private readonly uint _id;
 
         /// <summary>
-        /// The variables used in custom packet processing is done here
-        /// </summary>
-        private bool _blocked;
-
-        /// <summary>
         /// If set to true then lower proirity handlers will not be called.
         /// </summary>
         private bool _cancelled;
@@ -53,7 +48,7 @@ namespace IHI.Server.Networking.Messages
         /// </summary>
         public string GetHeader()
         {
-            return CoreManager.GetServerCore().GetTextEncoding().GetString(Base64Encoding.EncodeuUInt32(_id, 2));
+            return CoreManager.ServerCore.GetTextEncoding().GetString(Base64Encoding.EncodeuUInt32(_id, 2));
         }
 
         /// <summary>
@@ -71,12 +66,6 @@ namespace IHI.Server.Networking.Messages
         {
             return (_content.Length - _contentCursor);
         }
-
-        public bool GetBlocked()
-        {
-            return _blocked;
-        }
-
         #endregion
 
         #region Constructors
@@ -123,7 +112,7 @@ namespace IHI.Server.Networking.Messages
         /// <returns>String</returns>
         public string GetContentString()
         {
-            return CoreManager.GetServerCore().GetTextEncoding().GetString(_content);
+            return CoreManager.ServerCore.GetTextEncoding().GetString(_content);
         }
 
         /// <summary>
@@ -209,7 +198,7 @@ namespace IHI.Server.Networking.Messages
         public String PopPrefixedString(Encoding pEncoding)
         {
             if (pEncoding == null)
-                pEncoding = CoreManager.GetServerCore().GetTextEncoding();
+                pEncoding = CoreManager.ServerCore.GetTextEncoding();
 
             return pEncoding.GetString(ReadPrefixedValue());
         }
@@ -220,7 +209,7 @@ namespace IHI.Server.Networking.Messages
         /// <returns>String</returns>
         public String PopPrefixedString()
         {
-            var pEncoding = CoreManager.GetServerCore().GetTextEncoding();
+            var pEncoding = CoreManager.ServerCore.GetTextEncoding();
             return PopPrefixedString(pEncoding);
         }
 

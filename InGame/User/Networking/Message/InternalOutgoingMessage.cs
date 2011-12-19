@@ -142,7 +142,7 @@ namespace IHI.Server.Networking.Messages
         /// </summary>
         public string Header
         {
-            get { return CoreManager.GetServerCore().GetTextEncoding().GetString(Base64Encoding.EncodeuUInt32(ID, 2)); }
+            get { return CoreManager.ServerCore.GetTextEncoding().GetString(Base64Encoding.EncodeuUInt32(ID, 2)); }
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace IHI.Server.Networking.Messages
         /// <returns>String</returns>
         public string GetContentString()
         {
-            return CoreManager.GetServerCore().GetTextEncoding().GetString(_content.ToArray());
+            return CoreManager.ServerCore.GetTextEncoding().GetString(_content.ToArray());
         }
 
         /// <summary>
@@ -253,7 +253,7 @@ namespace IHI.Server.Networking.Messages
             if (!string.IsNullOrEmpty(s))
             {
                 if (encoding == null)
-                    encoding = CoreManager.GetServerCore().GetTextEncoding();
+                    encoding = CoreManager.ServerCore.GetTextEncoding();
 
                 Append(encoding.GetBytes(s));
             }

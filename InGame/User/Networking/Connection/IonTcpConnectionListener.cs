@@ -11,11 +11,6 @@ namespace IHI.Server.Networking
     {
         #region Fields
 
-        /// <summary>
-        /// The maximum length of the Connection request queue for the listener as an integer.
-        /// </summary>
-        private const int ListenerConnectionrequestQueueLength = 1;
-
         private readonly AsyncCallback _connectionRequestCallback;
 
         /// <summary>
@@ -55,7 +50,7 @@ namespace IHI.Server.Networking
             if (!IPAddress.TryParse(localIP, out ip))
             {
                 ip = IPAddress.Loopback;
-                CoreManager.GetServerCore().GetStandardOut().PrintWarning(
+                CoreManager.ServerCore.GetStandardOut().PrintWarning(
                     string.Format(
                         "Connection listener was unable to parse the given local IP address '{0}', now binding listener to '{1}'.",
                         localIP, ip.ToString()));
@@ -66,7 +61,7 @@ namespace IHI.Server.Networking
             _factory = new IonTcpConnectionFactory();
             _manager = manager;
 
-            CoreManager.GetServerCore().GetStandardOut().PrintNotice(
+            CoreManager.ServerCore.GetStandardOut().PrintNotice(
                 string.Format("IonTcpConnectionListener initialized and bound to {0}:{1}.", ip.ToString(),
                               port.ToString()));
         }

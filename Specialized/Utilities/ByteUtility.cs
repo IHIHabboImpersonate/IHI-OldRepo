@@ -9,10 +9,6 @@
 
         public static byte[] ChompBytes(byte[] bzBytes, int offset, int numBytes)
         {
-            var end = (offset + numBytes);
-            if (end > bzBytes.Length)
-                end = bzBytes.Length;
-
             if (numBytes > bzBytes.Length)
                 numBytes = bzBytes.Length;
             if (numBytes < 0)

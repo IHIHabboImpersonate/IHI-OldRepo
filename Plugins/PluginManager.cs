@@ -10,6 +10,8 @@ namespace IHI.Server.Plugins
     {
         private readonly Dictionary<string, Plugin> _plugins = new Dictionary<string, Plugin>();
 
+        private HashSet<int> _compatibleReleases;
+
         /// <summary>
         /// Load and start a plugin with a relative path to the plugin directory.
         /// </summary>
@@ -28,7 +30,7 @@ namespace IHI.Server.Plugins
         internal PluginManager StartPlugin(Plugin plugin)
         {
             plugin.Start();
-            CoreManager.GetServerCore().GetStandardOut().PrintNotice("Plugin " + plugin.GetName() + " has been started.");
+            CoreManager.ServerCore.GetStandardOut().PrintNotice("Plugin " + plugin.Name + " has been started.");
             return this;
         }
 
@@ -38,24 +40,25 @@ namespace IHI.Server.Plugins
         /// <param name="path">The file path of the plugin.</param>
         internal Plugin LoadPluginAtPath(string path)
         {
-            var pluginAssembly = Assembly.LoadFile(path);
-            var pluginType = typeof (Plugin);
-            var pluginObject = (from T in pluginAssembly.GetTypes()
-                                   where T.IsSubclassOf(pluginType)
-                                   select Activator.CreateInstance(T) as Plugin).FirstOrDefault();
+            Assembly pluginAssembly = Assembly.LoadFile(path);
+            Type genericPluginType = typeof (Plugin);
+            Type specificPluginType = pluginAssembly.GetTypes().FirstOrDefault(T => T.IsSubclassOf(genericPluginType));
 
-            if (pluginObject == null)
+            if (specificPluginType == null)
             {
-                CoreManager.GetServerCore().GetStandardOut().PrintWarning(Path.GetFileNameWithoutExtension(path) +
+                CoreManager.ServerCore.GetStandardOut().PrintWarning(Path.GetFileNameWithoutExtension(path) +
                                                                           " is in the plugin directory but is not a plugin.")
                     .PrintDebug(path);
                 return null;
             }
+            if (!IsPluginCompatible(specificPluginType))
+                throw new IncompatiblePluginException();
 
-            pluginObject.fName = Path.GetFileNameWithoutExtension(path);
-            _plugins.Add(pluginObject.fName, pluginObject);
+            Plugin pluginInstance = Activator.CreateInstance(specificPluginType) as Plugin;
+            pluginInstance.Name = Path.GetFileNameWithoutExtension(path);
+            _plugins.Add(pluginInstance.Name, pluginInstance);
 
-            return pluginObject;
+            return pluginInstance;
         }
 
         /// <summary>
@@ -76,6 +79,34 @@ namespace IHI.Server.Plugins
             _plugins.Values.CopyTo(returnArray, 0);
 
             return returnArray;
+        }
+
+        internal bool IsPluginCompatible(Type pluginType)
+        {
+            object[] customAttributes = pluginType.GetCustomAttributes(typeof (CompatibilityLockAttribute), false);
+
+            if (customAttributes.Length == 0)
+                return true;
+
+            int[] releases;
+            if (_compatibleReleases == null)
+            {
+                releases  = new int[customAttributes.Length];
+                for (int i = 0; i < customAttributes.Length; i++)
+                    releases[i] = (customAttributes[i] as CompatibilityLockAttribute).Release;
+
+                _compatibleReleases = new HashSet<int>(releases);
+                return true;
+            }
+
+            releases = new int[customAttributes.Length];
+            for (int i = 0; i < customAttributes.Length; i++)
+                releases[i] = (customAttributes[i] as CompatibilityLockAttribute).Release;
+
+            _compatibleReleases.IntersectWith(releases);
+            if (_compatibleReleases.Count == 0)
+                return false;
+            return true;
         }
     }
 }

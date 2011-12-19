@@ -36,16 +36,16 @@ namespace IHI.Server.Install
         internal StandardOut SetStatus(string text, ConsoleColor foreground = ConsoleColor.Gray,
                                        ConsoleColor background = ConsoleColor.Black)
         {
-            MonoAware.System.Console.ForegroundColor = foreground;
-            MonoAware.System.Console.BackgroundColor = background;
+            UnixAware.System.Console.ForegroundColor = foreground;
+            UnixAware.System.Console.BackgroundColor = background;
 
             text = text.Length > Console.BufferWidth - 1 ? text.Substring(0, Console.BufferWidth - 1) : text.PadRight(Console.BufferWidth - 1);
 
             Console.SetCursorPosition(0, Console.BufferHeight - 1);
             Console.Write(text);
 
-            MonoAware.System.Console.ForegroundColor = ConsoleColor.Gray;
-            MonoAware.System.Console.BackgroundColor = ConsoleColor.Black;
+            UnixAware.System.Console.ForegroundColor = ConsoleColor.Gray;
+            UnixAware.System.Console.BackgroundColor = ConsoleColor.Black;
             return this;
         }
 

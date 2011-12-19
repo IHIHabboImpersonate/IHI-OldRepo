@@ -8,7 +8,8 @@ namespace IHI.Server.Habbos
 {
     public class HabboDistributor
     {
-        public static event HabboEventHandler OnHabboLogin;
+        public event HabboEventHandler OnHabboLogin;
+        public event HabboEventHandler OnPreHabboLogin;
 
         #region Fields
 
@@ -121,7 +122,7 @@ namespace IHI.Server.Habbos
         {
             int id;
 
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            using (var db = CoreManager.ServerCore.GetDatabaseSession())
             {
                 id = db.CreateCriteria<Database.Habbo>()
                     .SetProjection(Projections.Property("habbo_id"))
@@ -186,8 +187,11 @@ namespace IHI.Server.Habbos
 
         #endregion
 
-        internal static void InvokeHabboLoginEvent(object source, HabboEventArgs e)
-
+        internal void InvokeOnHabboLogin(object source, HabboEventArgs e)
+        {
+            OnHabboLogin.Invoke(source, e);
+        }
+        internal void InvokeOnPreHabboLogin(object source, HabboEventArgs e)
         {
             OnHabboLogin.Invoke(source, e);
         }

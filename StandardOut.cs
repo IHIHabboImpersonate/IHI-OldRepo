@@ -117,7 +117,7 @@ namespace IHI.Server
         {
             lock (this)
             {
-                MonoAware.System.Console.Clear();
+                UnixAware.System.Console.Clear();
                 _historyHeaders = new string[Console.BufferHeight];
                 _historyMessages = new string[Console.BufferHeight];
                 _historyColours = new ConsoleColor[Console.BufferHeight];
@@ -170,9 +170,9 @@ namespace IHI.Server
 
             lock (this)
             {
-                MonoAware.System.Console.ForegroundColor = ConsoleColor.Gray;
+                UnixAware.System.Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write(timestamp.Value.ToLongTimeString() + " >> [" + header + "] ");
-                MonoAware.System.Console.ForegroundColor = colour;
+                UnixAware.System.Console.ForegroundColor = colour;
                 Console.WriteLine(message);
             }
         }
@@ -197,7 +197,7 @@ namespace IHI.Server
         {
             lock (_historyHeaders)
             {
-                MonoAware.System.Console.Clear();
+                UnixAware.System.Console.Clear();
                 for (var i = _lastIndexWritten + 1; i < _historyHeaders.Length; i++)
                 {
                     Raw(_historyHeaders[i], _historyMessages[i], _historyColours[i], false);

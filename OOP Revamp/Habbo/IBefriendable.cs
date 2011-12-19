@@ -5,6 +5,24 @@ namespace IHI.Server.Habbos
 {
     public interface IBefriendable : IInstanceVariables, IPersistantVariables
     {
+        event MessengerBlockFlagEventHandler OnBlockFlagChanged;
+
+        bool BlockStalking
+        {
+            get;
+            set;
+        }
+        bool BlockRequests
+        {
+            get;
+            set;
+        }
+        bool BlockInvites
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Returns the ID of the IBefriendable.
         /// </summary>
@@ -39,5 +57,9 @@ namespace IHI.Server.Habbos
         /// Returns the room the IBefriendable is in.
         /// </summary>
         Room GetRoom();
+
+        bool IsStalkable();
+        bool IsRequestable();
+        bool IsInviteable();
     }
 }

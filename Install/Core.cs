@@ -7,18 +7,24 @@ namespace IHI.Server.Install
     {
         private readonly IDictionary<string, Category> _categories;
         private readonly IDictionary<string, IDictionary<string, object>> _installerOutputValues;
-        private readonly StandardOut _standardOut;
+        public InstallerIn In
+        {
+            get;
+            private set;
+        }
+        public InstallerOut Out
+        {
+            get;
+            private set;
+        }
 
         internal Core()
         {
             _categories = new Dictionary<string, Category>();
             _installerOutputValues = new Dictionary<string, IDictionary<string, object>>();
-            _standardOut = new StandardOut();
-        }
-
-        public StandardOut GetStandardOut()
-        {
-            return _standardOut;
+            
+            In = new InstallerIn();
+            Out = new InstallerOut();
         }
 
         public Core AddCategory(string installerCategoryID, Category category)
@@ -32,24 +38,24 @@ namespace IHI.Server.Install
             if (_categories.Count == 0)
             {
                 CoreManager.
-                    GetServerCore().
+                    ServerCore.
                     GetStandardOut().
                     PrintNotice("Installer => No installation tasks detected.");
                 return this;
             }
             CoreManager.
-                GetServerCore().
+                ServerCore.
                 GetStandardOut().
                 PrintImportant("Installer => Installation tasks detected!").
-                PrintNotice("Standard Out Formatting => Disabled (Installer)").
+                PrintNotice("Standard Out => Formatting Disabled (Installer)").
                 SetHidden(true);
 
             Console.WriteLine("Press any key to continue.");
 
             Console.ReadKey();
 
-            MonoAware.System.Console.Clear();
-            MonoAware.System.Console.ForegroundColor = ConsoleColor.Gray;
+            UnixAware.System.Console.Clear();
+            UnixAware.System.Console.ForegroundColor = ConsoleColor.Gray;
 
             foreach (var category in _categories)
             {
@@ -59,10 +65,10 @@ namespace IHI.Server.Install
             }
 
             CoreManager.
-                GetServerCore().
+                ServerCore.
                 GetStandardOut().
                 SetHidden(false).
-                PrintNotice("Standard Out Formatting => Enabled (Installer)");
+                PrintNotice("Standard Out => Formatting Enabled (Installer)");
             return this;
         }
 

@@ -4,11 +4,11 @@ namespace IHI.Server.Install
 {
     internal class InputException : Exception
     {
-        private readonly string fStatus;
+        private readonly string _status;
 
-        internal InputException(string Status)
+        internal InputException(string status)
         {
-            fStatus = Status;
+            _status = status;
         }
 
         /// <summary>
@@ -16,7 +16,7 @@ namespace IHI.Server.Install
         /// </summary>
         internal void Display()
         {
-            CoreManager.GetInstallerCore().GetStandardOut().SetStatus("ERROR: " + fStatus, ConsoleColor.Red);
+            CoreManager.InstallerCore.Out.SetStatus("ERROR: " + _status, ConsoleColor.Red);
         }
     }
 }

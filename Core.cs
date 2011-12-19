@@ -85,15 +85,13 @@ namespace IHI.Server
             return _habboFigureFactory;
         }
 
-        #endregion
-
-        #region InternalMethods
-
         public void Shutdown()
         {
             // TODO: Safe Shutdown
         }
+        #endregion
 
+        #region InternalMethods
         internal BootResult Boot(string configPath)
         {
             try
@@ -114,17 +112,17 @@ namespace IHI.Server
 
                 #region Load Plugins
 
-                _standardOut.PrintNotice("Plugin Loader => Starting...");
+                _standardOut.PrintNotice("Plugin Manager => Loading plugins...");
                 _pluginManager = new PluginManager();
                 foreach (var path in PluginManager.GetAllPotentialPluginPaths())
                 {
                     GetPluginManager().LoadPluginAtPath(path);
                 }
-                _standardOut.PrintNotice("Plugin Loader => Started!");
+                _standardOut.PrintNotice("Plugin Manager => Plugins loaded!");
 
                 #endregion
 
-                CoreManager.GetInstallerCore().Run();
+                CoreManager.InstallerCore.Run();
 
                 if (mainInstallRequired)
                     SaveConfigInstallation();
@@ -206,8 +204,7 @@ namespace IHI.Server
 
                 _standardOut.PrintNotice("Connection Manager => Starting...");
                 _connectionManager = new IonTcpConnectionManager(_config.ValueAsString("/config/network/host"),
-                                                                 _config.ValueAsInt("/config/network/port", 14478),
-                                                                 _config.ValueAsInt("/config/network/maxconnections", 2));
+                                                                 _config.ValueAsInt("/config/network/port", 14478));
                 _connectionManager.GetListener().Start();
                 _standardOut.PrintNotice("Connection Manager => Ready!");
 
@@ -220,12 +217,12 @@ namespace IHI.Server
                 #region Start Plugins
 
                 var pluginManager = GetPluginManager();
-                _standardOut.PrintNotice("Plugin Starter => Working...");
+                _standardOut.PrintNotice("Plugin Manager => Starting plugins...");
                 foreach (var plugin in pluginManager.GetLoadedPlugins())
                 {
                     pluginManager.StartPlugin(plugin);
                 }
-                _standardOut.PrintNotice("Plugin Starter => Finished!");
+                _standardOut.PrintNotice("Plugin Manager => Plugins started!");
 
                 #endregion
 
@@ -281,9 +278,7 @@ namespace IHI.Server
             if (_config.WasCreated()) // Did the config file have to be created?
             {
                 // Yes, add to the Installer Core.
-                var installerCore = CoreManager.GetInstallerCore();
-
-                installerCore.
+                CoreManager.InstallerCore.
                     AddCategory(
                         "StandardOut",
                         new Category().
@@ -404,7 +399,7 @@ namespace IHI.Server
 
         private void SaveConfigInstallation()
         {
-            var installer = CoreManager.GetInstallerCore();
+            var installer = CoreManager.InstallerCore;
 
 
             _standardOut.PrintImportant("Updating configuration file... (Install)");

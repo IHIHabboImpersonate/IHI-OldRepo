@@ -5,41 +5,37 @@
     /// </summary>
     public struct FloorPosition
     {
-        private byte fRotation;
-        private byte fX;
-        private byte fY;
-        private float fZ;
-
         /// <summary>
-        /// Returns the X Coordinate (BottomLeft-TopRight).
+        /// The rotation (0-7).
         /// </summary>
-        public byte GetX()
+        public byte Rotation
         {
-            return fX;
+            get;
+            set;
         }
-
         /// <summary>
-        /// Returns the Y Coordinate (TopLeft-BottomRight).
+        /// The X Coordinate (BottomLeft-TopRight)
         /// </summary>
-        public byte GetY()
+        public byte X
         {
-            return fY;
+            get;
+            set;
         }
-
         /// <summary>
-        /// Returns the Z Coordinate (Top-Bottom).
+        /// The Y Coordinate (TopLeft-BottomRight).
         /// </summary>
-        public float GetZ()
+        public byte Y
         {
-            return fZ;
+            get;
+            set;
         }
-
         /// <summary>
-        /// Returns the rotation (0-7).
+        /// The Z Coordinate (Top-Bottom).
         /// </summary>
-        public byte GetRotation()
+        public float Z
         {
-            return fRotation;
+            get;
+            set;
         }
 
         /// <summary>
@@ -47,7 +43,7 @@
         /// </summary>
         public byte[] Get2D()
         {
-            return new[] {fX, fY};
+            return new[] {X, Y};
         }
 
         /// <summary>
@@ -55,7 +51,7 @@
         /// </summary>
         public byte[] GetRounded3D()
         {
-            return new[] {fX, fY, (byte) fZ};
+            return new[] {X, Y, (byte) Z};
         }
 
         /// <summary>
@@ -63,7 +59,7 @@
         /// </summary>
         public float[] GetFloat3D()
         {
-            return new[] {fX, fY, fZ};
+            return new[] {X, Y, Z};
         }
     }
 }

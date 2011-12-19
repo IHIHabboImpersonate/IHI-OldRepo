@@ -37,7 +37,7 @@ namespace IHI.Server.Install
                     e.Display();
 
                     Console.SetCursorPosition(3, 15);
-                    Console.Write("".PadRight(MonoAware.System.Console.BufferWidth - 3));
+                    Console.Write("".PadRight(UnixAware.System.Console.BufferWidth - 3));
                     Console.SetCursorPosition(3, 15);
 
                     goto Retry;

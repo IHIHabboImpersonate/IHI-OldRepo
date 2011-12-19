@@ -6,12 +6,12 @@ namespace IHI.Server.Rooms.Furni
     {
         #region IRollerable Members
 
-        public IRollerable Roll(FloorPosition To)
+        public IRollerable Roll(FloorPosition to)
         {
             throw new NotImplementedException();
         }
 
-        public IRollerable Roll(FloorPosition From, FloorPosition To)
+        public IRollerable Roll(FloorPosition from, FloorPosition to)
         {
             throw new NotImplementedException();
         }

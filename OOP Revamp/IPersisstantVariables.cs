@@ -2,8 +2,8 @@
 {
     public interface IPersistantVariables
     {
-        string GetPersistantVariable(string Name);
+        string GetPersistantVariable(string name);
 
-        IPersistantVariables SetPersistantVariable(string Name, string Value);
+        IPersistantVariables SetPersistantVariable(string name, string value);
     }
 }

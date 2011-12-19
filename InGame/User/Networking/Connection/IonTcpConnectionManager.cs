@@ -14,9 +14,6 @@ namespace IHI.Server.Networking
         /// <summary>
         /// A 32 bit integer that holds the maximum amount of connections in the Connection manager.
         /// </summary>
-// ReSharper disable UnaccessedField.Local
-        private readonly int _maxSimultaneousConnections;
-// ReSharper restore UnaccessedField.Local
 
         /// <summary>
         /// A System.Collections.Generic.Dictionary with client IDs as keys and IonTcpConnections as values. This collection holds active IonTcpConnections.
@@ -38,14 +35,9 @@ namespace IHI.Server.Networking
         /// <param name="localIP">The local IP address to bind the listener to.</param>
         /// <param name="port">The TCP port number to bind the listener to.</param>
         /// <param name="maxSimultaneousConnections">The maximum amount of connections in the Connection manager.</param>
-        public IonTcpConnectionManager(string localIP, int port, int maxSimultaneousConnections)
+        public IonTcpConnectionManager(string localIP, int port)
         {
-            var initialCapacity = maxSimultaneousConnections;
-            if (maxSimultaneousConnections > 4)
-                initialCapacity /= 4; // Set 1/4 of max connections as initial capacity to avoid too much resizing
-
-            _connections = new Dictionary<uint, IonTcpConnection>(initialCapacity);
-            _maxSimultaneousConnections = maxSimultaneousConnections;
+            _connections = new Dictionary<uint, IonTcpConnection>();
 
             _listener = new IonTcpConnectionListener(localIP, port, this);
         }
@@ -116,13 +108,13 @@ namespace IHI.Server.Networking
             lock (_connections)
                 _connections.Add(connection.GetID(), connection);
 
-            connection.Start();
-
             if (OnConnectionOpen != null)
             {
                 OnConnectionOpen.Invoke(connection, null);
             }
 
+            connection.Start();
+            
             //IonEnvironment.GetHabboHotel().GetClients().StartClient(Connection.ID);
         }
 
@@ -130,7 +122,7 @@ namespace IHI.Server.Networking
         {
             var connection = GetConnection(clientID);
             if (connection == null) return;
-            CoreManager.GetServerCore().GetStandardOut().PrintNotice("Dropped Connection => " +
+            CoreManager.ServerCore.GetStandardOut().PrintNotice("Dropped Connection => " +
                                                                      connection.GetIPAddressString());
 
             connection.Stop();
