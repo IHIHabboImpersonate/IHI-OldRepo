@@ -6,3 +6,5 @@
 /StyleCop.Cache
 /packages.config
 /_ReSharper.Server/
+/bin/
+/obj/
