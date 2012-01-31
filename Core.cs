@@ -135,6 +135,9 @@ namespace IHI.Server
                     _config.ValueAsByte("/config/standardout/importance", (byte) StandardOutImportance.Debug));
 
 
+                #endregion
+
+                #region Database
                 _standardOut.PrintNotice("MySQL => Preparing database connection settings...");
 
                 try
@@ -148,35 +151,31 @@ namespace IHI.Server
                                                    Database = _config.ValueAsString("/config/mysql/database"),
                                                    Pooling = true,
                                                    MinimumPoolSize = _config.ValueAsUint("/config/mysql/minpoolsize", 1),
-                                                   MaximumPoolSize =
-                                                       _config.ValueAsUint("/config/mysql/maxpoolsize", 25)
+                                                   MaximumPoolSize = _config.ValueAsUint("/config/mysql/maxpoolsize", 25)
                                                };
 
                     PrepareSessionFactory(connectionString.ConnectionString);
 
                     _standardOut.PrintNotice("MySQL => Testing connection...");
 
-                    using (var db = GetDatabaseSession())
+                    using (ISession db = GetDatabaseSession())
                     {
                         if (!db.IsConnected)
                             throw new Exception("Unknown cause");
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
                     _standardOut.PrintError("MySQL => Connection failed!");
                     throw;
                 }
                 _standardOut.PrintNotice("MySQL => Connected!");
-
                 #endregion
 
                 #region Distributors
-
                 _standardOut.PrintNotice("Habbo Distributor => Constructing...");
                 _habboDistributor = new HabboDistributor();
                 _standardOut.PrintNotice("Habbo Distributor => Ready");
-
                 #endregion
 
                 #region Figure Factory
@@ -235,9 +234,7 @@ namespace IHI.Server
                 _standardOut.PrintException(e);
 
 
-                var t = e.GetType();
-
-                if (t == typeof (MappingException))
+                if (e is MappingException)
                     return BootResult.MySQLMappingFailure;
 
                 return BootResult.UnknownFailure;
@@ -326,7 +323,7 @@ namespace IHI.Server
                                         new[]
                                             {
                                                 "ihi",
-                                                "root",
+                                                "root (NOT RECOMMENDED)",
                                                 "chris"
                                             },
                                         "ihi")).
@@ -334,7 +331,18 @@ namespace IHI.Server
                                     new PasswordStep(
                                         "MySQL Password",
                                         "This is the Password used to authenticate with the MySQL server.")).
-                            AddStep("MinimumPoolSide",
+                            AddStep("DatebaseName",
+                                    new StringStep(
+                                        "MySQL Database Name",
+                                        "This is the name of the database IHI should use.",
+                                        new[]
+                                            {
+                                                "ihi",
+                                                "ihidb",
+                                                "hotel"
+                                            },
+                                        "ihi")).
+                            AddStep("MinimumPoolSize",
                                     new IntStep(
                                         "MySQL Minimum Pool Side",
                                         "This is the minimum amount of MySQL connections to maintain in the pool.",
@@ -345,7 +353,7 @@ namespace IHI.Server
                                             },
                                         1,
                                         1)).
-                            AddStep("MaximumPoolSide",
+                            AddStep("MaximumPoolSize",
                                     new IntStep(
                                         "MySQL Maximum Pool Side",
                                         "This is the maximum amount of MySQL connections to maintain in the pool.",
@@ -391,7 +399,7 @@ namespace IHI.Server
                                                     "14480",
                                                     "30002"
                                                 },
-                                            14478)));
+                                            14480)));
                 return true;
             }
             return false;
@@ -405,7 +413,7 @@ namespace IHI.Server
             _standardOut.PrintImportant("Updating configuration file... (Install)");
 
             var doc = _config.GetInternalDocument();
-            var rootElement = doc.SelectSingleNode("/");
+            var rootElement = doc.SelectSingleNode("/config");
 
             var standardOutElement = doc.CreateElement("standardout");
             var mySQLElement = doc.CreateElement("mysql");
@@ -461,7 +469,7 @@ namespace IHI.Server
             #region Database
 
             valueElement = doc.CreateElement("database");
-            valueElement.InnerText = installer.GetInstallerOutputValue("Database", "DatabaseName").ToString();
+            valueElement.InnerText = installer.GetInstallerOutputValue("Database", "DatebaseName").ToString();
             mySQLElement.AppendChild(valueElement);
 
             #endregion
@@ -469,7 +477,7 @@ namespace IHI.Server
             #region MinPoolSize
 
             valueElement = doc.CreateElement("minpoolsize");
-            valueElement.InnerText = installer.GetInstallerOutputValue("Database", "MinPoolSize").ToString();
+            valueElement.InnerText = installer.GetInstallerOutputValue("Database", "MinimumPoolSize").ToString();
             mySQLElement.AppendChild(valueElement);
 
             #endregion
@@ -477,7 +485,7 @@ namespace IHI.Server
             #region MaxPoolSize
 
             valueElement = doc.CreateElement("maxpoolsize");
-            valueElement.InnerText = installer.GetInstallerOutputValue("Database", "MaxPoolSize").ToString();
+            valueElement.InnerText = installer.GetInstallerOutputValue("Database", "MaximumPoolSize").ToString();
             mySQLElement.AppendChild(valueElement);
 
             #endregion
@@ -498,14 +506,6 @@ namespace IHI.Server
 
             valueElement = doc.CreateElement("port");
             valueElement.InnerText = installer.GetInstallerOutputValue("Network", "GamePort").ToString();
-            networkElement.AppendChild(valueElement);
-
-            #endregion
-
-            #region MaxConnections
-
-            valueElement = doc.CreateElement("maxconnections");
-            valueElement.InnerText = installer.GetInstallerOutputValue("Network", "MaxGameConnections").ToString();
             networkElement.AppendChild(valueElement);
 
             #endregion

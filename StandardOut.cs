@@ -1,4 +1,8 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 
 namespace IHI.Server
 {
@@ -81,8 +85,9 @@ namespace IHI.Server
         /// <param name="e">The exception to output.</param>
         public StandardOut PrintException(Exception e)
         {
-            PrintError(e.Message);
-            PrintDebug(e.StackTrace);
+            PrintError("Exception => " + e.GetType().FullName);
+            PrintError("             " + e.Message);
+            PrintError("             Saved to " + SaveExceptionToFile(e));
             return this;
         }
 
@@ -228,6 +233,36 @@ namespace IHI.Server
             Raw("IMPORTANT", "StandardOut Importance Changed [ " + _importance + " -> " + importance + " ]",
                 ConsoleColor.Yellow);
             _importance = importance;
+        }
+
+
+        /// <summary>
+        /// Save data about an exception to file.
+        /// </summary>
+        /// <param name="exception">The exception to save.</param>
+        /// <returns>The path the file was saved at.</returns>
+        private static string SaveExceptionToFile(Exception exception)
+        {
+            StringBuilder logText = new StringBuilder("IHIEXCEPTION\x01");
+            logText.Append("TIME\x02" + DateTime.UtcNow + "\x01");
+            
+            logText.Append("EXCEPTION-THREAD\x02" + Thread.CurrentThread.Name + "\x01");
+
+            int i = 0;
+            while (exception != null)
+            {
+                logText.Append("EXCEPTION[" + i + "]-TYPE\x02" + exception.GetType().FullName + "\x01");
+                logText.Append("EXCEPTION[" + i + "]-MESSAGE\x02" + exception.Message + "\x01");
+                logText.Append("EXCEPTION[" + i + "]-STACKTRACE\x02" + exception.StackTrace + "\x01");
+
+                i++;
+                exception = exception.InnerException;
+            }
+
+            string path = Path.Combine(Environment.CurrentDirectory, "dumps", "exception-" + DateTime.UtcNow.Ticks + ".ihidump");
+
+            File.WriteAllText(path, logText.ToString());
+            return path;
         }
     }
 

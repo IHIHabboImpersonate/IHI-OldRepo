@@ -16,6 +16,8 @@ namespace IHI.Server.Install
 
         public override object Run()
         {
+            CoreManager.InstallerCore.Out.OverwritePageContents(ToString("No default! If you leave it blank the password is considered blank!"));
+            
             var password = new StringBuilder();
             
             var cursorHistory = new Stack<Point>();
