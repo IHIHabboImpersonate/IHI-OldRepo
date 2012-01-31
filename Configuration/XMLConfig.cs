@@ -1,4 +1,19 @@
-﻿using System.Collections.Generic;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 
@@ -11,15 +26,15 @@ namespace IHI.Server.Configuration
         private readonly string _path;
 
         /// <summary>
-        /// Loads an Xml config file into memory.
+        ///   Loads an Xml config file into memory.
         /// </summary>
-        /// <param name="path">The path to the Xml config file.</param>
+        /// <param name = "path">The path to the Xml config file.</param>
         public XmlConfig(string path)
         {
             if (!EnsureFile(new FileInfo(path), out _created))
             {
                 CoreManager.ServerCore.GetStandardOut().PrintError("File '" + path +
-                                                                        "' does not exist and couldn't be created automatically! (XmlConfig)");
+                                                                   "' does not exist and couldn't be created automatically! (XmlConfig)");
             }
 
             _document = new XmlDocument();
@@ -40,7 +55,7 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Save changes to the configuration file.
+        ///   Save changes to the configuration file.
         /// </summary>
         public void Save()
         {
@@ -48,8 +63,8 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns the internal XmlDocument object.
-        /// Not recommended for the inexperienced.
+        ///   Returns the internal XmlDocument object.
+        ///   Not recommended for the inexperienced.
         /// </summary>
         public XmlDocument GetInternalDocument()
         {
@@ -57,10 +72,10 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns a value as a byte.
+        ///   Returns a value as a byte.
         /// </summary>
-        /// <param name="xPath">The XPath query.</param>
-        /// <param name="fallback">The value to return if the value is invalid.</param>
+        /// <param name = "xPath">The XPath query.</param>
+        /// <param name = "fallback">The value to return if the value is invalid.</param>
         public byte ValueAsByte(string xPath, byte fallback)
         {
             byte result;
@@ -70,8 +85,8 @@ namespace IHI.Server.Configuration
                 if (!byte.TryParse(ValueAsString(xPath), out result))
                 {
                     CoreManager.ServerCore.GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
-                                                                              "' is not a valid byte! Fallback: " +
-                                                                              fallback);
+                                                                         "' is not a valid byte! Fallback: " +
+                                                                         fallback);
                     return fallback;
                 }
             }
@@ -83,10 +98,10 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns a value as a signed byte.
+        ///   Returns a value as a signed byte.
         /// </summary>
-        /// <param name="xPath">The XPath query.</param>
-        /// <param name="fallback">The value to return if the value is invalid.</param>
+        /// <param name = "xPath">The XPath query.</param>
+        /// <param name = "fallback">The value to return if the value is invalid.</param>
         public sbyte ValueAsSbyte(string xPath, sbyte fallback)
         {
             sbyte result;
@@ -96,8 +111,8 @@ namespace IHI.Server.Configuration
                 if (!sbyte.TryParse(ValueAsString(xPath), out result))
                 {
                     CoreManager.ServerCore.GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
-                                                                              "' is not a valid sbyte! Fallback: " +
-                                                                              fallback);
+                                                                         "' is not a valid sbyte! Fallback: " +
+                                                                         fallback);
                     return fallback;
                 }
             }
@@ -109,10 +124,10 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns a value as a short.
+        ///   Returns a value as a short.
         /// </summary>
-        /// <param name="xPath">The XPath query.</param>
-        /// <param name="fallback">The value to return if the value is invalid.</param>
+        /// <param name = "xPath">The XPath query.</param>
+        /// <param name = "fallback">The value to return if the value is invalid.</param>
         public short ValueAsShort(string xPath, short fallback)
         {
             short result;
@@ -122,8 +137,8 @@ namespace IHI.Server.Configuration
                 if (!short.TryParse(ValueAsString(xPath), out result))
                 {
                     CoreManager.ServerCore.GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
-                                                                              "' is not a valid short! Fallback: " +
-                                                                              fallback);
+                                                                         "' is not a valid short! Fallback: " +
+                                                                         fallback);
                     return fallback;
                 }
             }
@@ -135,10 +150,10 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns a value as an unsigned short.
+        ///   Returns a value as an unsigned short.
         /// </summary>
-        /// <param name="xPath">The XPath query.</param>
-        /// <param name="fallback">The value to return if the value is invalid.</param>
+        /// <param name = "xPath">The XPath query.</param>
+        /// <param name = "fallback">The value to return if the value is invalid.</param>
         public ushort ValueAsUshort(string xPath, ushort fallback)
         {
             ushort result;
@@ -148,8 +163,8 @@ namespace IHI.Server.Configuration
                 if (!ushort.TryParse(ValueAsString(xPath), out result))
                 {
                     CoreManager.ServerCore.GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
-                                                                              "' is not a valid ushort! Fallback: " +
-                                                                              fallback);
+                                                                         "' is not a valid ushort! Fallback: " +
+                                                                         fallback);
                     return fallback;
                 }
             }
@@ -161,10 +176,10 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns a value as an int.
+        ///   Returns a value as an int.
         /// </summary>
-        /// <param name="xPath">The XPath query.</param>
-        /// <param name="fallback">The value to return if the value is invalid.</param>
+        /// <param name = "xPath">The XPath query.</param>
+        /// <param name = "fallback">The value to return if the value is invalid.</param>
         public int ValueAsInt(string xPath, int fallback)
         {
             int result;
@@ -174,8 +189,8 @@ namespace IHI.Server.Configuration
                 if (!int.TryParse(ValueAsString(xPath), out result))
                 {
                     CoreManager.ServerCore.GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
-                                                                              "' is not a valid int! Fallback: " +
-                                                                              fallback);
+                                                                         "' is not a valid int! Fallback: " +
+                                                                         fallback);
                     return fallback;
                 }
             }
@@ -187,10 +202,10 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns a value as an unsigned int.
+        ///   Returns a value as an unsigned int.
         /// </summary>
-        /// <param name="xPath">The XPath query.</param>
-        /// <param name="fallback">The value to return if the value is invalid.</param>
+        /// <param name = "xPath">The XPath query.</param>
+        /// <param name = "fallback">The value to return if the value is invalid.</param>
         public uint ValueAsUint(string xPath, uint fallback)
         {
             uint result;
@@ -200,8 +215,8 @@ namespace IHI.Server.Configuration
                 if (!uint.TryParse(ValueAsString(xPath), out result))
                 {
                     CoreManager.ServerCore.GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
-                                                                              "' is not a valid uint! Fallback: " +
-                                                                              fallback);
+                                                                         "' is not a valid uint! Fallback: " +
+                                                                         fallback);
                     return fallback;
                 }
             }
@@ -213,10 +228,10 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns a value as a long.
+        ///   Returns a value as a long.
         /// </summary>
-        /// <param name="xPath">The XPath query.</param>
-        /// <param name="fallback">The value to return if the value is invalid.</param>
+        /// <param name = "xPath">The XPath query.</param>
+        /// <param name = "fallback">The value to return if the value is invalid.</param>
         public long ValueAsLong(string xPath, long fallback)
         {
             long result;
@@ -226,8 +241,8 @@ namespace IHI.Server.Configuration
                 if (!long.TryParse(ValueAsString(xPath), out result))
                 {
                     CoreManager.ServerCore.GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
-                                                                              "' is not a valid long! Fallback: " +
-                                                                              fallback);
+                                                                         "' is not a valid long! Fallback: " +
+                                                                         fallback);
                     return fallback;
                 }
             }
@@ -239,10 +254,10 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns a value as an unsigned long.
+        ///   Returns a value as an unsigned long.
         /// </summary>
-        /// <param name="xPath">The XPath query.</param>
-        /// <param name="fallback">The value to return if the value is invalid.</param>
+        /// <param name = "xPath">The XPath query.</param>
+        /// <param name = "fallback">The value to return if the value is invalid.</param>
         public ulong ValueAsUlong(string xPath, ulong fallback)
         {
             ulong result;
@@ -252,8 +267,8 @@ namespace IHI.Server.Configuration
                 if (!ulong.TryParse(ValueAsString(xPath), out result))
                 {
                     CoreManager.ServerCore.GetStandardOut().PrintWarning("Configuration Error: '" + xPath +
-                                                                              "' is not a valid ulong! Fallback: " +
-                                                                              fallback);
+                                                                         "' is not a valid ulong! Fallback: " +
+                                                                         fallback);
                     return fallback;
                 }
             }
@@ -265,19 +280,19 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Returns a value as a string.
+        ///   Returns a value as a string.
         /// </summary>
-        /// <param name="xPath">The XPath query.</param>
+        /// <param name = "xPath">The XPath query.</param>
         public string ValueAsString(string xPath)
         {
-            var node = _document.SelectSingleNode(xPath + "/text()");
+            XmlNode node = _document.SelectSingleNode(xPath + "/text()");
             if (node == null)
                 return "";
             return node.Value;
         }
 
         /// <summary>
-        /// Returns true if the file required creating when constructing this object.
+        ///   Returns true if the file required creating when constructing this object.
         /// </summary>
         public bool WasCreated()
         {
@@ -286,9 +301,9 @@ namespace IHI.Server.Configuration
 
 
         /// <summary>
-        /// Creates a file if it doesn't exist, creating all non-existing parent directories in the process.
+        ///   Creates a file if it doesn't exist, creating all non-existing parent directories in the process.
         /// </summary>
-        /// <param name="file">The file to create.</param>
+        /// <param name = "file">The file to create.</param>
         /// <returns>True if the file was created, false otherwise.</returns>
         public static bool EnsureFile(FileInfo file)
         {
@@ -303,10 +318,10 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Creates a file if it doesn't exist, creating all non-existing parent directories in the process.
+        ///   Creates a file if it doesn't exist, creating all non-existing parent directories in the process.
         /// </summary>
-        /// <param name="file">The file to create.</param>
-        /// <param name="created">If the file was created then this is set to true.</param>
+        /// <param name = "file">The file to create.</param>
+        /// <param name = "created">If the file was created then this is set to true.</param>
         /// <returns>True if the file was created, false otherwise.</returns>
         public static bool EnsureFile(FileInfo file, out bool created)
         {
@@ -326,18 +341,18 @@ namespace IHI.Server.Configuration
         }
 
         /// <summary>
-        /// Creates a directory if it doesn't exist, creating all non-existing parent directories in the process.
+        ///   Creates a directory if it doesn't exist, creating all non-existing parent directories in the process.
         /// </summary>
-        /// <param name="directory">The directory to create.</param>
+        /// <param name = "directory">The directory to create.</param>
         /// <returns>True if the directory was created, false otherwise.</returns>
         public static bool EnsureDirectory(DirectoryInfo directory)
         {
             if (directory.Exists) // Does the directory already exist?
                 return true; // Yes, nothing needed.
 
-            var missingParents = new Stack<DirectoryInfo>(new[] {null, directory});
+            Stack<DirectoryInfo> missingParents = new Stack<DirectoryInfo>(new[] {null, directory});
 
-            var parent = directory.Parent;
+            DirectoryInfo parent = directory.Parent;
 
             while (!parent.Exists) // While the next parent directory don't exist...
             {

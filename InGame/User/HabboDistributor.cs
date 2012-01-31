@@ -1,4 +1,19 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using IHI.Server.Networking;
@@ -14,17 +29,17 @@ namespace IHI.Server.Habbos
         #region Fields
 
         /// <summary>
-        /// Stores the cached Habbos.
+        ///   Stores the cached Habbos.
         /// </summary>
         private readonly Dictionary<int, WeakReference> _habboCache = new Dictionary<int, WeakReference>();
 
         /// <summary>
-        /// Stores the cached Username ID details.
+        ///   Stores the cached Username ID details.
         /// </summary>
         private readonly Dictionary<string, int> _usernameIDCache = new Dictionary<string, int>();
 
         /// <summary>
-        /// The date and time of the last clean up.
+        ///   The date and time of the last clean up.
         /// </summary>
         private DateTime _lastCleanUp = DateTime.Now;
 
@@ -37,10 +52,10 @@ namespace IHI.Server.Habbos
         #region Exposed Methods
 
         /// <summary>
-        /// Return a Habbo from the cache if possible.
-        /// If the Habbo is not cached then put it in the cache and return it.
+        ///   Return a Habbo from the cache if possible.
+        ///   If the Habbo is not cached then put it in the cache and return it.
         /// </summary>
-        /// <param name="username">The username of the Habbo to return.</param>
+        /// <param name = "username">The username of the Habbo to return.</param>
         public Habbo GetHabbo(string username)
         {
             lock (this)
@@ -49,7 +64,7 @@ namespace IHI.Server.Habbos
                 if (_usernameIDCache.ContainsKey(username))
                 {
                     // Yes, get the cached Habbo.
-                    var cached = _habboCache[_usernameIDCache[username]].Target as Habbo;
+                    Habbo cached = _habboCache[_usernameIDCache[username]].Target as Habbo;
 
                     // Has the cached Habbo been collected and removed from memory?
                     if (cached != null)
@@ -66,8 +81,8 @@ namespace IHI.Server.Habbos
                 }
 
                 // Load the Habbo into memory from the database.
-                var theHabbo = new Habbo(username);
-                
+                Habbo theHabbo = new Habbo(username);
+
                 // Yes, cache it.
                 CacheHabbo(theHabbo);
 
@@ -77,10 +92,10 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Return a Habbo from the cache if possible.
-        /// If the Habbo is not cached then put it in the cache and return it.
+        ///   Return a Habbo from the cache if possible.
+        ///   If the Habbo is not cached then put it in the cache and return it.
         /// </summary>
-        /// <param name="id">The ID of the Habbo to return.</param>
+        /// <param name = "id">The ID of the Habbo to return.</param>
         public Habbo GetHabbo(int id)
         {
             lock (this)
@@ -89,7 +104,7 @@ namespace IHI.Server.Habbos
                 if (_habboCache.ContainsKey(id))
                 {
                     // Yes, get the cached Habbo.
-                    var cached = _habboCache[id].Target as Habbo;
+                    Habbo cached = _habboCache[id].Target as Habbo;
 
                     // Has the cached Habbo been collected and removed from memory?
                     if (cached != null)
@@ -101,7 +116,7 @@ namespace IHI.Server.Habbos
                 }
 
                 // Load the Habbo into memory from the database.
-                var theHabbo = new Habbo(id);
+                Habbo theHabbo = new Habbo(id);
 
 
                 // Yes, cache it.
@@ -113,11 +128,11 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Returns a Habbo with a matching SSO Ticket and Origin IP.
-        /// If no match is made, null is returned.
+        ///   Returns a Habbo with a matching SSO Ticket and Origin IP.
+        ///   If no match is made, null is returned.
         /// </summary>
-        /// <param name="ssoTicket">The SSO Ticket to match.</param>
-        /// <param name="origin">The IP Address to match.</param>
+        /// <param name = "ssoTicket">The SSO Ticket to match.</param>
+        /// <param name = "origin">The IP Address to match.</param>
         public Habbo GetHabbo(string ssoTicket, int origin)
         {
             int id;
@@ -138,11 +153,11 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Return a Habbo from the cache if possible.
-        /// If the Habbo is not cached then put it in the cache and return it.
-        /// FYI: If the Habbo is not cached then this the Habbo will be created from the data provided.
+        ///   Return a Habbo from the cache if possible.
+        ///   If the Habbo is not cached then put it in the cache and return it.
+        ///   FYI: If the Habbo is not cached then this the Habbo will be created from the data provided.
         /// </summary>
-        /// <param name="habbo">The database result of the Habbo to return.</param>
+        /// <param name = "habbo">The database result of the Habbo to return.</param>
         public Habbo GetHabbo(Database.Habbo habbo)
         {
             lock (this)
@@ -151,7 +166,7 @@ namespace IHI.Server.Habbos
                 if (_habboCache.ContainsKey(habbo.habbo_id))
                 {
                     // Yes, get the cached Habbo.
-                    var cached = _habboCache[habbo.habbo_id].Target as Habbo;
+                    Habbo cached = _habboCache[habbo.habbo_id].Target as Habbo;
 
                     // Has the cached Habbo been collected and removed from memory?
                     if (cached != null)
@@ -163,7 +178,7 @@ namespace IHI.Server.Habbos
                 }
 
                 // Load the Habbo into memory from the database.
-                var theHabbo = new Habbo(habbo);
+                Habbo theHabbo = new Habbo(habbo);
 
                 // Yes, cache it.
                 CacheHabbo(theHabbo);
@@ -174,11 +189,11 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Creates a minimal Habbo object.
-        /// This is not cached and is only used after the Habbo connects but before logging in.
-        /// Do not use this Habbo for custom features. Use a cached version.
+        ///   Creates a minimal Habbo object.
+        ///   This is not cached and is only used after the Habbo connects but before logging in.
+        ///   Do not use this Habbo for custom features. Use a cached version.
         /// </summary>
-        /// <param name="connection">The Connection this Habbo is for.</param>
+        /// <param name = "connection">The Connection this Habbo is for.</param>
         /// <returns>A mostly non-function Habbo.</returns>
         public Habbo GetPreLoginHabbo(IonTcpConnection connection)
         {
@@ -191,6 +206,7 @@ namespace IHI.Server.Habbos
         {
             OnHabboLogin.Invoke(source, e);
         }
+
         internal void InvokeOnPreHabboLogin(object source, HabboEventArgs e)
         {
             OnHabboLogin.Invoke(source, e);
@@ -199,9 +215,9 @@ namespace IHI.Server.Habbos
         #region Private Methods
 
         /// <summary>
-        /// Add a Habbo into the cache.
+        ///   Add a Habbo into the cache.
         /// </summary>
-        /// <param name="theHabbo">The Habbo to cache.</param>
+        /// <param name = "theHabbo">The Habbo to cache.</param>
         private void CacheHabbo(Habbo theHabbo)
         {
             lock (this)
@@ -214,9 +230,9 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Remove any collected Habbos from the cache.
+        ///   Remove any collected Habbos from the cache.
         /// </summary>
-        /// <param name="force">If true then ignore the time since the last clean up.</param>
+        /// <param name = "force">If true then ignore the time since the last clean up.</param>
         private void CleanUp(bool force)
         {
             lock (this)
@@ -226,17 +242,19 @@ namespace IHI.Server.Habbos
                     // Yes, don't bother cleaning up again.
                     return;
 
-                var toRemoveUsernames = new List<string>();
+                List<string> toRemoveUsernames = new List<string>();
 
                 // Loop through all Username ID pairs in the cache 
-                foreach (var weakref in _usernameIDCache.Where(weakref => !_habboCache[weakref.Value].IsAlive))
+                foreach (
+                    KeyValuePair<string, int> weakref in
+                        _usernameIDCache.Where(weakref => !_habboCache[weakref.Value].IsAlive))
                 {
                     // If it isn't remove it from the cache
                     _habboCache.Remove(weakref.Value);
                     // And remove the Username ID pairs too
                     toRemoveUsernames.Add(weakref.Key);
                 }
-                foreach (var username in toRemoveUsernames)
+                foreach (string username in toRemoveUsernames)
                     _usernameIDCache.Remove(username);
 
 

@@ -1,6 +1,20 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 
@@ -11,29 +25,29 @@ namespace IHI.Server
         private bool _hidden;
 
         /// <summary>
-        /// The past message colours.
+        ///   The past message colours.
         /// </summary>
         private ConsoleColor[] _historyColours;
 
         /// <summary>
-        /// The past header text.
+        ///   The past header text.
         /// </summary>
         private string[] _historyHeaders;
 
         /// <summary>
-        /// The past message text.
+        ///   The past message text.
         /// </summary>
         private string[] _historyMessages;
 
         /// <summary>
-        /// The past message timestamps.
+        ///   The past message timestamps.
         /// </summary>
         private DateTime?[] _historyTimestamps;
 
         private StandardOutImportance _importance;
 
         /// <summary>
-        /// The last index of the rolling history arrays that was written to.
+        ///   The last index of the rolling history arrays that was written to.
         /// </summary>
         private int _lastIndexWritten;
 
@@ -47,9 +61,9 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Output a debug message.
+        ///   Output a debug message.
         /// </summary>
-        /// <param name="message">The message to output.</param>
+        /// <param name = "message">The message to output.</param>
         public StandardOut PrintDebug(string message)
         {
             if (_importance <= StandardOutImportance.Debug)
@@ -58,9 +72,9 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Output a warning message.
+        ///   Output a warning message.
         /// </summary>
-        /// <param name="message">The message to output.</param>
+        /// <param name = "message">The message to output.</param>
         public StandardOut PrintWarning(string message)
         {
             if (_importance <= StandardOutImportance.Warning)
@@ -69,9 +83,9 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Output an error message.
+        ///   Output an error message.
         /// </summary>
-        /// <param name="message">The message to output.</param>
+        /// <param name = "message">The message to output.</param>
         public StandardOut PrintError(string message)
         {
             if (_importance <= StandardOutImportance.Error)
@@ -80,9 +94,9 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Output an exception in a formatted manner.
+        ///   Output an exception in a formatted manner.
         /// </summary>
-        /// <param name="e">The exception to output.</param>
+        /// <param name = "e">The exception to output.</param>
         public StandardOut PrintException(Exception e)
         {
             PrintError("Exception => " + e.GetType().FullName);
@@ -92,10 +106,10 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Output a general message.
-        /// Use this for most things.
+        ///   Output a general message.
+        ///   Use this for most things.
         /// </summary>
-        /// <param name="message">The message to output.</param>
+        /// <param name = "message">The message to output.</param>
         public StandardOut PrintNotice(string message)
         {
             if (_importance <= StandardOutImportance.Notice)
@@ -104,10 +118,10 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Output an important message.
-        /// Use when the message is important but not debugging, a warning or an error.
+        ///   Output an important message.
+        ///   Use when the message is important but not debugging, a warning or an error.
         /// </summary>
-        /// <param name="message">The message to output.</param>
+        /// <param name = "message">The message to output.</param>
         public StandardOut PrintImportant(string message)
         {
             if (_importance <= StandardOutImportance.Important)
@@ -116,7 +130,7 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Clear the output.
+        ///   Clear the output.
         /// </summary>
         public StandardOut Clear()
         {
@@ -133,7 +147,7 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Check if the output is hidden from the screen or not.
+        ///   Check if the output is hidden from the screen or not.
         /// </summary>
         /// <returns>True if the output is hidden, false otherwise.</returns>
         public bool IsHidden()
@@ -142,9 +156,9 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Set whether the output is hidden from the screen or not.
+        ///   Set whether the output is hidden from the screen or not.
         /// </summary>
-        /// <param name="hidden">True to hide the output, false to show it.</param>
+        /// <param name = "hidden">True to hide the output, false to show it.</param>
         internal StandardOut SetHidden(bool hidden)
         {
             if (_hidden != hidden)
@@ -203,11 +217,11 @@ namespace IHI.Server
             lock (_historyHeaders)
             {
                 UnixAware.System.Console.Clear();
-                for (var i = _lastIndexWritten + 1; i < _historyHeaders.Length; i++)
+                for (int i = _lastIndexWritten + 1; i < _historyHeaders.Length; i++)
                 {
                     Raw(_historyHeaders[i], _historyMessages[i], _historyColours[i], false);
                 }
-                for (var i = 0; i <= _lastIndexWritten; i++)
+                for (int i = 0; i <= _lastIndexWritten; i++)
                 {
                     Raw(_historyHeaders[i], _historyMessages[i], _historyColours[i], false);
                 }
@@ -215,7 +229,7 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Check if the output is hidden from the screen or not.
+        ///   Check if the output is hidden from the screen or not.
         /// </summary>
         /// <returns>True if the output is hidden, false otherwise.</returns>
         public StandardOutImportance GetImportance()
@@ -224,7 +238,7 @@ namespace IHI.Server
         }
 
         /// <summary>
-        /// Set whether the output is hidden from the screen or not.
+        ///   Set whether the output is hidden from the screen or not.
         /// </summary>
         /// <returns>True to hide the output, false to show it.</returns>
         public void SetImportance(StandardOutImportance importance)
@@ -237,15 +251,15 @@ namespace IHI.Server
 
 
         /// <summary>
-        /// Save data about an exception to file.
+        ///   Save data about an exception to file.
         /// </summary>
-        /// <param name="exception">The exception to save.</param>
+        /// <param name = "exception">The exception to save.</param>
         /// <returns>The path the file was saved at.</returns>
         private static string SaveExceptionToFile(Exception exception)
         {
             StringBuilder logText = new StringBuilder("IHIEXCEPTION\x01");
             logText.Append("TIME\x02" + DateTime.UtcNow + "\x01");
-            
+
             logText.Append("EXCEPTION-THREAD\x02" + Thread.CurrentThread.Name + "\x01");
 
             int i = 0;
@@ -259,7 +273,8 @@ namespace IHI.Server
                 exception = exception.InnerException;
             }
 
-            string path = Path.Combine(Environment.CurrentDirectory, "dumps", "exception-" + DateTime.UtcNow.Ticks + ".ihidump");
+            string path = Path.Combine(Environment.CurrentDirectory, "dumps",
+                                       "exception-" + DateTime.UtcNow.Ticks + ".ihidump");
 
             File.WriteAllText(path, logText.ToString());
             return path;

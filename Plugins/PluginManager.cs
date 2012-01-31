@@ -1,4 +1,19 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,9 +28,9 @@ namespace IHI.Server.Plugins
         private HashSet<int> _compatibleReleases;
 
         /// <summary>
-        /// Load and start a plugin with a relative path to the plugin directory.
+        ///   Load and start a plugin with a relative path to the plugin directory.
         /// </summary>
-        /// <param name="name">The filename of the plugin MINUS THE .dll!!</param>
+        /// <param name = "name">The filename of the plugin MINUS THE .dll!!</param>
         public Plugin GetPlugin(string name)
         {
             if (_plugins.ContainsKey(name))
@@ -24,9 +39,9 @@ namespace IHI.Server.Plugins
         }
 
         /// <summary>
-        /// Start a plugin.
+        ///   Start a plugin.
         /// </summary>
-        /// <param name="plugin">The plugin object you wish to start.</param>
+        /// <param name = "plugin">The plugin object you wish to start.</param>
         internal PluginManager StartPlugin(Plugin plugin)
         {
             plugin.Start();
@@ -35,9 +50,9 @@ namespace IHI.Server.Plugins
         }
 
         /// <summary>
-        /// Load a plugin at a given path.
+        ///   Load a plugin at a given path.
         /// </summary>
-        /// <param name="path">The file path of the plugin.</param>
+        /// <param name = "path">The file path of the plugin.</param>
         internal Plugin LoadPluginAtPath(string path)
         {
             Assembly pluginAssembly = Assembly.LoadFile(path);
@@ -47,7 +62,7 @@ namespace IHI.Server.Plugins
             if (specificPluginType == null)
             {
                 CoreManager.ServerCore.GetStandardOut().PrintWarning(Path.GetFileNameWithoutExtension(path) +
-                                                                          " is in the plugin directory but is not a plugin.")
+                                                                     " is in the plugin directory but is not a plugin.")
                     .PrintDebug(path);
                 return null;
             }
@@ -62,7 +77,7 @@ namespace IHI.Server.Plugins
         }
 
         /// <summary>
-        /// Returns a string array containing the paths of all DLL files in the plugins directory.
+        ///   Returns a string array containing the paths of all DLL files in the plugins directory.
         /// </summary>
         internal static IEnumerable<string> GetAllPotentialPluginPaths()
         {
@@ -71,11 +86,11 @@ namespace IHI.Server.Plugins
         }
 
         /// <summary>
-        /// Returns a Plugin array containing all the loaded plugins.
+        ///   Returns a Plugin array containing all the loaded plugins.
         /// </summary>
         public IEnumerable<Plugin> GetLoadedPlugins()
         {
-            var returnArray = new Plugin[_plugins.Values.Count];
+            Plugin[] returnArray = new Plugin[_plugins.Values.Count];
             _plugins.Values.CopyTo(returnArray, 0);
 
             return returnArray;
@@ -91,7 +106,7 @@ namespace IHI.Server.Plugins
             int[] releases;
             if (_compatibleReleases == null)
             {
-                releases  = new int[customAttributes.Length];
+                releases = new int[customAttributes.Length];
                 for (int i = 0; i < customAttributes.Length; i++)
                     releases[i] = (customAttributes[i] as CompatibilityLockAttribute).Release;
 

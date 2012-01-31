@@ -1,4 +1,19 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Collections.Generic;
 
 namespace IHI.Server.Rooms
@@ -59,15 +74,16 @@ namespace IHI.Server.Rooms
         #endregion
 
         /// <summary>
-        /// Returns the current Room the RoomUnit is in.
+        ///   Returns the current Room the RoomUnit is in.
         /// </summary>
         /// <returns></returns>
         public Room GetRoom()
         {
             return Room;
         }
+
         /// <summary>
-        /// Sets the current Room the RoomUnit is in.
+        ///   Sets the current Room the RoomUnit is in.
         /// </summary>
         /// <returns></returns>
         public RoomUnit SetRoom(Room room)
@@ -77,9 +93,9 @@ namespace IHI.Server.Rooms
         }
 
         /// <summary>
-        /// Send the current details of the User to the room.
-        /// The user will poof when used.
-        /// No changes to the User object are made.
+        ///   Send the current details of the User to the room.
+        ///   The user will poof when used.
+        ///   No changes to the User object are made.
         /// </summary>
         /// <returns>The current User object. This allows chaining.</returns>
         public RoomUnit Refresh()
@@ -88,7 +104,7 @@ namespace IHI.Server.Rooms
         }
 
         /// <summary>
-        /// Sets the desired position in the room of this user.
+        ///   Sets the desired position in the room of this user.
         /// </summary>
         /// <returns>The current User object. This allows chaining.</returns>
         public RoomUnit SetDestination(FloorPosition destination)
@@ -98,7 +114,7 @@ namespace IHI.Server.Rooms
         }
 
         /// <summary>
-        /// Returns the desired position in the room of this user.
+        ///   Returns the desired position in the room of this user.
         /// </summary>
         public FloorPosition GetDestination()
         {

@@ -1,4 +1,19 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
@@ -16,11 +31,12 @@ namespace IHI.Server.Install
 
         public override object Run()
         {
-            CoreManager.InstallerCore.Out.OverwritePageContents(ToString("No default! If you leave it blank the password is considered blank!"));
-            
-            var password = new StringBuilder();
-            
-            var cursorHistory = new Stack<Point>();
+            CoreManager.InstallerCore.Out.OverwritePageContents(
+                ToString("No default! If you leave it blank the password is considered blank!"));
+
+            StringBuilder password = new StringBuilder();
+
+            Stack<Point> cursorHistory = new Stack<Point>();
 
             // TODO: Mono Test;
             ConsoleKeyInfo key;
@@ -39,7 +55,7 @@ namespace IHI.Server.Install
 
                     password.Length--;
 
-                    var backCursor = cursorHistory.Pop();
+                    Point backCursor = cursorHistory.Pop();
                     Console.SetCursorPosition(backCursor.X, backCursor.Y);
                     Console.Write(' ');
                     Console.SetCursorPosition(backCursor.X, backCursor.Y);

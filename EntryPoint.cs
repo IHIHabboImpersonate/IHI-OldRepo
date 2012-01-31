@@ -1,4 +1,19 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -8,12 +23,11 @@ namespace IHI.Server
 {
     public static class EntryPoint
     {
-
         [STAThreadAttribute]
         public static void Main(string[] arguments)
         {
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;
-            
+
             UnixAware.UnixMode = false;
             switch (Environment.OSVersion.Platform)
             {
@@ -26,16 +40,16 @@ namespace IHI.Server
             }
 
 
-            var configFile = "config.xml";
-            var disableAutoExit = false;
+            string configFile = "config.xml";
+            bool disableAutoExit = false;
 
-            var nameValueRegex = new Regex("^--(?<name>[\\w-]+)=(?<value>.+)$");
+            Regex nameValueRegex = new Regex("^--(?<name>[\\w-]+)=(?<value>.+)$");
 
-            foreach (var argument in arguments)
+            foreach (string argument in arguments)
             {
-                var nameValueMatch = nameValueRegex.Match(argument);
-                var name = nameValueMatch.Groups["name"].Value;
-                var value = nameValueMatch.Groups["value"].Value;
+                Match nameValueMatch = nameValueRegex.Match(argument);
+                string name = nameValueMatch.Groups["name"].Value;
+                string value = nameValueMatch.Groups["value"].Value;
 
                 switch (name)
                 {
@@ -120,10 +134,10 @@ namespace IHI.Server
 
         private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            if (!e.IsTerminating) 
+            if (!e.IsTerminating)
                 return;
 
-            Console.WindowWidth = Console.BufferWidth = Console.WindowWidth * 2;
+            Console.WindowWidth = Console.BufferWidth = Console.WindowWidth*2;
 
             Exception exception = e.ExceptionObject as Exception;
 
@@ -140,7 +154,7 @@ namespace IHI.Server
             Console.WriteLine("Loaded Assemblies: ");
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if(Assembly.GetCallingAssembly() == assembly)
+                if (Assembly.GetCallingAssembly() == assembly)
                     Console.WriteLine("!!" + assembly.FullName);
                 else
                     Console.WriteLine("  " + assembly.FullName);
@@ -158,7 +172,7 @@ namespace IHI.Server
             Console.WriteLine("Stack Trace:");
             Console.WriteLine("  " + exception.StackTrace.Replace(Environment.NewLine, Environment.NewLine + "  "));
 
-            string  logText = "IHISTOPERROR\x01";
+            string logText = "IHISTOPERROR\x01";
             logText += "TIME\x02" + DateTime.UtcNow + "\x01";
             logText += "ASSEMBLIES\x02";
 
@@ -171,7 +185,7 @@ namespace IHI.Server
             logText += "EXCEPTION-THREAD\x02" + Thread.CurrentThread.Name + "\x01";
 
             int i = 0;
-            while(exception != null)
+            while (exception != null)
             {
                 logText += "EXCEPTION[" + i + "]-TYPE\x02" + exception.GetType().FullName + "\x01";
                 logText += "EXCEPTION[" + i + "]-MESSAGE\x02" + exception.Message + "\x01";
@@ -181,7 +195,8 @@ namespace IHI.Server
                 exception = exception.InnerException;
             }
 
-            string path = Path.Combine(Environment.CurrentDirectory, "dumps", "stoperror-" + DateTime.UtcNow.Ticks + ".ihidump");
+            string path = Path.Combine(Environment.CurrentDirectory, "dumps",
+                                       "stoperror-" + DateTime.UtcNow.Ticks + ".ihidump");
 
             File.WriteAllText(path, logText);
             Console.WriteLine();

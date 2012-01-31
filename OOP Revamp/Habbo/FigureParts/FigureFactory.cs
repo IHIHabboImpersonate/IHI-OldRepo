@@ -1,4 +1,19 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Collections.Generic;
 
 namespace IHI.Server.Habbos.Figure
@@ -17,16 +32,16 @@ namespace IHI.Server.Habbos.Figure
             // TODO: Possible optimisation: Store unparsed string. Don't parse till needed. (Lazy parsing)
 
             // Create a new instance of HabboFigure to work on.
-            var figureInProgress = new HabboFigure(gender);
+            HabboFigure figureInProgress = new HabboFigure(gender);
 
             // Split the input string into parts of the figure.
-            var partStringArray = figureString.Split(new[] {'.'});
+            string[] partStringArray = figureString.Split(new[] {'.'});
 
             // For each part of the figure...
-            foreach (var partString in partStringArray)
+            foreach (string partString in partStringArray)
             {
                 // Split it into part type, model and colours.
-                var detailsArray = partString.Split(new[] {'-'});
+                string[] detailsArray = partString.Split(new[] {'-'});
 
 
                 ushort modelID;
@@ -40,9 +55,9 @@ namespace IHI.Server.Habbos.Figure
                     throw new KeyNotFoundException("Figure ModelID " + modelID + " is not a valid figure part model.");
 
                 // Create a new instance of the figure part.
-                var part = _figureModelIDs[modelID]
-                               .GetConstructor(new Type[0])
-                               .Invoke(new object[0]) as FigurePart;
+                FigurePart part = _figureModelIDs[modelID]
+                                      .GetConstructor(new Type[0])
+                                      .Invoke(new object[0]) as FigurePart;
 
                 // Was a primary colour provided?
                 if (detailsArray.Length > 2)
@@ -96,7 +111,7 @@ namespace IHI.Server.Habbos.Figure
         {
             if (part.IsSubclassOf(typeof (FigurePart)))
             {
-                var modelID = (part.GetConstructors()[0].Invoke(new object[0]) as FigurePart).GetModelID();
+                ushort modelID = (part.GetConstructors()[0].Invoke(new object[0]) as FigurePart).GetModelID();
                 _figureModelIDs.Add(modelID, part);
             }
             return this;
@@ -106,7 +121,7 @@ namespace IHI.Server.Habbos.Figure
         {
             if (part.IsSubclassOf(typeof (FigurePart)))
             {
-                var modelID = (part.GetConstructors()[0].Invoke(new object[0]) as FigurePart).GetModelID();
+                ushort modelID = (part.GetConstructors()[0].Invoke(new object[0]) as FigurePart).GetModelID();
                 if (_figureModelIDs.ContainsKey(modelID))
                     _figureModelIDs.Remove(modelID);
             }

@@ -1,4 +1,19 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 
 namespace Ion.Specialized.Encoding
 {
@@ -16,11 +31,11 @@ namespace Ion.Specialized.Encoding
 
         public static byte[] EncodeInt32(Int32 i)
         {
-            var wf = new byte[MaxIntegerByteAmount];
-            var pos = 0;
-            var numBytes = 1;
-            var startPos = pos;
-            var negativeMask = i >= 0 ? 0 : 4;
+            byte[] wf = new byte[MaxIntegerByteAmount];
+            int pos = 0;
+            int numBytes = 1;
+            int startPos = pos;
+            int negativeMask = i >= 0 ? 0 : 4;
             i = Math.Abs(i);
             wf[pos++] = (byte) (64 + (i & 3));
             for (i >>= 2; i != 0; i >>= MaxIntegerByteAmount)
@@ -31,8 +46,8 @@ namespace Ion.Specialized.Encoding
             wf[startPos] = (byte) (wf[startPos] | numBytes << 3 | negativeMask);
 
             // Skip the null bytes in the result
-            var bzData = new byte[numBytes];
-            for (var x = 0; x < numBytes; x++)
+            byte[] bzData = new byte[numBytes];
+            for (int x = 0; x < numBytes; x++)
             {
                 bzData[x] = wf[x];
             }
@@ -42,13 +57,13 @@ namespace Ion.Specialized.Encoding
 
         public static Int32 DecodeInt32(byte[] bzData, out Int32 totalBytes)
         {
-            var pos = 0;
-            var negative = (bzData[pos] & 4) == 4;
+            int pos = 0;
+            bool negative = (bzData[pos] & 4) == 4;
             totalBytes = bzData[pos] >> 3 & 7;
-            var v = bzData[pos] & 3;
+            int v = bzData[pos] & 3;
             pos++;
-            var shiftAmount = 2;
-            for (var b = 1; b < totalBytes; b++)
+            int shiftAmount = 2;
+            for (int b = 1; b < totalBytes; b++)
             {
                 v |= (bzData[pos] & 0x3f) << shiftAmount;
                 shiftAmount = 2 + 6*b;

@@ -1,11 +1,26 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Net;
 using System.Net.Sockets;
 
 namespace IHI.Server.Networking
 {
     /// <summary>
-    /// Listens for TCP connections at a given port, asynchronously accepting connections and optionally insert them in the Ion environment Connection manager.
+    ///   Listens for TCP connections at a given port, asynchronously accepting connections and optionally insert them in the Ion environment Connection manager.
     /// </summary>
     public class IonTcpConnectionListener
     {
@@ -14,12 +29,12 @@ namespace IHI.Server.Networking
         private readonly AsyncCallback _connectionRequestCallback;
 
         /// <summary>
-        /// An IonTcpConnectionFactory instance that is capable of creating IonTcpConnections.
+        ///   An IonTcpConnectionFactory instance that is capable of creating IonTcpConnections.
         /// </summary>
         private IonTcpConnectionFactory _factory;
 
         /// <summary>
-        /// A System.Networking.Sockets.TcpListener that listens for connections.
+        ///   A System.Networking.Sockets.TcpListener that listens for connections.
         /// </summary>
         private TcpListener _listener;
 
@@ -30,7 +45,7 @@ namespace IHI.Server.Networking
         #region Properties
 
         /// <summary>
-        /// Gets whether the listener is listening for new connections or not.
+        ///   Gets whether the listener is listening for new connections or not.
         /// </summary>
         public bool IsListening { get; private set; }
 
@@ -39,11 +54,11 @@ namespace IHI.Server.Networking
         #region Constructors
 
         /// <summary>
-        /// Constructs an IonTcpConnection listener and binds it to a given local IP address and TCP port.
+        ///   Constructs an IonTcpConnection listener and binds it to a given local IP address and TCP port.
         /// </summary>
-        /// <param name="localIP">The IP address string to parse and bind the listener to.</param>
-        /// <param name="port">The TCP port number to parse the listener to.</param>
-        /// <param name="manager">TODO: Document</param>
+        /// <param name = "localIP">The IP address string to parse and bind the listener to.</param>
+        /// <param name = "port">The TCP port number to parse the listener to.</param>
+        /// <param name = "manager">TODO: Document</param>
         public IonTcpConnectionListener(string localIP, int port, IonTcpConnectionManager manager)
         {
             IPAddress ip;
@@ -53,7 +68,7 @@ namespace IHI.Server.Networking
                 CoreManager.ServerCore.GetStandardOut().PrintWarning(
                     string.Format(
                         "Connection listener was unable to parse the given local IP address '{0}', now binding listener to '{1}'.",
-                        localIP, ip.ToString()));
+                        localIP, ip));
             }
 
             _listener = new TcpListener(ip, port);
@@ -62,8 +77,8 @@ namespace IHI.Server.Networking
             _manager = manager;
 
             CoreManager.ServerCore.GetStandardOut().PrintNotice(
-                string.Format("IonTcpConnectionListener initialized and bound to {0}:{1}.", ip.ToString(),
-                              port.ToString()));
+                string.Format("IonTcpConnectionListener initialized and bound to {0}:{1}.", ip,
+                              port));
         }
 
         #endregion
@@ -71,7 +86,7 @@ namespace IHI.Server.Networking
         #region Methods
 
         /// <summary>
-        /// Starts listening for connections.
+        ///   Starts listening for connections.
         /// </summary>
         public void Start()
         {
@@ -85,7 +100,7 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Stops listening for connections.
+        ///   Stops listening for connections.
         /// </summary>
         public void Stop()
         {
@@ -97,7 +112,7 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Destroys all resources in the Connection listener.
+        ///   Destroys all resources in the Connection listener.
         /// </summary>
         public void Destroy()
         {
@@ -109,7 +124,7 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Waits for the next Connection request in it's own thread.
+        ///   Waits for the next Connection request in it's own thread.
         /// </summary>
         private void WaitForNextConnection()
         {
@@ -118,17 +133,17 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Invoked when the listener asynchronously accepts a new Connection request.
+        ///   Invoked when the listener asynchronously accepts a new Connection request.
         /// </summary>
-        /// <param name="iAr">The IAsyncResult object holding the results of the asynchronous BeginAcceptSocket operation.</param>
+        /// <param name = "iAr">The IAsyncResult object holding the results of the asynchronous BeginAcceptSocket operation.</param>
         private void ConnectionRequest(IAsyncResult iAr)
         {
             try
             {
-                var socket = _listener.EndAcceptSocket(iAr);
+                Socket socket = _listener.EndAcceptSocket(iAr);
                 // TODO: IP blacklist
 
-                var connection = _factory.CreateConnection(socket);
+                IonTcpConnection connection = _factory.CreateConnection(socket);
                 if (connection != null)
                 {
                     _manager.HandleNewConnection(connection);

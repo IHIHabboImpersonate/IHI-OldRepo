@@ -1,4 +1,19 @@
-﻿using System.Collections.Generic;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -23,11 +38,11 @@ namespace IHI.Server.WebAdmin
         }
 
         /// <summary>
-        /// Ensures the web server is running.
+        ///   Ensures the web server is running.
         /// </summary>
         private void Run()
         {
-            using (var listener = new WebAdminServer(_port))
+            using (WebAdminServer listener = new WebAdminServer(_port))
             {
                 listener.IncomingRequest += HandlePath;
                 listener.Start();
@@ -38,7 +53,7 @@ namespace IHI.Server.WebAdmin
 
         private void HandlePath(object sender, HttpRequestEventArgs e)
         {
-            var path = e.RequestContext.Request.Url.AbsolutePath;
+            string path = e.RequestContext.Request.Url.AbsolutePath;
             lock (_paths)
             {
                 if (IsPathHandled(path))
@@ -50,8 +65,8 @@ namespace IHI.Server.WebAdmin
             }
             CoreManager.ServerCore.GetStandardOut().PrintDebug("WebAdmin Request [404]: " + path);
 
-            var response = e.RequestContext.Response;
-            var buffer = Encoding.UTF8.GetBytes("Not Handled!");
+            HttpListenerResponse response = e.RequestContext.Response;
+            byte[] buffer = Encoding.UTF8.GetBytes("Not Handled!");
             response.StatusCode = (int) HttpStatusCode.NotFound;
             response.StatusDescription = "Not Found";
             response.ContentLength64 = buffer.Length;
@@ -63,9 +78,9 @@ namespace IHI.Server.WebAdmin
         }
 
         /// <summary>
-        /// Returns true if a path already has a handler, false otherwise.
+        ///   Returns true if a path already has a handler, false otherwise.
         /// </summary>
-        /// <param name="path">The path to check.</param>
+        /// <param name = "path">The path to check.</param>
         public bool IsPathHandled(string path)
         {
             lock (_paths)
@@ -73,10 +88,10 @@ namespace IHI.Server.WebAdmin
         }
 
         /// <summary>
-        /// Registers a path handler to a path.
+        ///   Registers a path handler to a path.
         /// </summary>
-        /// <param name="path">The path to register to.</param>
-        /// <param name="handler">The handler for the path.</param>
+        /// <param name = "path">The path to register to.</param>
+        /// <param name = "handler">The handler for the path.</param>
         /// <returns>True on success, false on failure (handler already taken).</returns>
         public bool AddPathHandler(string path, HttpPathHandler handler)
         {
@@ -92,9 +107,9 @@ namespace IHI.Server.WebAdmin
         }
 
         /// <summary>
-        /// Unregisters the registered path handler of a path.
+        ///   Unregisters the registered path handler of a path.
         /// </summary>
-        /// <param name="path">The path to register to.</param>
+        /// <param name = "path">The path to register to.</param>
         /// <returns>True on success, false on failure (handler not registered).</returns>
         public bool RemovePathHandler(string path)
         {
@@ -110,9 +125,9 @@ namespace IHI.Server.WebAdmin
         }
 
         /// <summary>
-        /// Get the registered path handler of a path.
+        ///   Get the registered path handler of a path.
         /// </summary>
-        /// <param name="path">The path to get the handler of.</param>
+        /// <param name = "path">The path to get the handler of.</param>
         /// <returns>The HttpPathHandler if it is register, null otherwise.</returns>
         public HttpPathHandler GetPathHandler(string path)
         {
@@ -126,7 +141,7 @@ namespace IHI.Server.WebAdmin
         }
 
         /// <summary>
-        /// Stops the web server.
+        ///   Stops the web server.
         /// </summary>
         internal void Stop()
         {
@@ -137,7 +152,7 @@ namespace IHI.Server.WebAdmin
         public static void SendResponse(HttpListenerResponse response, string pluginName, string content)
         {
             CoreManager.ServerCore.GetStandardOut().PrintDebug("WebAdmin Response [" + pluginName + "]: " + content);
-            var buffer = Encoding.UTF8.GetBytes(content);
+            byte[] buffer = Encoding.UTF8.GetBytes(content);
             response.StatusCode = (int) HttpStatusCode.OK;
             response.StatusDescription = "OK";
             response.ContentType = "text/html; charset=UTF-8";

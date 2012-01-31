@@ -1,18 +1,34 @@
-﻿using System;
-using NET_System = System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Text;
+using NET_System = System;
 
 namespace IHI.Server
 {
     public static class UnixAware
     {
-        public static bool UnixMode
-        {
-            get;
-            internal set;
-        }
+        public static bool UnixMode { get; internal set; }
+
+        #region Nested type: System
+
         public static class System
         {
+            #region Nested type: Console
+
             public static class Console
             {
                 private static ConsoleColor _lastSetBackground = ConsoleColor.Black;
@@ -22,84 +38,86 @@ namespace IHI.Server
                 {
                     get
                     {
-                        if(!UnixMode)
-                            return NET_System.Console.ForegroundColor;
+                        if (!UnixMode)
+                            return global::System.Console.ForegroundColor;
                         return _lastSetForeground;
                     }
                     set
                     {
                         if (!UnixMode)
                         {
-                            NET_System.Console.ForegroundColor = value;
+                            global::System.Console.ForegroundColor = value;
                             return;
                         }
                         _lastSetForeground = value;
                         switch (value)
                         {
                             case ConsoleColor.Black:
-                                NET_System.Console.Write("\x1b[30m");
+                                global::System.Console.Write("\x1b[30m");
                                 break;
                             case ConsoleColor.DarkRed:
-                                NET_System.Console.Write("\x1b[31m");
+                                global::System.Console.Write("\x1b[31m");
                                 break;
                             case ConsoleColor.DarkGreen:
-                                NET_System.Console.Write("\x1b[32m");
+                                global::System.Console.Write("\x1b[32m");
                                 break;
                             case ConsoleColor.DarkYellow:
-                                NET_System.Console.Write("\x1b[33m");
+                                global::System.Console.Write("\x1b[33m");
                                 break;
                             case ConsoleColor.DarkBlue:
-                                NET_System.Console.Write("\x1b[34m");
+                                global::System.Console.Write("\x1b[34m");
                                 break;
                             case ConsoleColor.DarkMagenta:
-                                NET_System.Console.Write("\x1b[35m");
+                                global::System.Console.Write("\x1b[35m");
                                 break;
                             case ConsoleColor.DarkCyan:
-                                NET_System.Console.Write("\x1b[36m");
+                                global::System.Console.Write("\x1b[36m");
                                 break;
                             case ConsoleColor.Gray:
-                                NET_System.Console.Write("\x1b[37m");
+                                global::System.Console.Write("\x1b[37m");
                                 break;
 
                             case ConsoleColor.DarkGray:
-                                NET_System.Console.Write("\x1b[1;30m");
+                                global::System.Console.Write("\x1b[1;30m");
                                 break;
                             case ConsoleColor.Red:
-                                NET_System.Console.Write("\x1b[1;31m");
+                                global::System.Console.Write("\x1b[1;31m");
                                 break;
                             case ConsoleColor.Green:
-                                NET_System.Console.Write("\x1b[1;32m");
+                                global::System.Console.Write("\x1b[1;32m");
                                 break;
                             case ConsoleColor.Yellow:
-                                NET_System.Console.Write("\x1b[1;33m");
+                                global::System.Console.Write("\x1b[1;33m");
                                 break;
                             case ConsoleColor.Blue:
-                                NET_System.Console.Write("\x1b[1;34m");
+                                global::System.Console.Write("\x1b[1;34m");
                                 break;
                             case ConsoleColor.Magenta:
-                                NET_System.Console.Write("\x1b[1;35m");
+                                global::System.Console.Write("\x1b[1;35m");
                                 break;
                             case ConsoleColor.Cyan:
-                                NET_System.Console.Write("\x1b[1;36m");
+                                global::System.Console.Write("\x1b[1;36m");
                                 break;
                             case ConsoleColor.White:
-                                NET_System.Console.Write("\x1b[1;37m");
+                                global::System.Console.Write("\x1b[1;37m");
                                 break;
                         }
                     }
                 }
+
                 public static ConsoleColor BackgroundColor
                 {
                     get
                     {
                         if (!UnixMode)
-                            return NET_System.Console.BackgroundColor;
+                            return global::System.Console.BackgroundColor;
                         return _lastSetBackground;
                     }
                     set
                     {
-                        if (!UnixMode){
-                            NET_System.Console.BackgroundColor = value;
+                        if (!UnixMode)
+                        {
+                            global::System.Console.BackgroundColor = value;
                             return;
                         }
 
@@ -107,53 +125,53 @@ namespace IHI.Server
                         switch (value)
                         {
                             case ConsoleColor.Black:
-                                NET_System.Console.Write("\x1b[40m");
+                                global::System.Console.Write("\x1b[40m");
                                 break;
                             case ConsoleColor.DarkRed:
-                                NET_System.Console.Write("\x1b[41m");
+                                global::System.Console.Write("\x1b[41m");
                                 break;
                             case ConsoleColor.DarkGreen:
-                                NET_System.Console.Write("\x1b[42m");
+                                global::System.Console.Write("\x1b[42m");
                                 break;
                             case ConsoleColor.DarkYellow:
-                                NET_System.Console.Write("\x1b[43m");
+                                global::System.Console.Write("\x1b[43m");
                                 break;
                             case ConsoleColor.DarkBlue:
-                                NET_System.Console.Write("\x1b[44m");
+                                global::System.Console.Write("\x1b[44m");
                                 break;
                             case ConsoleColor.DarkMagenta:
-                                NET_System.Console.Write("\x1b[45m");
+                                global::System.Console.Write("\x1b[45m");
                                 break;
                             case ConsoleColor.DarkCyan:
-                                NET_System.Console.Write("\x1b[46m");
+                                global::System.Console.Write("\x1b[46m");
                                 break;
                             case ConsoleColor.Gray:
-                                NET_System.Console.Write("\x1b[47m");
+                                global::System.Console.Write("\x1b[47m");
                                 break;
 
                             case ConsoleColor.DarkGray:
-                                NET_System.Console.Write("\x1b[1;40m");
+                                global::System.Console.Write("\x1b[1;40m");
                                 break;
                             case ConsoleColor.Red:
-                                NET_System.Console.Write("\x1b[1;41m");
+                                global::System.Console.Write("\x1b[1;41m");
                                 break;
                             case ConsoleColor.Green:
-                                NET_System.Console.Write("\x1b[1;42m");
+                                global::System.Console.Write("\x1b[1;42m");
                                 break;
                             case ConsoleColor.Yellow:
-                                NET_System.Console.Write("\x1b[1;43m");
+                                global::System.Console.Write("\x1b[1;43m");
                                 break;
                             case ConsoleColor.Blue:
-                                NET_System.Console.Write("\x1b[1;44m");
+                                global::System.Console.Write("\x1b[1;44m");
                                 break;
                             case ConsoleColor.Magenta:
-                                NET_System.Console.Write("\x1b[1;45m");
+                                global::System.Console.Write("\x1b[1;45m");
                                 break;
                             case ConsoleColor.Cyan:
-                                NET_System.Console.Write("\x1b[1;46m");
+                                global::System.Console.Write("\x1b[1;46m");
                                 break;
                             case ConsoleColor.White:
-                                NET_System.Console.Write("\x1b[1;47m");
+                                global::System.Console.Write("\x1b[1;47m");
                                 break;
                         }
                     }
@@ -165,13 +183,14 @@ namespace IHI.Server
                     get
                     {
                         if (!UnixMode)
-                            return NET_System.Console.WindowWidth;
+                            return global::System.Console.WindowWidth;
                         return 80;
                     }
                     set
                     {
-                        if (!UnixMode){
-                            NET_System.Console.WindowWidth = value;
+                        if (!UnixMode)
+                        {
+                            global::System.Console.WindowWidth = value;
                             return;
                         }
                     }
@@ -182,13 +201,14 @@ namespace IHI.Server
                     get
                     {
                         if (!UnixMode)
-                            return NET_System.Console.WindowHeight;
+                            return global::System.Console.WindowHeight;
                         return 20;
                     }
                     set
                     {
-                        if (!UnixMode){
-                            NET_System.Console.WindowHeight = value;
+                        if (!UnixMode)
+                        {
+                            global::System.Console.WindowHeight = value;
                             return;
                         }
                     }
@@ -199,13 +219,14 @@ namespace IHI.Server
                     get
                     {
                         if (!UnixMode)
-                            return NET_System.Console.BufferWidth;
+                            return global::System.Console.BufferWidth;
                         return 80;
                     }
                     set
                     {
-                        if (!UnixMode){
-                            NET_System.Console.BufferWidth = value;
+                        if (!UnixMode)
+                        {
+                            global::System.Console.BufferWidth = value;
                             return;
                         }
                     }
@@ -216,14 +237,14 @@ namespace IHI.Server
                     get
                     {
                         if (!UnixMode)
-                            return NET_System.Console.BufferHeight;
+                            return global::System.Console.BufferHeight;
                         return 300;
                     }
                     set
                     {
                         if (!UnixMode)
                         {
-                            NET_System.Console.BufferHeight = value;
+                            global::System.Console.BufferHeight = value;
                             return;
                         }
                     }
@@ -231,13 +252,17 @@ namespace IHI.Server
 
                 public static void Clear()
                 {
-                    NET_System.Console.SetCursorPosition(0, 0);
-                    var blankness = new StringBuilder { Length = BufferWidth * BufferHeight };
-                    NET_System.Console.Write(blankness.ToString());
+                    global::System.Console.SetCursorPosition(0, 0);
+                    StringBuilder blankness = new StringBuilder {Length = BufferWidth*BufferHeight};
+                    global::System.Console.Write(blankness.ToString());
 
-                    NET_System.Console.SetCursorPosition(0, 0);
+                    global::System.Console.SetCursorPosition(0, 0);
                 }
             }
+
+            #endregion
         }
+
+        #endregion
     }
 }

@@ -1,4 +1,19 @@
-﻿using System.Text;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System.Text;
 using IHI.Server.Habbos.Figure;
 using IHI.Server.Rooms;
 
@@ -11,9 +26,9 @@ namespace IHI.Server.Habbos
         private FaceAccessory _faceAccessory;
 
         /// <summary>
-        /// The gender of the user.
-        /// Male = True
-        /// Female = False
+        ///   The gender of the user.
+        ///   Male = True
+        ///   Female = False
         /// </summary>
         private bool _gender;
 
@@ -58,9 +73,9 @@ namespace IHI.Server.Habbos
 
         public override string ToString()
         {
-            var stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
 
-            var prefixRequired = false;
+            bool prefixRequired = false;
 
             if (_body != null)
             {
@@ -262,8 +277,8 @@ namespace IHI.Server.Habbos
 
 
         /// <summary>
-        /// Returns a byte array containing 3 values.
-        /// The values are the RGB colour values of the swim figure.
+        ///   Returns a byte array containing 3 values.
+        ///   The values are the RGB colour values of the swim figure.
         /// </summary>
         public byte[] GetSwimFigure()
         {
@@ -272,8 +287,8 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Returns a byte array containing 3 values.
-        /// The values are the RGB colour values of the swim figure.
+        ///   Returns a byte array containing 3 values.
+        ///   The values are the RGB colour values of the swim figure.
         /// </summary>
         public string GetFormattedSwimFigure()
         {
@@ -282,11 +297,11 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Sets the colour of the swim figure.
+        ///   Sets the colour of the swim figure.
         /// </summary>
-        /// <param name="red">The amount of red in the colour.</param>
-        /// <param name="green">The amount of green in the colour.</param>
-        /// <param name="blue">The amount of blue in the colour.</param>
+        /// <param name = "red">The amount of red in the colour.</param>
+        /// <param name = "green">The amount of green in the colour.</param>
+        /// <param name = "blue">The amount of blue in the colour.</param>
         /// <returns></returns>
         public HabboFigure SetSwimFigure(byte red, byte green, byte blue)
         {

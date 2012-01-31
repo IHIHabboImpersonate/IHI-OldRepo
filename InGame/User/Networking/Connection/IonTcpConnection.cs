@@ -1,4 +1,19 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Net;
 using System.Net.Sockets;
 using IHI.Server.Habbos;
@@ -9,19 +24,19 @@ using Ion.Specialized.Utilities;
 namespace IHI.Server.Networking
 {
     /// <summary>
-    /// Represents a TCP network Connection accepted by an IonTcpConnectionListener. Provides methods for sending and receiving data, aswell as disconnecting the Connection.
+    ///   Represents a TCP network Connection accepted by an IonTcpConnectionListener. Provides methods for sending and receiving data, aswell as disconnecting the Connection.
     /// </summary>
     public class IonTcpConnection
     {
         #region Fields
 
         /// <summary>
-        /// The buffer size for receiving data.
+        ///   The buffer size for receiving data.
         /// </summary>
         private const int ReceivedataBufferSize = 512;
 
         /// <summary>
-        /// The reply to the flash policy request.
+        ///   The reply to the flash policy request.
         /// </summary>
         private static readonly byte[] PolicyReplyData = new byte[]
                                                              {
@@ -65,42 +80,43 @@ namespace IHI.Server.Networking
                                                                  45,
                                                                  112, 111, 108, 105, 99, 121, 62, 0
                                                              };
+
         /// <summary>
-        /// A DateTime object representing the date and time this Connection was created.
+        ///   A DateTime object representing the date and time this Connection was created.
         /// </summary>
         private readonly DateTime _createdAt;
 
         /// <summary>
-        /// The ID of this Connection as a 32 bit unsigned integer.
+        ///   The ID of this Connection as a 32 bit unsigned integer.
         /// </summary>
         private readonly uint _id;
 
-        private PacketHandler[,] _packetHandlers;
+        /// <summary>
+        ///   The User that holds this Connection.
+        /// </summary>
+        internal Habbo Habbo;
 
         /// <summary>
-        /// The byte array holding the buffer for receiving data from client.
+        ///   The byte array holding the buffer for receiving data from client.
         /// </summary>
         private byte[] _dataBuffer;
 
         /// <summary>
-        /// The AsyncCallback instance for the thread for receiving data asynchronously.
+        ///   The AsyncCallback instance for the thread for receiving data asynchronously.
         /// </summary>
         private AsyncCallback _dataReceivedCallback;
 
+        private PacketHandler[,] _packetHandlers;
+
         /// <summary>
-        /// The RouteReceivedDataCallback to route received data to another object.
+        ///   The RouteReceivedDataCallback to route received data to another object.
         /// </summary>
         private RouteReceivedDataCallback _routeReceivedDataCallback;
 
         /// <summary>
-        /// The System.Networking.Sockets.Socket object providing the Connection between client and server.
+        ///   The System.Networking.Sockets.Socket object providing the Connection between client and server.
         /// </summary>
         private Socket _socket;
-
-        /// <summary>
-        /// The User that holds this Connection.
-        /// </summary>
-        internal Habbo Habbo;
 
         #endregion
 
@@ -113,7 +129,7 @@ namespace IHI.Server.Networking
         #region API
 
         /// <summary>
-        /// Returns the ID of this Connection as a 32 bit unsigned integer.
+        ///   Returns the ID of this Connection as a 32 bit unsigned integer.
         /// </summary>
         public uint GetID()
         {
@@ -121,7 +137,7 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Returns the Habbo that is using this Connection.
+        ///   Returns the Habbo that is using this Connection.
         /// </summary>
         public Habbo GetHabbo()
         {
@@ -129,7 +145,7 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Returns the raw binary representation of the remote IP Address in the form of a signed 32bit integer.
+        ///   Returns the raw binary representation of the remote IP Address in the form of a signed 32bit integer.
         /// </summary>
         public int GetIPAddressRaw()
         {
@@ -139,13 +155,13 @@ namespace IHI.Server.Networking
             if (_socket == null || (remoteIP = (_socket.RemoteEndPoint as IPEndPoint)) == null)
                 return 0;
 
-            var bytes = remoteIP.Address.GetAddressBytes();
+            byte[] bytes = remoteIP.Address.GetAddressBytes();
 
             return ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]);
         }
 
         /// <summary>
-        /// Returns the classical string representation of the remote IP Address.
+        ///   Returns the classical string representation of the remote IP Address.
         /// </summary>
         public string GetIPAddressString()
         {
@@ -157,7 +173,7 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Returns the DateTime object representing the date and time this Connection was created at.
+        ///   Returns the DateTime object representing the date and time this Connection was created at.
         /// </summary>
         public DateTime GetCreationDateTime()
         {
@@ -165,7 +181,7 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Returns the age of this Connection as a TimeSpan
+        ///   Returns the age of this Connection as a TimeSpan
         /// </summary>
         public TimeSpan GetAge()
         {
@@ -173,7 +189,7 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Returns true if this Connection still possesses a socket object, false otherwise.
+        ///   Returns true if this Connection still possesses a socket object, false otherwise.
         /// </summary>
         public bool IsAlive()
         {
@@ -181,11 +197,11 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Registers a packet handler.
+        ///   Registers a packet handler.
         /// </summary>
-        /// <param name="headerID">The numeric packet ID to register this handler on.</param>
-        /// <param name="priority">The priority this handler has.</param>
-        /// <param name="handlerDelegate">The delegate that points to the handler.</param>
+        /// <param name = "headerID">The numeric packet ID to register this handler on.</param>
+        /// <param name = "priority">The priority this handler has.</param>
+        /// <param name = "handlerDelegate">The delegate that points to the handler.</param>
         /// <returns>The current Connection. This allows chaining.</returns>
         public IonTcpConnection AddHandler(int headerID, PacketHandlerPriority priority, PacketHandler handlerDelegate)
         {
@@ -196,7 +212,7 @@ namespace IHI.Server.Networking
                     SetHighestHeaderID(headerID + 1);
                 }
             }
-           if (_packetHandlers[headerID, (int) priority] != null)
+            if (_packetHandlers[headerID, (int) priority] != null)
                 lock (_packetHandlers[headerID, (int) priority])
                     _packetHandlers[headerID, (int) priority] += handlerDelegate;
             else
@@ -206,11 +222,11 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Remove a previously registered packet handler.
+        ///   Remove a previously registered packet handler.
         /// </summary>
-        /// <param name="headerID">The numeric packet ID  of the handler.</param>
-        /// <param name="priority">The priority of the handler.</param>
-        /// <param name="handlerDelegate">The delegate that points to the handler.</param>
+        /// <param name = "headerID">The numeric packet ID  of the handler.</param>
+        /// <param name = "priority">The priority of the handler.</param>
+        /// <param name = "handlerDelegate">The delegate that points to the handler.</param>
         /// <returns>The current Connection. This allows chaining.</returns>
         public IonTcpConnection RemoveHandler(int headerID, PacketHandlerPriority priority,
                                               PacketHandler handlerDelegate)
@@ -218,7 +234,7 @@ namespace IHI.Server.Networking
             lock (_packetHandlers[headerID, (int) priority])
                 _packetHandlers[headerID, (int) priority] -= handlerDelegate;
 
-            lock(_packetHandlers)
+            lock (_packetHandlers)
                 if (headerID < _packetHandlers.GetLength(0))
                     SetHighestHeaderID();
             return this;
@@ -229,18 +245,18 @@ namespace IHI.Server.Networking
         #region Constructors
 
         /// <summary>
-        /// Constructs a new instance of IonTcpConnection for a given Connection identifier and socket.
+        ///   Constructs a new instance of IonTcpConnection for a given Connection identifier and socket.
         /// </summary>
-        /// <param name="id">The unique ID used to identify this Connection in the environment.</param>
-        /// <param name="socket">The System.Networking.Sockets.Socket of the new Connection.</param>
+        /// <param name = "id">The unique ID used to identify this Connection in the environment.</param>
+        /// <param name = "socket">The System.Networking.Sockets.Socket of the new Connection.</param>
         public IonTcpConnection(uint id, Socket socket)
         {
             _id = id;
-            
+
             _socket = socket;
             _createdAt = DateTime.Now;
 
-            _packetHandlers = new PacketHandler[0, 4];
+            _packetHandlers = new PacketHandler[0,4];
         }
 
         #endregion
@@ -248,7 +264,7 @@ namespace IHI.Server.Networking
         #region Methods
 
         /// <summary>
-        /// Starts the Connection, prepares the received data buffer and waits for data.
+        ///   Starts the Connection, prepares the received data buffer and waits for data.
         /// </summary>
         internal void Start()
         {
@@ -262,7 +278,7 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Stops the Connection, disconnects the socket and disposes used resources.
+        ///   Stops the Connection, disconnects the socket and disposes used resources.
         /// </summary>
         internal void Stop()
         {
@@ -312,24 +328,24 @@ namespace IHI.Server.Networking
 
         private void SendData(byte[] data)
         {
-                if (!IsAlive())
-                    return;
-                try
-                {
-                    _socket.Send(data);
-                }
-                catch (SocketException)
-                {
-                    Close();
-                }
-                catch (ObjectDisposedException)
-                {
-                    Close();
-                }
-                catch (Exception ex)
-                {
-                    CoreManager.ServerCore.GetStandardOut().PrintException(ex);
-                }
+            if (!IsAlive())
+                return;
+            try
+            {
+                _socket.Send(data);
+            }
+            catch (SocketException)
+            {
+                Close();
+            }
+            catch (ObjectDisposedException)
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                CoreManager.ServerCore.GetStandardOut().PrintException(ex);
+            }
         }
 
         internal void SendData(string data)
@@ -342,16 +358,16 @@ namespace IHI.Server.Networking
             InternalOutgoingMessage message = internalMessage as InternalOutgoingMessage;
             if (Habbo.IsLoggedIn())
                 CoreManager.ServerCore.GetStandardOut().PrintDebug("[" + GetHabbo().GetUsername() + "] <-- " +
-                                                                        message.Header + message.GetContentString());
+                                                                   message.Header + message.GetContentString());
             else
                 CoreManager.ServerCore.GetStandardOut().PrintDebug("[" + GetID() + "] <-- " + message.Header +
-                                                                        message.GetContentString());
+                                                                   message.GetContentString());
 
             SendData(message.GetBytes());
         }
 
         /// <summary>
-        /// Starts the asynchronous wait for new data.
+        ///   Starts the asynchronous wait for new data.
         /// </summary>
         private void WaitForData()
         {
@@ -375,8 +391,7 @@ namespace IHI.Server.Networking
                 CoreManager.ServerCore.GetStandardOut().PrintException(ex);
                 Close();
             }
-        
-    }
+        }
 
         private void DataReceived(IAsyncResult iAr)
         {
@@ -406,7 +421,7 @@ namespace IHI.Server.Networking
             if (numReceivedBytes > 0)
             {
                 // Copy received data buffer
-                var dataToProcess = ByteUtility.ChompBytes(_dataBuffer, 0, numReceivedBytes);
+                byte[] dataToProcess = ByteUtility.ChompBytes(_dataBuffer, 0, numReceivedBytes);
 
                 // Route data to GameClient to parse and process messages
                 RouteData(ref dataToProcess);
@@ -414,12 +429,11 @@ namespace IHI.Server.Networking
 
             // Wait for new data
             WaitForData();
-
         }
 
         private void HandleConnectionData(ref byte[] data)
         {
-            var pos = 0;
+            int pos = 0;
             while (pos < data.Length)
             {
                 try
@@ -434,20 +448,20 @@ namespace IHI.Server.Networking
                     }
 
                     // Total length of message (without this): 3 Base64 bytes                    
-                    var messageLength = Base64Encoding.DecodeInt32(new[] {data[pos++], data[pos++], data[pos++]});
+                    int messageLength = Base64Encoding.DecodeInt32(new[] {data[pos++], data[pos++], data[pos++]});
 
                     // ID of message: 2 Base64 bytes
-                    var messageID = Base64Encoding.DecodeUInt32(new[] {data[pos++], data[pos++]});
+                    uint messageID = Base64Encoding.DecodeUInt32(new[] {data[pos++], data[pos++]});
 
                     // Data of message: (messageLength - 2) bytes
-                    var content = new byte[messageLength - 2];
-                    for (var i = 0; i < content.Length; i++)
+                    byte[] content = new byte[messageLength - 2];
+                    for (int i = 0; i < content.Length; i++)
                     {
                         content[i] = data[pos++];
                     }
 
                     // Create message object
-                    var message = new IncomingMessage(messageID, content);
+                    IncomingMessage message = new IncomingMessage(messageID, content);
 
                     if (Habbo.IsLoggedIn())
                         CoreManager.ServerCore.GetStandardOut().PrintDebug("[" + Habbo.GetUsername() + "] --> " +
@@ -460,7 +474,7 @@ namespace IHI.Server.Networking
 
 
                     // Handle message object
-                    var unknown = true;
+                    bool unknown = true;
 
                     if (_packetHandlers.GetLength(0) > messageID)
                     {
@@ -526,9 +540,9 @@ namespace IHI.Server.Networking
         }
 
         /// <summary>
-        /// Routes a byte array passed as reference to another object.
+        ///   Routes a byte array passed as reference to another object.
         /// </summary>
-        /// <param name="data">The byte array to route.</param>
+        /// <param name = "data">The byte array to route.</param>
         private void RouteData(ref byte[] data)
         {
             if (_routeReceivedDataCallback != null)
@@ -549,7 +563,7 @@ namespace IHI.Server.Networking
         {
             lock (_packetHandlers)
             {
-                PacketHandler[,] array = new PacketHandler[headerID + 1, 4];
+                PacketHandler[,] array = new PacketHandler[headerID + 1,4];
                 if (headerID < _packetHandlers.GetLength(0))
                     Array.Copy(_packetHandlers, array, headerID);
                 else
@@ -557,6 +571,7 @@ namespace IHI.Server.Networking
                 _packetHandlers = array;
             }
         }
+
         private void SetHighestHeaderID()
         {
             lock (_packetHandlers)

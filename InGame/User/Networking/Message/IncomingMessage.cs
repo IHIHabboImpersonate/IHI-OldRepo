@@ -1,33 +1,48 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Text;
 using Ion.Specialized.Encoding;
 
 namespace IHI.Server.Networking.Messages
 {
     /// <summary>
-    /// Represents a Habbo client > server protocol structured message, providing methods to identify and 'read' the message.
+    ///   Represents a Habbo client > server protocol structured message, providing methods to identify and 'read' the message.
     /// </summary>
     public class IncomingMessage
     {
         #region Fields
 
         /// <summary>
-        /// The content of this message as a byte array.
+        ///   The content of this message as a byte array.
         /// </summary>
         private readonly byte[] _content;
 
         /// <summary>
-        /// The ID of this message as an unsigned 32 bit integer.
+        ///   The ID of this message as an unsigned 32 bit integer.
         /// </summary>
         private readonly uint _id;
 
         /// <summary>
-        /// If set to true then lower proirity handlers will not be called.
+        ///   If set to true then lower proirity handlers will not be called.
         /// </summary>
         private bool _cancelled;
 
         /// <summary>
-        /// The current index in the content array, used when reading the message.
+        ///   The current index in the content array, used when reading the message.
         /// </summary>
         private int _contentCursor;
 
@@ -36,7 +51,7 @@ namespace IHI.Server.Networking.Messages
         #region Properties
 
         /// <summary>
-        /// Gets the ID of this message as an unsigned 32 bit integer.
+        ///   Gets the ID of this message as an unsigned 32 bit integer.
         /// </summary>
         public uint GetID()
         {
@@ -44,7 +59,7 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Gets the header of this message, by Base64 encoding the message ID to a 2 byte string.
+        ///   Gets the header of this message, by Base64 encoding the message ID to a 2 byte string.
         /// </summary>
         public string GetHeader()
         {
@@ -52,7 +67,7 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Gets the length of the content in this message.
+        ///   Gets the length of the content in this message.
         /// </summary>
         public int GetContentLength()
         {
@@ -60,21 +75,22 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Gets the amount of unread content bytes.
+        ///   Gets the amount of unread content bytes.
         /// </summary>
         public int GetRemainingContent()
         {
             return (_content.Length - _contentCursor);
         }
+
         #endregion
 
         #region Constructors
 
         /// <summary>
-        /// Constructs a ClientMessage object for a given message ID and a given content byte array.
+        ///   Constructs a ClientMessage object for a given message ID and a given content byte array.
         /// </summary>
-        /// <param name="id">The ID of the message as an unsigned 32 bit integer.</param>
-        /// <param name="bzContent">The content as a byte array. If null is supplied, an empty byte array will be created.</param>
+        /// <param name = "id">The ID of the message as an unsigned 32 bit integer.</param>
+        /// <param name = "bzContent">The content as a byte array. If null is supplied, an empty byte array will be created.</param>
         internal IncomingMessage(uint id, byte[] bzContent)
         {
             if (bzContent == null)
@@ -90,7 +106,7 @@ namespace IHI.Server.Networking.Messages
         #region Methods
 
         /// <summary>
-        /// Resets the client message to it's state when it was constructed by resetting the content reader cursor. This allows to re-read read data.
+        ///   Resets the client message to it's state when it was constructed by resetting the content reader cursor. This allows to re-read read data.
         /// </summary>
         public void Reset()
         {
@@ -98,16 +114,16 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Advances the content cursor by a given amount of bytes.
+        ///   Advances the content cursor by a given amount of bytes.
         /// </summary>
-        /// <param name="n">The amount of bytes to 'skip'.</param>
+        /// <param name = "n">The amount of bytes to 'skip'.</param>
         public void Advance(int n)
         {
             _contentCursor += n;
         }
 
         /// <summary>
-        /// Returns the total content of this message as a string.
+        ///   Returns the total content of this message as a string.
         /// </summary>
         /// <returns>String</returns>
         public string GetContentString()
@@ -116,7 +132,7 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Returns the header and total content of this message as a string.
+        ///   Returns the header and total content of this message as a string.
         /// </summary>
         public string GetFullString()
         {
@@ -124,17 +140,17 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Reads a given amount of bytes from the remaining message content and returns it in a byte array. The reader cursor is incremented during reading.
+        ///   Reads a given amount of bytes from the remaining message content and returns it in a byte array. The reader cursor is incremented during reading.
         /// </summary>
-        /// <param name="numBytes">The amount of bytes to read, advance and return. If there is less remaining data than this value, all remaining data will be read.</param>
+        /// <param name = "numBytes">The amount of bytes to read, advance and return. If there is less remaining data than this value, all remaining data will be read.</param>
         /// <returns>byte[]</returns>
         public byte[] ReadBytes(int numBytes)
         {
             if (numBytes > GetRemainingContent())
                 numBytes = GetRemainingContent();
 
-            var bzData = new byte[numBytes];
-            for (var x = 0; x < numBytes; x++)
+            byte[] bzData = new byte[numBytes];
+            for (int x = 0; x < numBytes; x++)
             {
                 bzData[x] = _content[_contentCursor++];
             }
@@ -143,16 +159,16 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Reads a given amount of bytes from the remaining message content and returns it in a byte array. The reader cursor does not increment during reading.
+        ///   Reads a given amount of bytes from the remaining message content and returns it in a byte array. The reader cursor does not increment during reading.
         /// </summary>
-        /// <param name="numBytes">The amount of bytes to read, advance and return. If there is less remaining data than this value, all remaining data will be read.</param>
+        /// <param name = "numBytes">The amount of bytes to read, advance and return. If there is less remaining data than this value, all remaining data will be read.</param>
         /// <returns>byte[]</returns>
         public byte[] ReadBytesFreezeCursor(int numBytes)
         {
             if (numBytes > GetRemainingContent())
                 numBytes = GetRemainingContent();
 
-            var bzData = new byte[numBytes];
+            byte[] bzData = new byte[numBytes];
             for (int x = 0, y = _contentCursor; x < numBytes; x++, y++)
             {
                 bzData[x] = _content[y];
@@ -162,17 +178,17 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Reads a length-prefixed (Base64) value from the message and returns it as a byte array.
+        ///   Reads a length-prefixed (Base64) value from the message and returns it as a byte array.
         /// </summary>
         /// <returns>byte[]</returns>
         public byte[] ReadPrefixedValue()
         {
-            var length = Base64Encoding.DecodeInt32(ReadBytes(2));
+            int length = Base64Encoding.DecodeInt32(ReadBytes(2));
             return ReadBytes(length);
         }
 
         /// <summary>
-        /// Reads a Base64 boolean and returns it. False is returned if there is no remaining content.
+        ///   Reads a Base64 boolean and returns it. False is returned if there is no remaining content.
         /// </summary>
         /// <returns>Boolean</returns>
         public Boolean PopBase64Boolean()
@@ -191,9 +207,9 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Reads a length prefixed string from the message content and encodes it with a given System.Text.Encoding.
+        ///   Reads a length prefixed string from the message content and encodes it with a given System.Text.Encoding.
         /// </summary>
-        /// <param name="pEncoding">The System.Text.Encoding to encode the string with.</param>
+        /// <param name = "pEncoding">The System.Text.Encoding to encode the string with.</param>
         /// <returns>String</returns>
         public String PopPrefixedString(Encoding pEncoding)
         {
@@ -204,30 +220,30 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Reads a length prefixed string from the message content and encodes it with the IonHabboImpersonate.Server environment default text encoding.
+        ///   Reads a length prefixed string from the message content and encodes it with the IonHabboImpersonate.Server environment default text encoding.
         /// </summary>
         /// <returns>String</returns>
         public String PopPrefixedString()
         {
-            var pEncoding = CoreManager.ServerCore.GetTextEncoding();
+            Encoding pEncoding = CoreManager.ServerCore.GetTextEncoding();
             return PopPrefixedString(pEncoding);
         }
 
         /// <summary>
-        /// Reads a length prefixed string 32 bit integer from the message content and tries to parse it to integer. No exceptions are thrown if parsing fails.
+        ///   Reads a length prefixed string 32 bit integer from the message content and tries to parse it to integer. No exceptions are thrown if parsing fails.
         /// </summary>
         /// <returns>Int32</returns>
         public Int32 PopPrefixedInt32()
         {
             Int32 i;
-            var s = PopPrefixedString(Encoding.UTF8);
+            string s = PopPrefixedString(Encoding.UTF8);
             Int32.TryParse(s, out i);
 
             return i;
         }
 
         /// <summary>
-        /// Reads a length prefixed string 32 bit unsigned integer from the message content and tries to parse it to integer. No exceptions are thrown if parsing fails.
+        ///   Reads a length prefixed string 32 bit unsigned integer from the message content and tries to parse it to integer. No exceptions are thrown if parsing fails.
         /// </summary>
         /// <returns>Int32</returns>
         /// <seealso>PopFixedInt32</seealso>
@@ -237,7 +253,7 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Reads a wire format boolean and returns it. False is returned if there is no remaining content.
+        ///   Reads a wire format boolean and returns it. False is returned if there is no remaining content.
         /// </summary>
         /// <returns>Boolean</returns>
         internal Boolean PopWiredBoolean()
@@ -246,7 +262,7 @@ namespace IHI.Server.Networking.Messages
         }
 
         /// <summary>
-        /// Reads the next wire encoded 32 bit integer from the message content and advances the reader cursor.
+        ///   Reads the next wire encoded 32 bit integer from the message content and advances the reader cursor.
         /// </summary>
         /// <returns>Int32</returns>
         public Int32 PopWiredInt32()
@@ -254,16 +270,16 @@ namespace IHI.Server.Networking.Messages
             if (GetRemainingContent() == 0)
                 return 0;
 
-            var bzData = ReadBytesFreezeCursor(WireEncoding.MaxIntegerByteAmount);
+            byte[] bzData = ReadBytesFreezeCursor(WireEncoding.MaxIntegerByteAmount);
             int totalBytes;
-            var i = WireEncoding.DecodeInt32(bzData, out totalBytes);
+            int i = WireEncoding.DecodeInt32(bzData, out totalBytes);
             _contentCursor += totalBytes;
 
             return i;
         }
 
         /// <summary>
-        /// Reads the next wire encoded unsigned 32 bit integer from the message content and advances the reader cursor.
+        ///   Reads the next wire encoded unsigned 32 bit integer from the message content and advances the reader cursor.
         /// </summary>
         /// <returns>Int32</returns>
         /// <see>PopWiredInt32()</see>
@@ -275,7 +291,7 @@ namespace IHI.Server.Networking.Messages
         #endregion
 
         /// <summary>
-        /// Returns true if the packet has been cancelled.
+        ///   Returns true if the packet has been cancelled.
         /// </summary>
         /// <returns></returns>
         public bool IsCancelled()

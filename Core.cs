@@ -1,8 +1,24 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Xml;
 using IHI.Server.Configuration;
 using IHI.Server.Habbos;
 using IHI.Server.Habbos.Figure;
@@ -34,6 +50,11 @@ namespace IHI.Server
         #endregion
 
         #region API
+
+        public void Shutdown()
+        {
+            // TODO: Safe Shutdown
+        }
 
         public HabboDistributor GetHabboDistributor()
         {
@@ -85,13 +106,10 @@ namespace IHI.Server
             return _habboFigureFactory;
         }
 
-        public void Shutdown()
-        {
-            // TODO: Safe Shutdown
-        }
         #endregion
 
         #region InternalMethods
+
         internal BootResult Boot(string configPath)
         {
             try
@@ -108,13 +126,13 @@ namespace IHI.Server
 
                 _config = new XmlConfig(configPath);
 
-                var mainInstallRequired = PreInstall(); // Register the main installation if required.
+                bool mainInstallRequired = PreInstall(); // Register the main installation if required.
 
                 #region Load Plugins
 
                 _standardOut.PrintNotice("Plugin Manager => Loading plugins...");
                 _pluginManager = new PluginManager();
-                foreach (var path in PluginManager.GetAllPotentialPluginPaths())
+                foreach (string path in PluginManager.GetAllPotentialPluginPaths())
                 {
                     GetPluginManager().LoadPluginAtPath(path);
                 }
@@ -134,25 +152,39 @@ namespace IHI.Server
                     (StandardOutImportance)
                     _config.ValueAsByte("/config/standardout/importance", (byte) StandardOutImportance.Debug));
 
-
                 #endregion
 
                 #region Database
+
                 _standardOut.PrintNotice("MySQL => Preparing database connection settings...");
 
                 try
                 {
-                    var connectionString = new MySqlConnectionStringBuilder
-                                               {
-                                                   Server = _config.ValueAsString("/config/mysql/host"),
-                                                   Port = _config.ValueAsUint("/config/mysql/port", 3306),
-                                                   UserID = _config.ValueAsString("/config/mysql/user"),
-                                                   Password = _config.ValueAsString("/config/mysql/password"),
-                                                   Database = _config.ValueAsString("/config/mysql/database"),
-                                                   Pooling = true,
-                                                   MinimumPoolSize = _config.ValueAsUint("/config/mysql/minpoolsize", 1),
-                                                   MaximumPoolSize = _config.ValueAsUint("/config/mysql/maxpoolsize", 25)
-                                               };
+                    MySqlConnectionStringBuilder connectionString = new MySqlConnectionStringBuilder
+                                                                        {
+                                                                            Server =
+                                                                                _config.ValueAsString(
+                                                                                    "/config/mysql/host"),
+                                                                            Port =
+                                                                                _config.ValueAsUint(
+                                                                                    "/config/mysql/port", 3306),
+                                                                            UserID =
+                                                                                _config.ValueAsString(
+                                                                                    "/config/mysql/user"),
+                                                                            Password =
+                                                                                _config.ValueAsString(
+                                                                                    "/config/mysql/password"),
+                                                                            Database =
+                                                                                _config.ValueAsString(
+                                                                                    "/config/mysql/database"),
+                                                                            Pooling = true,
+                                                                            MinimumPoolSize =
+                                                                                _config.ValueAsUint(
+                                                                                    "/config/mysql/minpoolsize", 1),
+                                                                            MaximumPoolSize =
+                                                                                _config.ValueAsUint(
+                                                                                    "/config/mysql/maxpoolsize", 25)
+                                                                        };
 
                     PrepareSessionFactory(connectionString.ConnectionString);
 
@@ -170,12 +202,15 @@ namespace IHI.Server
                     throw;
                 }
                 _standardOut.PrintNotice("MySQL => Connected!");
+
                 #endregion
 
                 #region Distributors
+
                 _standardOut.PrintNotice("Habbo Distributor => Constructing...");
                 _habboDistributor = new HabboDistributor();
                 _standardOut.PrintNotice("Habbo Distributor => Ready");
+
                 #endregion
 
                 #region Figure Factory
@@ -215,9 +250,9 @@ namespace IHI.Server
 
                 #region Start Plugins
 
-                var pluginManager = GetPluginManager();
+                PluginManager pluginManager = GetPluginManager();
                 _standardOut.PrintNotice("Plugin Manager => Starting plugins...");
-                foreach (var plugin in pluginManager.GetLoadedPlugins())
+                foreach (Plugin plugin in pluginManager.GetLoadedPlugins())
                 {
                     pluginManager.StartPlugin(plugin);
                 }
@@ -261,7 +296,7 @@ namespace IHI.Server
             configuration.SetProperties(properties);
 
             foreach (
-                var file in
+                FileInfo file in
                     new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, "database")).GetFiles("*.dll"))
             {
                 configuration.AddAssembly(Assembly.LoadFile(file.FullName));
@@ -407,24 +442,24 @@ namespace IHI.Server
 
         private void SaveConfigInstallation()
         {
-            var installer = CoreManager.InstallerCore;
+            Install.Core installer = CoreManager.InstallerCore;
 
 
             _standardOut.PrintImportant("Updating configuration file... (Install)");
 
-            var doc = _config.GetInternalDocument();
-            var rootElement = doc.SelectSingleNode("/config");
+            XmlDocument doc = _config.GetInternalDocument();
+            XmlNode rootElement = doc.SelectSingleNode("/config");
 
-            var standardOutElement = doc.CreateElement("standardout");
-            var mySQLElement = doc.CreateElement("mysql");
-            var networkElement = doc.CreateElement("network");
-            var webAdminElement = doc.CreateElement("webadmin");
+            XmlElement standardOutElement = doc.CreateElement("standardout");
+            XmlElement mySQLElement = doc.CreateElement("mysql");
+            XmlElement networkElement = doc.CreateElement("network");
+            XmlElement webAdminElement = doc.CreateElement("webadmin");
 
             #region StandardOut
 
             #region Importance
 
-            var valueElement = doc.CreateElement("importance");
+            XmlElement valueElement = doc.CreateElement("importance");
             valueElement.InnerText = installer.GetInstallerOutputValue("StandardOut", "Importance").ToString();
             standardOutElement.AppendChild(valueElement);
 

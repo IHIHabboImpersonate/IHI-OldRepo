@@ -1,11 +1,25 @@
-﻿using System;
+﻿// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using IHI.Database;
 using IHI.Server.Networking;
 using IHI.Server.Networking.Messages;
 using IHI.Server.Rooms;
-using IHI.Server.Rooms.RoomUnits;
 using NHibernate.Criterion;
 
 namespace IHI.Server.Habbos
@@ -17,8 +31,8 @@ namespace IHI.Server.Habbos
         #region Constructors
 
         /// <summary>
-        /// Construct a prelogin User object.
-        /// DO NOT USE THIS FOR GETTING A USER - USE THE USER DISTRIBUTOR
+        ///   Construct a prelogin User object.
+        ///   DO NOT USE THIS FOR GETTING A USER - USE THE USER DISTRIBUTOR
         /// </summary>
         internal Habbo(IonTcpConnection connection)
         {
@@ -26,10 +40,10 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Construct a User object for the user with the given ID.
-        /// DO NOT USE THIS FOR GETTING A USER - USE THE USER DISTRIBUTOR
+        ///   Construct a User object for the user with the given ID.
+        ///   DO NOT USE THIS FOR GETTING A USER - USE THE USER DISTRIBUTOR
         /// </summary>
-        /// <param name="id">The user ID of user you wish to a User object for.</param>
+        /// <param name = "id">The user ID of user you wish to a User object for.</param>
         internal Habbo(int id)
         {
             _id = id;
@@ -45,10 +59,10 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Construct a User object for the user with the given ID.
-        /// DO NOT USE THIS FOR GETTING A USER - USE THE USER DISTRIBUTOR
+        ///   Construct a User object for the user with the given ID.
+        ///   DO NOT USE THIS FOR GETTING A USER - USE THE USER DISTRIBUTOR
         /// </summary>
-        /// <param name="username">The username of user you wish to a User object for.</param>
+        /// <param name = "username">The username of user you wish to a User object for.</param>
         internal Habbo(string username)
         {
             _username = DisplayName = username;
@@ -82,88 +96,79 @@ namespace IHI.Server.Habbos
         #region Fields
 
         /// <summary>
-        /// The user ID of the user.
+        ///   The user ID of the user.
         /// </summary>
         private readonly int _id;
 
         /// <summary>
-        /// The motto of the user.
+        ///   The motto of the user.
         /// </summary>
         private readonly string _motto;
 
         /// <summary>
-        /// The username of the user.
+        ///   The username of the user.
         /// </summary>
         private readonly string _username;
 
         /// <summary>
-        /// The amount of credits the user has.
-        /// Set to null to update from the database next time the credits are accessed.
+        ///   The amount of credits the user has.
+        ///   Set to null to update from the database next time the credits are accessed.
         /// </summary>
         private int? _creditBalance;
 
         /// <summary>
-        /// The date and time of the last successful logon.
-        /// </summary>
-        private DateTime _lastAccess;
-
-        /// <summary>
-        /// Is the user logged in or is it a PreLoginUser?
+        ///   Is the user logged in or is it a PreLoginUser?
         /// </summary>
         private bool _isLoggedIn;
 
+        /// <summary>
+        ///   The date and time of the last successful logon.
+        /// </summary>
+        private DateTime _lastAccess;
+
         #region Permissions
-        private HashSet<int> _permissions;
+
         private HashSet<string> _fusePermissions;
+        private HashSet<int> _permissions;
         private HashSet<string> _sentFusePermissions;
+
         #endregion
 
         #region Connection Related
 
         /// <summary>
-        /// The current Connection of this user.
+        ///   The current Connection of this user.
         /// </summary>
         private IonTcpConnection _connection;
 
         private Dictionary<string, object> _instanceVariables;
 
         /// <summary>
-        /// True if the user replied to the last ping?
+        ///   True if the user replied to the last ping?
         /// </summary>
         private bool _ponged;
 
         #endregion
 
         #region Events
+
+        public event MessengerBlockFlagEventHandler OnBlockFlagChanged;
         public event HabboEventHandler OnPreHabboLogin;
         public event HabboEventHandler OnHabboLogin;
         public event HabboEventHandler OnRebuildFusePermissions;
-        public event MessengerBlockFlagEventHandler OnBlockFlagChanged;
+
         #endregion
 
-        #region IBefriendable Members
-        public bool BlockStalking
-        {
-            get;
-            set;
-        }
-        public bool BlockRequests
-        {
-            get;
-            set;
-        }
-        public bool BlockInvites
-        {
-            get;
-            set;
-        }
-        #endregion
+        public bool BlockStalking { get; set; }
+        public bool BlockRequests { get; set; }
+        public bool BlockInvites { get; set; }
+
         #endregion
 
         #region Methods
 
         /// <summary>
-        /// The ID of the User.
+        ///   The ID of the User.
         /// </summary>
         public int GetID()
         {
@@ -171,7 +176,7 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// The motto of the User.
+        ///   The motto of the User.
         /// </summary>
         public string GetMotto()
         {
@@ -179,7 +184,7 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// The date of the User's last login.
+        ///   The date of the User's last login.
         /// </summary>
         public DateTime GetLastAccess()
         {
@@ -187,7 +192,7 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Is the user logged in?
+        ///   Is the user logged in?
         /// </summary>
         public bool IsLoggedIn()
         {
@@ -195,7 +200,7 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// The name of the User.
+        ///   The name of the User.
         /// </summary>
         public string GetUsername()
         {
@@ -203,20 +208,20 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Set if the user is logged in.
-        /// This also updates the LastAccess time if required.
+        ///   Set if the user is logged in.
+        ///   This also updates the LastAccess time if required.
         /// </summary>
-        /// <param name="value">The user's new logged in status.</param>
+        /// <param name = "value">The user's new logged in status.</param>
         public Habbo SetLoggedIn(bool value)
         {
-            if(!_isLoggedIn && value)
+            if (!_isLoggedIn && value)
             {
                 HabboEventArgs habboEventArgs = new HabboEventArgs();
                 if (OnPreHabboLogin != null)
                     OnPreHabboLogin(this, habboEventArgs);
 
                 CoreManager.ServerCore.GetHabboDistributor().InvokeOnPreHabboLogin(this, habboEventArgs);
-                if(habboEventArgs.Cancelled)
+                if (habboEventArgs.Cancelled)
                 {
                     GetConnection().Disconnect();
                     return this;
@@ -236,8 +241,9 @@ namespace IHI.Server.Habbos
         }
 
         #region Credits
+
         /// <summary>
-        /// Returns the amount credits the user has.
+        ///   Returns the amount credits the user has.
         /// </summary>
         public int GetCreditBalance()
         {
@@ -256,9 +262,9 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Set the amount credits the user has.
+        ///   Set the amount credits the user has.
         /// </summary>
-        /// <param name="balance">The amount of credits.</param>
+        /// <param name = "balance">The amount of credits.</param>
         public Habbo SetCreditBalance(int balance)
         {
             using (var db = CoreManager.ServerCore.GetDatabaseSession())
@@ -276,9 +282,9 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Adds credits to the user's balance.
+        ///   Adds credits to the user's balance.
         /// </summary>
-        /// <param name="amount">The amount of credits.</param>
+        /// <param name = "amount">The amount of credits.</param>
         public Habbo GiveCredits(int amount)
         {
             using (var db = CoreManager.ServerCore.GetDatabaseSession())
@@ -296,9 +302,9 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Deduct credits from the user's balance.
+        ///   Deduct credits from the user's balance.
         /// </summary>
-        /// <param name="amount">The amount of credits.</param>
+        /// <param name = "amount">The amount of credits.</param>
         public Habbo TakeCredits(int amount)
         {
             using (var db = CoreManager.ServerCore.GetDatabaseSession())
@@ -314,6 +320,7 @@ namespace IHI.Server.Habbos
             }
             return this;
         }
+
         #endregion
 
         #region Connection Related
@@ -328,6 +335,7 @@ namespace IHI.Server.Habbos
             _ponged = true;
             return this;
         }
+
         public bool HasPonged()
         {
             return _ponged;
@@ -343,10 +351,11 @@ namespace IHI.Server.Habbos
         #endregion
 
         #region Permissions
+
         #region IHI Permission System
 
         /// <summary>
-        /// Reloads the permissions for the User.
+        ///   Reloads the permissions for the User.
         /// </summary>
         /// <returns>The User the permissions were reloaded for. This is for Chaining.</returns>
         public Habbo ReloadPermissions()
@@ -356,7 +365,7 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Check if this User has PermissionID.
+        ///   Check if this User has PermissionID.
         /// </summary>
         public bool HasPermission(int permissionID)
         {
@@ -366,7 +375,7 @@ namespace IHI.Server.Habbos
         }
 
         /// <summary>
-        /// Returns all PermissionIDs that this User has.
+        ///   Returns all PermissionIDs that this User has.
         /// </summary>
         public int[] GetPermissions()
         {
@@ -374,7 +383,7 @@ namespace IHI.Server.Habbos
                 ReloadPermissions();
             lock (_permissions)
             {
-                var permissionArray = new int[_permissions.Count];
+                int[] permissionArray = new int[_permissions.Count];
 
                 _permissions.CopyTo(permissionArray);
                 return permissionArray;
@@ -384,11 +393,13 @@ namespace IHI.Server.Habbos
         #endregion
 
         #region Fuse Permission System
+
         public Habbo GiveFusePermission(string fusePermission)
         {
             _fusePermissions.Add(fusePermission);
             return this;
         }
+
         public Habbo RebuildFusePermissions()
         {
             _fusePermissions = new HashSet<string>();
@@ -400,6 +411,7 @@ namespace IHI.Server.Habbos
 
             return this;
         }
+
         public IEnumerable<string> GetFusePermissions(bool excludeSent = false)
         {
             if (_fusePermissions == null)
@@ -408,6 +420,7 @@ namespace IHI.Server.Habbos
                 return _fusePermissions;
             return _fusePermissions.Except(_sentFusePermissions);
         }
+
         public Habbo SetFusePermissionSent(string fusePermission, bool sent = true)
         {
             if (sent)
@@ -416,6 +429,7 @@ namespace IHI.Server.Habbos
                 _sentFusePermissions.Remove(fusePermission);
             return this;
         }
+
         public Habbo SetFusePermissionSent(IEnumerable<string> fusePermissions, bool sent = true)
         {
             if (sent)
@@ -424,13 +438,15 @@ namespace IHI.Server.Habbos
                 _sentFusePermissions.ExceptWith(fusePermissions);
             return this;
         }
+
         #endregion
+
         #endregion
 
         #endregion
 
         #region IBefriendable Members
-        #region IInstanceVariables Members
+
         public object GetInstanceVariable(string name)
         {
             if (_instanceVariables == null || !_instanceVariables.ContainsKey(name))
@@ -450,9 +466,7 @@ namespace IHI.Server.Habbos
 
             return this;
         }
-        #endregion
 
-        #region IPersistantVariables Members
         public string GetPersistantVariable(string name)
         {
             PersistantVariableHabbo variable = new PersistantVariableHabbo
@@ -476,11 +490,11 @@ namespace IHI.Server.Habbos
         public IPersistantVariables SetPersistantVariable(string name, string value)
         {
             PersistantVariableHabbo variable = new PersistantVariableHabbo
-            {
-                habbo_id = _id,
-                variable_name = name,
-                variable_value = value
-            };
+                                                   {
+                                                       habbo_id = _id,
+                                                       variable_name = name,
+                                                       variable_value = value
+                                                   };
 
             using (var db = CoreManager.ServerCore.GetDatabaseSession())
             {
@@ -488,7 +502,6 @@ namespace IHI.Server.Habbos
             }
             return this;
         }
-        #endregion
 
         public bool IsStalkable()
         {
@@ -504,6 +517,7 @@ namespace IHI.Server.Habbos
         {
             throw new NotImplementedException();
         }
+
         #endregion
 
         #region IMessageable Members
