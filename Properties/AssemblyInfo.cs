@@ -23,7 +23,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("IHI Server")]
 [assembly: AssemblyDescription("The core of IHI")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Bluedot")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("IHI Server")]
 [assembly: AssemblyCopyright("Copyright © Cecer1 2011-2012")]
 [assembly: AssemblyTrademark("")]
