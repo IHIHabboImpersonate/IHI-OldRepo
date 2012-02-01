@@ -1,4 +1,6 @@
-﻿// 
+﻿#region GPLv3
+
+// 
 // Copyright (C) 2012  Chris Chenery
 // 
 // This program is free software: you can redistribute it and/or modify
@@ -13,11 +15,20 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+
+#endregion
+
+#region Usings
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using IHI.Server.Networking;
+using NHibernate;
 using NHibernate.Criterion;
+
+#endregion
 
 namespace IHI.Server.Habbos
 {
@@ -137,7 +148,7 @@ namespace IHI.Server.Habbos
         {
             int id;
 
-            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
                 id = db.CreateCriteria<Database.Habbo>()
                     .SetProjection(Projections.Property("habbo_id"))

@@ -1,4 +1,6 @@
-﻿// 
+﻿#region GPLv3
+
+// 
 // Copyright (C) 2012  Chris Chenery
 // 
 // This program is free software: you can redistribute it and/or modify
@@ -13,6 +15,12 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+
+#endregion
+
+#region Usings
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,6 +37,8 @@ using IHI.Server.Users.Permissions;
 using IHI.Server.WebAdmin;
 using MySql.Data.MySqlClient;
 using NHibernate;
+
+#endregion
 
 namespace IHI.Server
 {
@@ -292,7 +302,7 @@ namespace IHI.Server
                                                              {"dialect", "NHibernate.Dialect.MySQL5Dialect"}
                                                          };
 
-            var configuration = new NHibernate.Cfg.Configuration();
+            NHibernate.Cfg.Configuration configuration = new NHibernate.Cfg.Configuration();
             configuration.SetProperties(properties);
 
             foreach (

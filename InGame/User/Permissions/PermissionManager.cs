@@ -1,4 +1,6 @@
-﻿// 
+﻿#region GPLv3
+
+// 
 // Copyright (C) 2012  Chris Chenery
 // 
 // This program is free software: you can redistribute it and/or modify
@@ -13,9 +15,18 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+
+#endregion
+
+#region Usings
+
 using System.Collections.Generic;
 using System.Linq;
 using IHI.Database;
+using NHibernate;
+
+#endregion
 
 namespace IHI.Server.Users.Permissions
 {
@@ -31,7 +42,7 @@ namespace IHI.Server.Users.Permissions
 
             IList<Permission> permissionCache; // Raw permission cache
 
-            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
                 permissionCache = db.CreateCriteria<Permission>()
                     .List<Permission>();

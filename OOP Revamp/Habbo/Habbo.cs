@@ -1,4 +1,6 @@
-﻿// 
+﻿#region GPLv3
+
+// 
 // Copyright (C) 2012  Chris Chenery
 // 
 // This program is free software: you can redistribute it and/or modify
@@ -13,6 +15,12 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+
+#endregion
+
+#region Usings
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +28,10 @@ using IHI.Database;
 using IHI.Server.Networking;
 using IHI.Server.Networking.Messages;
 using IHI.Server.Rooms;
+using NHibernate;
 using NHibernate.Criterion;
+
+#endregion
 
 namespace IHI.Server.Habbos
 {
@@ -49,7 +60,7 @@ namespace IHI.Server.Habbos
             _id = id;
             Database.Habbo habboData;
 
-            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
                 habboData = db.Get<Database.Habbo>(id);
             }
@@ -70,7 +81,7 @@ namespace IHI.Server.Habbos
                                        {
                                            username = username
                                        };
-            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
                 habbo = db.CreateCriteria<Database.Habbo>()
                     .Add(Example.Create(habbo))
@@ -228,9 +239,9 @@ namespace IHI.Server.Habbos
                 }
 
                 _lastAccess = DateTime.Now;
-                using (var db = CoreManager.ServerCore.GetDatabaseSession())
+                using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
                 {
-                    var habbo = db.Get<Database.Habbo>(_id);
+                    Database.Habbo habbo = db.Get<Database.Habbo>(_id);
                     habbo.last_access = _lastAccess;
                     db.Update(habbo);
                 }
@@ -249,7 +260,7 @@ namespace IHI.Server.Habbos
         {
             if (!_creditBalance.HasValue)
             {
-                using (var db = CoreManager.ServerCore.GetDatabaseSession())
+                using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
                 {
                     _creditBalance = db.CreateCriteria<Habbo>()
                         .SetProjection(Projections.Property("credits"))
@@ -267,9 +278,9 @@ namespace IHI.Server.Habbos
         /// <param name = "balance">The amount of credits.</param>
         public Habbo SetCreditBalance(int balance)
         {
-            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                var habboData = db.CreateCriteria<Habbo>()
+                Database.Habbo habboData = db.CreateCriteria<Habbo>()
                     .SetProjection(Projections.Property("credits"))
                     .Add(new EqPropertyExpression("habbo_id", _id.ToString()))
                     .UniqueResult<Database.Habbo>();
@@ -287,9 +298,9 @@ namespace IHI.Server.Habbos
         /// <param name = "amount">The amount of credits.</param>
         public Habbo GiveCredits(int amount)
         {
-            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                var habboData = db.CreateCriteria<Habbo>()
+                Database.Habbo habboData = db.CreateCriteria<Habbo>()
                     .SetProjection(Projections.Property("credits"))
                     .Add(new EqPropertyExpression("habbo_id", _id.ToString()))
                     .UniqueResult<Database.Habbo>();
@@ -307,9 +318,9 @@ namespace IHI.Server.Habbos
         /// <param name = "amount">The amount of credits.</param>
         public Habbo TakeCredits(int amount)
         {
-            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                var habboData = db.CreateCriteria<Habbo>()
+                Database.Habbo habboData = db.CreateCriteria<Habbo>()
                     .SetProjection(Projections.Property("credits"))
                     .Add(new EqPropertyExpression("habbo_id", _id.ToString()))
                     .UniqueResult<Database.Habbo>();
@@ -475,7 +486,7 @@ namespace IHI.Server.Habbos
                                                        variable_name = name
                                                    };
 
-            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
                 variable = db.CreateCriteria<PersistantVariableHabbo>()
                     .Add(Example.Create(variable))
@@ -496,7 +507,7 @@ namespace IHI.Server.Habbos
                                                        variable_value = value
                                                    };
 
-            using (var db = CoreManager.ServerCore.GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
                 db.SaveOrUpdate(variable);
             }
