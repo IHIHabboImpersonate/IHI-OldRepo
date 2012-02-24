@@ -49,6 +49,7 @@ namespace IHI.Server.Rooms
         /// <returns>The current Human object. This allows chaining.</returns>
         public RoomUnit SetDance(byte style)
         {
+            // TODO: Enum
             throw new NotImplementedException();
             return this;
         }

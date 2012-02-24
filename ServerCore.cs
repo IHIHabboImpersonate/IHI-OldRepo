@@ -42,7 +42,7 @@ using NHibernate;
 
 namespace IHI.Server
 {
-    public class Core : IShutdown
+    public class ServerCore : IShutdown
     {
         #region Fields
 

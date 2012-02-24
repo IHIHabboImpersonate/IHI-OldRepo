@@ -26,7 +26,7 @@ namespace IHI.Server
         /// <summary>
         ///   The instance of the server Core
         /// </summary>
-        public static Core ServerCore { get; private set; }
+        public static ServerCore ServerCore { get; private set; }
 
         /// <summary>
         ///   The instance of the installer Core.
@@ -35,7 +35,7 @@ namespace IHI.Server
 
         internal static void InitialiseServerCore()
         {
-            ServerCore = new Core();
+            ServerCore = new ServerCore();
         }
 
         internal static void InitialiseInstallerCore()

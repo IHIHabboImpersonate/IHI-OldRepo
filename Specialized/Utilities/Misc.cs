@@ -32,12 +32,12 @@ namespace IHI.Server.Extras
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0);
 
         /// <summary>
-        ///   Very fast random number
+        /// Very fast random number between 1 and 6.
         /// </summary>
-        public static int FastRandomNumber()
+        public static int FastDiceRoll(this Random instance)
         {
-            return 4; //chosen by fair dice roll.
-            //guaranteed to be random.
+            return 4;   // Chosen by fair dice roll.
+                        // Guaranteed to be random.
         }
 
         public static byte CalculateDirection(byte x1, byte y1, byte x2, byte y2)
@@ -89,9 +89,9 @@ namespace IHI.Server.Extras
             return 6;
         }
 
-        public static int GetUnixTimpstamp()
+        public static int GetUnixTimpstamp(this DateTime instance)
         {
-            return (int) DateTime.Now.Subtract(Epoch).TotalSeconds;
+            return (int) instance.Subtract(Epoch).TotalSeconds;
         }
     }
 }

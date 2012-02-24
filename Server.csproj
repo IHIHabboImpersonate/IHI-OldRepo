@@ -161,7 +161,7 @@
     <Compile Include="OOP Revamp\Rooms\Furni\PrivateFloorFurni.cs" />
     <Compile Include="InGame\User\Networking\ConnectionClosedReason.cs" />
     <Compile Include="InGame\User\Networking\Message\PacketHandlerPriority.cs" />
-    <Compile Include="Core.cs" />
+    <Compile Include="ServerCore.cs" />
     <Compile Include="EntryPoint.cs" />
     <Compile Include="InGame\User\Networking\Connection\IonTcpConnection.cs">
       <SubType>Code</SubType>
@@ -225,6 +225,10 @@
     <Compile Include="InGame\Room\Items\Models\Virtual\VirtualItemModel.cs" />
     <Compile Include="InGame\Room\Items\Models\Physical\Wall\WallItemModel.cs" />
     <Compile Include="UnixAware.cs" />
+    <Compile Include="Useful\NestedSetCollections\NestedSetRemoveChildAction.cs" />
+    <Compile Include="Useful\NestedSetCollections\NestedSetList.cs" />
+    <Compile Include="Useful\NestedSetCollections\NestedSetDictionary.cs" />
+    <Compile Include="Useful\NestedSetCollections\NestedSetValue.cs" />
     <Compile Include="WebAdmin\WebAdminManager.cs" />
     <Compile Include="WebAdmin\WebAdminServer.cs" />
   </ItemGroup>
