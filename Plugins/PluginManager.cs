@@ -92,7 +92,7 @@ namespace IHI.Server.Plugins
         internal static IEnumerable<string> GetAllPotentialPluginPaths()
         {
             return Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "plugins"), "*.dll",
-                                      SearchOption.TopDirectoryOnly);
+                                      SearchOption.AllDirectories);
         }
 
         /// <summary>
