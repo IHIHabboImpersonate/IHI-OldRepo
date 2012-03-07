@@ -73,7 +73,7 @@ namespace IHI.Server.Useful.Collections
         /// <param name="key">The key to locate in the <see cref="T:System.Collections.Generic.IDictionary`2"/>.</param><exception cref="T:System.ArgumentNullException"><paramref name="key"/> is null.</exception>
         public bool ContainsKey(TKey key)
         {
-            throw new NotImplementedException();
+            return _positionCache.Contains(key);
         }
 
         /// <summary>
