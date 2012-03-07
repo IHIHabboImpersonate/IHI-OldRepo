@@ -266,7 +266,7 @@ namespace IHI.Server.Networking.Messages
         ///   Reads a wire format boolean and returns it. False is returned if there is no remaining content.
         /// </summary>
         /// <returns>Boolean</returns>
-        internal Boolean PopWiredBoolean()
+        public Boolean PopWiredBoolean()
         {
             return (GetRemainingContent() > 0 && _content[_contentCursor++] == WireEncoding.Positive);
         }
