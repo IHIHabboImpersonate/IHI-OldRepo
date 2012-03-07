@@ -229,6 +229,7 @@
     <Compile Include="Useful\NestedSetCollections\NestedSetList.cs" />
     <Compile Include="Useful\NestedSetCollections\NestedSetDictionary.cs" />
     <Compile Include="Useful\NestedSetCollections\NestedSetValue.cs" />
+    <Compile Include="Useful\BiDirectionalDictionary\BiDirectionalDictionary.cs" />
     <Compile Include="WebAdmin\WebAdminManager.cs" />
     <Compile Include="WebAdmin\WebAdminServer.cs" />
   </ItemGroup>
