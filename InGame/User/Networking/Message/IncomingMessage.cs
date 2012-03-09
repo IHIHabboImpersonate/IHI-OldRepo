@@ -103,11 +103,8 @@ namespace IHI.Server.Networking.Messages
         /// <param name = "bzContent">The content as a byte array. If null is supplied, an empty byte array will be created.</param>
         internal IncomingMessage(uint id, byte[] bzContent)
         {
-            if (bzContent == null)
-                bzContent = new byte[0];
-
             _id = id;
-            _content = bzContent;
+            _content = bzContent ?? new byte[0];
             _contentCursor = 0;
         }
 
@@ -223,10 +220,7 @@ namespace IHI.Server.Networking.Messages
         /// <returns>String</returns>
         public String PopPrefixedString(Encoding pEncoding)
         {
-            if (pEncoding == null)
-                pEncoding = CoreManager.ServerCore.GetTextEncoding();
-
-            return pEncoding.GetString(ReadPrefixedValue());
+            return (pEncoding ?? CoreManager.ServerCore.GetTextEncoding()).GetString(ReadPrefixedValue());
         }
 
         /// <summary>

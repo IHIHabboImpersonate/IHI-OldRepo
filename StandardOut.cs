@@ -184,8 +184,7 @@ namespace IHI.Server
         private void Raw(string header, string message, ConsoleColor colour, bool record = true,
                          DateTime? timestamp = null)
         {
-            if (timestamp == null)
-                timestamp = DateTime.Now;
+            timestamp = timestamp ?? DateTime.Now;
 
             if (record)
                 PushHistroy(header, message, colour, timestamp.Value);
