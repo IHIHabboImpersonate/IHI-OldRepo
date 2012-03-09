@@ -36,6 +36,7 @@ namespace IHI.Server
         [STAThreadAttribute]
         public static void Main(string[] arguments)
         {
+            Thread.CurrentThread.Name = "IHI-EntryThread";
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;
 
             UnixAware.UnixMode = false;
@@ -110,7 +111,7 @@ namespace IHI.Server
             }
 
             Console.Beep();
-
+            
             CoreManager.InitialiseServerCore();
             CoreManager.InitialiseInstallerCore();
 
@@ -146,6 +147,11 @@ namespace IHI.Server
         {
             if (!e.IsTerminating)
                 return;
+
+            if(CoreManager.ServerCore != null)
+                if(CoreManager.ServerCore.GetStandardOut() != null)
+                    CoreManager.ServerCore.GetStandardOut().SetHidden(true);
+
 
             Console.WindowWidth = Console.BufferWidth = Console.WindowWidth*2;
 
