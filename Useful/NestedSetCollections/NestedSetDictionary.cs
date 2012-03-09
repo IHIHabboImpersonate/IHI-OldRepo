@@ -88,7 +88,14 @@ namespace IHI.Server.Useful.Collections
         /// </summary>
         public void AddAsChildOf(TKey key, TValue value, TKey parentKey)
         {
-            for (int i = _values[parentKey].Right; i < _positionCache.Length - 1; i++)
+            NestedSetData<TValue> newData = new NestedSetData<TValue>
+            {
+                Left = _values[parentKey].Right,
+                Right = _values[parentKey].Right+1,
+                Value = value
+            };
+
+            for (int i = _values[parentKey].Right; i < _positionCache.Length; i++)
             {
                 NestedSetData<TValue> workingData = _values[_positionCache[i]];
                 workingData.Left += 2;
@@ -98,18 +105,20 @@ namespace IHI.Server.Useful.Collections
                 _values.Remove(_positionCache[i]);
                 _values.Add(_positionCache[i], workingData);
             }
-            _values.Add(key, new NestedSetData<TValue>
-            {
-                Left = _values[parentKey].Right - 2,
-                Right = _values[parentKey].Right -1,
-                                       Value = value
-            });
+            _values.Add(key, newData);
             Rebuild();
         }
 
         public void AddLeftOf(TKey key, TValue value, TKey siblingKey)
         {
-            for (int i = _values[siblingKey].Left; i < _positionCache.Length - 1; i++)
+            NestedSetData<TValue> newData = new NestedSetData<TValue>
+                                   {
+                                       Left = _values[siblingKey].Left - 2,
+                                       Right = _values[siblingKey].Left - 1,
+                                       Value = value
+                                   };
+
+            for (int i = _values[siblingKey].Left; i < _positionCache.Length; i++)
             {
                 NestedSetData<TValue> workingData = _values[_positionCache[i]];
                 workingData.Left += 2;
@@ -119,18 +128,20 @@ namespace IHI.Server.Useful.Collections
                 _values.Remove(_positionCache[i]);
                 _values.Add(_positionCache[i], workingData);
             }
-            _values.Add(key, new NestedSetData<TValue>
-                                   {
-                                       Left = _values[siblingKey].Right + 1,
-                                       Right = _values[siblingKey].Right + 2,
-                                       Value = value
-                                   });
+            _values.Add(key, newData);
             Rebuild();
         }
 
         public void AddRightOf(TKey key, TValue value, TKey siblingKey)
         {
-            for (int i = _values[siblingKey].Right + 1; i < _positionCache.Length - 1; i++)
+            NestedSetData<TValue> newData = new NestedSetData<TValue>
+            {
+                Left = _values[siblingKey].Right + 1,
+                Right = _values[siblingKey].Right + 2,
+                Value = value
+            }; 
+            
+            for (int i = _values[siblingKey].Right + 1; i < _positionCache.Length; i++)
             {
                 NestedSetData<TValue> workingData = _values[_positionCache[i]];
                 workingData.Left += 2;
@@ -140,12 +151,7 @@ namespace IHI.Server.Useful.Collections
                 _values.Remove(_positionCache[i]);
                 _values.Add(_positionCache[i], workingData);
             }
-            _values.Add(key, new NestedSetData<TValue>
-                                   {
-                                       Left = _values[siblingKey].Right + 1,
-                                       Right = _values[siblingKey].Right + 2,
-                                       Value = value
-                                   });
+            _values.Add(key, newData);
             Rebuild();
         }
         #endregion

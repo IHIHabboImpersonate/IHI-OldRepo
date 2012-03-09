@@ -59,7 +59,7 @@ namespace IHI.Server.Useful.Collections
         /// </summary>
         public void AddAsChildOf(T value, T parent)
         {
-            for (int i = _values[parent].Right; i < _positionCache.Length - 1; i++)
+            for (int i = _values[parent].Right; i < _positionCache.Length; i++)
             {
                 NestedSetData workingData = _values[_positionCache[i]];
                 workingData.Left += 2;
@@ -79,7 +79,7 @@ namespace IHI.Server.Useful.Collections
 
         public void AddLeftOf(T value, T sibling)
         {
-            for (int i = _values[sibling].Left; i < _positionCache.Length - 1; i++)
+            for (int i = _values[sibling].Left; i < _positionCache.Length; i++)
             {
                 NestedSetData workingData = _values[_positionCache[i]];
                 workingData.Left += 2;
@@ -99,7 +99,7 @@ namespace IHI.Server.Useful.Collections
 
         public void AddRightOf(T value, T sibling)
         {
-            for (int i = _values[sibling].Right + 1; i < _positionCache.Length - 1; i++)
+            for (int i = _values[sibling].Right + 1; i < _positionCache.Length; i++)
             {
                 NestedSetData workingData = _values[_positionCache[i]];
                 workingData.Left += 2;
@@ -161,7 +161,7 @@ namespace IHI.Server.Useful.Collections
                 }
             }
 
-            for (int i = _values[item].Right+1; i < _positionCache.Length - 1; i++)
+            for (int i = _values[item].Right+1; i < _positionCache.Length; i++)
             {
                 NestedSetData workingData = _values[_positionCache[i]];
                 workingData.Left += correctionRequired;
