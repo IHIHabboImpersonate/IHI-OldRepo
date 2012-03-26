@@ -51,14 +51,16 @@ namespace IHI.Server.Useful.Collections
         }
 
         #region ToNameLaterBecauseICantThinkRightNow
-        public IEnumerable<TValue> GetChildren(TKey key)
+        public ICollection<TValue> GetChildren(TKey key)
         {
             NestedSetData<TValue> parentData = _values[key];
 
+            List<TValue> children = new List<TValue>();
             for(int i = parentData.Left+1; i < parentData.Right; i++)
             {
-                yield return _values[_positionCache[i]].Value;
+                children.Add(_values[_positionCache[i]].Value);
             }
+            return children;
         }
         #endregion
 
@@ -88,14 +90,16 @@ namespace IHI.Server.Useful.Collections
         /// </summary>
         public void AddAsChildOf(TKey key, TValue value, TKey parentKey)
         {
+            NestedSetData<TValue> parentData = _values[parentKey];
+
             NestedSetData<TValue> newData = new NestedSetData<TValue>
             {
-                Left = _values[parentKey].Right,
-                Right = _values[parentKey].Right+1,
+                Left = parentData.Right,
+                Right = parentData.Right + 1,
                 Value = value
             };
 
-            for (int i = _values[parentKey].Right; i < _positionCache.Length; i++)
+            for (int i = parentData.Right + 1; i < _positionCache.Length; i++)
             {
                 NestedSetData<TValue> workingData = _values[_positionCache[i]];
                 workingData.Left += 2;
@@ -105,6 +109,12 @@ namespace IHI.Server.Useful.Collections
                 _values.Remove(_positionCache[i]);
                 _values.Add(_positionCache[i], workingData);
             }
+
+            // Update the parent
+            parentData.Right += 2;
+            _values.Remove(parentKey);
+            _values.Add(parentKey, parentData);
+
             _values.Add(key, newData);
             Rebuild();
         }
