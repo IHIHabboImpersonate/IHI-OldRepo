@@ -38,9 +38,9 @@ namespace IHI.Server.Plugins
         private HashSet<int> _compatibleReleases;
 
         /// <summary>
-        ///   Load and start a plugin with a relative path to the plugin directory.
+        /// Removed (To be rewritten) - Reason: Wrong documention is worse than none.
         /// </summary>
-        /// <param name = "name">The filename of the plugin MINUS THE .dll!!</param>
+        /// <param name = "name">Removed (To be rewritten) - Reason: Wrong documention is worse than none.</param>
         public Plugin GetPlugin(string name)
         {
             if (_plugins.ContainsKey(name))
