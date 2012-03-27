@@ -80,7 +80,9 @@ namespace IHI.Server.Plugins
                 throw new IncompatiblePluginException();
 
             Plugin pluginInstance = Activator.CreateInstance(specificPluginType) as Plugin;
-            pluginInstance.Name = Path.GetFileNameWithoutExtension(path);
+
+            if(pluginInstance.Name == null)
+                pluginInstance.Name = Path.GetFileNameWithoutExtension(path);
             _plugins.Add(pluginInstance.Name, pluginInstance);
 
             return pluginInstance;
