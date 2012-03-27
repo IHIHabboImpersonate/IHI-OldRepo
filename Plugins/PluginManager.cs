@@ -55,6 +55,7 @@ namespace IHI.Server.Plugins
         internal PluginManager StartPlugin(Plugin plugin)
         {
             plugin.Start();
+            plugin.StartedResetEvent.Set();
             CoreManager.ServerCore.GetStandardOut().PrintNotice("Plugin " + plugin.Name + " has been started.");
             return this;
         }
