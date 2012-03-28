@@ -142,9 +142,15 @@ namespace IHI.Server
 
                 _standardOut.PrintNotice("Plugin Manager => Loading plugins...");
                 _pluginManager = new PluginManager();
-                foreach (string path in PluginManager.GetAllPotentialPluginPaths())
+
+                XmlNodeList pluginNodes = GetConfig().GetInternalDocument().SelectNodes("/config/plugins/plugin");
+                foreach (XmlNode pluginNode in pluginNodes)
                 {
-                    GetPluginManager().LoadPluginAtPath(path);
+                    GetPluginManager().LoadPluginAtPath(
+                        Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "plugins",
+                            pluginNode.Attributes["filename"].InnerText));
                 }
                 _standardOut.PrintNotice("Plugin Manager => Plugins loaded!");
 
@@ -262,6 +268,7 @@ namespace IHI.Server
 
                 PluginManager pluginManager = GetPluginManager();
                 _standardOut.PrintNotice("Plugin Manager => Starting plugins...");
+                
                 foreach (Plugin plugin in pluginManager.GetLoadedPlugins())
                 {
                     pluginManager.StartPlugin(plugin);
