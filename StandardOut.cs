@@ -267,7 +267,7 @@ namespace IHI.Server
         private static string SaveExceptionToFile(Exception exception)
         {
             StringBuilder logText = new StringBuilder("IHIEXCEPTION\x01");
-            logText.Append("TIME\x02" + DateTime.UtcNow + "\x01");
+            logText.Append("TIME\x02" + DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds + "\x01");
 
             logText.Append("EXCEPTION-THREAD\x02" + Thread.CurrentThread.Name + "\x01");
 

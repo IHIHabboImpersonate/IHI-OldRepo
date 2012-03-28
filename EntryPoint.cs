@@ -189,7 +189,7 @@ namespace IHI.Server
             Console.WriteLine("  " + exception.StackTrace.Replace(Environment.NewLine, Environment.NewLine + "  "));
 
             string logText = "IHISTOPERROR\x01";
-            logText += "TIME\x02" + DateTime.UtcNow + "\x01";
+            logText += "TIME\x02" + DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds + "\x01";
             logText += "ASSEMBLIES\x02";
 
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
