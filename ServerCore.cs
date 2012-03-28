@@ -317,7 +317,7 @@ namespace IHI.Server
 
         private bool PreInstall()
         {
-            if (_config.WasCreated()) // Did the config file have to be created?
+            if (_config.WasCreated) // Did the config file have to be created?
             {
                 // Yes, add to the Installer Core.
                 CoreManager.InstallerCore.

@@ -31,9 +31,17 @@ namespace IHI.Server.Configuration
 {
     public class XmlConfig
     {
-        private readonly bool _created; // Set to true when EnsureFile had to create the file.
         private readonly XmlDocument _document;
         private readonly string _path;
+
+        /// <summary>
+        ///   True if the file required creating when constructing this object, false otherwise.
+        /// </summary>
+        public bool WasCreated
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         ///   Loads an Xml config file into memory.
@@ -41,11 +49,14 @@ namespace IHI.Server.Configuration
         /// <param name = "path">The path to the Xml config file.</param>
         public XmlConfig(string path)
         {
-            if (!EnsureFile(new FileInfo(path), out _created))
+            bool wasCreated = false;
+
+            if (!EnsureFile(new FileInfo(path), out wasCreated))
             {
                 CoreManager.ServerCore.GetStandardOut().PrintError("File '" + path +
                                                                    "' does not exist and couldn't be created automatically! (XmlConfig)");
             }
+            WasCreated = wasCreated;
 
             _document = new XmlDocument();
 
@@ -300,15 +311,6 @@ namespace IHI.Server.Configuration
                 return "";
             return node.Value;
         }
-
-        /// <summary>
-        ///   Returns true if the file required creating when constructing this object.
-        /// </summary>
-        public bool WasCreated()
-        {
-            return _created;
-        }
-
 
         /// <summary>
         ///   Creates a file if it doesn't exist, creating all non-existing parent directories in the process.
