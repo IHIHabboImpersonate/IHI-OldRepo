@@ -66,6 +66,12 @@ namespace IHI.Server.Plugins
         /// <param name = "path">The file path of the plugin.</param>
         internal Plugin LoadPluginAtPath(string path)
         {
+            if (!new FileInfo(path).Exists)
+            {
+                CoreManager.ServerCore.GetStandardOut().PrintWarning("Plugin does not exist: " + path);
+                return null;
+            }
+
             Assembly pluginAssembly = Assembly.LoadFile(path);
             Type genericPluginType = typeof (Plugin);
             Type specificPluginType = pluginAssembly.GetTypes().FirstOrDefault(T => T.IsSubclassOf(genericPluginType));
