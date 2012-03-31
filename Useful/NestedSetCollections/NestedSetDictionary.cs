@@ -55,7 +55,7 @@ namespace IHI.Server.Useful.Collections
         {
             NestedSetData<TValue> parentData = _values[key];
 
-            List<TValue> children = new List<TValue>();
+            HashSet<TValue> children = new HashSet<TValue>();
             for(int i = parentData.Left+1; i < parentData.Right; i++)
             {
                 children.Add(_values[_positionCache[i]].Value);
@@ -99,21 +99,19 @@ namespace IHI.Server.Useful.Collections
                 Value = value
             };
 
-            for (int i = parentData.Right + 1; i < _positionCache.Length; i++)
+            for (int i = parentData.Right; i < _positionCache.Length; i++)
             {
                 NestedSetData<TValue> workingData = _values[_positionCache[i]];
-                workingData.Left += 2;
-                workingData.Right += 2;
+
+                if (workingData.Left == i) // Messy but I couldn't think of a better way.
+                    workingData.Left += 2;
+                else
+                    workingData.Right += 2;
 
                 // Replace the value
                 _values.Remove(_positionCache[i]);
                 _values.Add(_positionCache[i], workingData);
             }
-
-            // Update the parent
-            parentData.Right += 2;
-            _values.Remove(parentKey);
-            _values.Add(parentKey, parentData);
 
             _values.Add(key, newData);
             Rebuild();
