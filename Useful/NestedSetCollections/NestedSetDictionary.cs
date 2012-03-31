@@ -129,8 +129,10 @@ namespace IHI.Server.Useful.Collections
             for (int i = _values[siblingKey].Left; i < _positionCache.Length; i++)
             {
                 NestedSetData<TValue> workingData = _values[_positionCache[i]];
-                workingData.Left += 2;
-                workingData.Right += 2;
+                if (workingData.Left == i) // Messy but I couldn't think of a better way.
+                    workingData.Left += 2;
+                else
+                    workingData.Right += 2;
 
                 // Replace the value
                 _values.Remove(_positionCache[i]);
@@ -152,8 +154,10 @@ namespace IHI.Server.Useful.Collections
             for (int i = _values[siblingKey].Right + 1; i < _positionCache.Length; i++)
             {
                 NestedSetData<TValue> workingData = _values[_positionCache[i]];
-                workingData.Left += 2;
-                workingData.Right += 2;
+                if (workingData.Left == i) // Messy but I couldn't think of a better way.
+                    workingData.Left += 2;
+                else
+                    workingData.Right += 2;
 
                 // Replace the value
                 _values.Remove(_positionCache[i]);
